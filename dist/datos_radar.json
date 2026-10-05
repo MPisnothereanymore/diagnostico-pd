@@ -887,11 +887,11 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 24,
-    "montoTotalCLP": 23649135.0,
-    "montoRetenidoAraucania": 21273415.0,
-    "porcentajeRetencionLocal": "90.0%",
-    "porcentajeFugaSantiago": "10.0%",
+    "totalRegistros": 34,
+    "montoTotalCLP": 30195477.0,
+    "montoRetenidoAraucania": 25267362.0,
+    "porcentajeRetencionLocal": "83.7%",
+    "porcentajeFugaSantiago": "16.3%",
     "ultimasCompras": [
       {
         "fecha": "01/10/2026",
@@ -1204,8 +1204,138 @@
         "regionProveedor": "Región de la Araucanía",
         "esLocal": true,
         "montoCLP": 502521.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "1658-2846-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 1658-1296-COT26",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "EYB COMERCIAL LIMITADA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 479800.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3921-512-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 3921-371-COT26",
+        "organismo": "I. Municipalidad de Villarrica",
+        "comuna": "Villarrica",
+        "codTerritorio": "LAC",
+        "territorio": "Araucanía Lacustre",
+        "proveedor": "COMERCIALIZADORA TRAUMA STOCK SPA",
+        "regionProveedor": "Región Metropolitana de Santiago",
+        "esLocal": false,
+        "montoCLP": 2065000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3907-88-AG26",
+        "nombre": " INDUMENTARIA INSTITUCIONAL PARA PERSONAL Y MONITORES OMD: 3907-84-COT26",
+        "organismo": "I. Municipalidad de Renaico",
+        "comuna": "Renaico",
+        "codTerritorio": "MNO",
+        "territorio": "Malleco Norte",
+        "proveedor": "SILVIA ISABEL MUÑOZ SANHUEZA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 856000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3869-603-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 3869-799-COT26",
+        "organismo": "I. Municipalidad de Gorbea",
+        "comuna": "Gorbea",
+        "codTerritorio": "CSU",
+        "territorio": "Cautín Sur",
+        "proveedor": "MARIANELA VIVIANA LARA IBARRA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 81800.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3485-833-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 3485-950-COT26",
+        "organismo": "I. Municipalidad de Nueva Imperial",
+        "comuna": "Nueva Imperial",
+        "codTerritorio": "COS",
+        "territorio": "Costa Araucanía",
+        "proveedor": "Servicios Agroecologicos",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 147000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3799-328-AG26",
+        "nombre": "ALL IN ONE SECRETARIA SECPLAN",
+        "organismo": "I. Municipalidad de Purén",
+        "comuna": "Purén",
+        "codTerritorio": "NAH",
+        "territorio": "Nahuelbuta",
+        "proveedor": "SOC TECNOLOGICA Y SERVICIOS EXPRESS LIMITADA",
+        "regionProveedor": "Región del Maule",
+        "esLocal": false,
+        "montoCLP": 487395.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3742-202-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 3742-123-COT26",
+        "organismo": "I. Municipalidad de Los Sauces",
+        "comuna": "Los Sauces",
+        "codTerritorio": "NAH",
+        "territorio": "Nahuelbuta",
+        "proveedor": "JP MOTORSPORT SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 1078365.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3709-1070-SE26",
+        "nombre": "3709-2-LE26 ARRIENDO SERVICIO PARA ACTIVIDAD EXTRAESCOLAR MUESTRA FOLCLORICA, DEM, SUBVENCION",
+        "organismo": "I. Municipalidad de Victoria",
+        "comuna": "Victoria",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "LUIS GASPAR BELTRÁN TRAIPE",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 290000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "4057-708-AG26",
+        "nombre": "ADQ. GALVANOS PERSONALIZADOS LICEO BICENTENARIO SEP - Orden de Compra generada por invitación a compra ágil: 4057-769-COT26",
+        "organismo": "I. Municipalidad de Lonquimay",
+        "comuna": "Lonquimay",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "IX LETREROS TALLADOS SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 1039974.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "4113-843-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 4113-451-COT26",
+        "organismo": "I. Municipalidad de Melipeuco",
+        "comuna": "Melipeuco",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "NEXO SERVICIOS SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 21008.0
       }
     ]
   },
-  "fechaActualizacion": "05/10/2026 10:15:01"
+  "fechaActualizacion": "05/10/2026 13:20:52"
 }
