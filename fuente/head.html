@@ -1,0 +1,793 @@
+<script>
+  window.__LIVE_WORKSPACE_DATA__ = null;
+  window.handleLiveSync = function(data) {
+    window.__LIVE_WORKSPACE_DATA__ = data;
+    if (typeof window.applyLiveWorkspaceData === 'function') {
+      window.applyLiveWorkspaceData(data);
+    }
+  };
+</script>
+<title>Radar FRPD Araucanía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: consola oscura de decisión. Barra superior con pestañas; cada vista es una mesa de trabajo:
+   matriz territorio × lineamiento con ficha lateral, mapa con capas de infraestructura, marco normativo y simulador.
+   Datos en azul, selección en ámbar, acento de interfaz verde agua; brechas en rojo apagado. Tema oscuro único, elegido a propósito
+   para dar continuidad con el tablero Tejido Empresarial. */
+:root{
+  color-scheme: dark;
+  --bg:#0E1317; --surf:#151C21; --surf2:#1C252C; --surf3:#243039; --line:#28333B; --line2:#35434C;
+  --ink:#E6ECEE; --ink2:#A9B7BE; --muted:#83929A;
+  --acc:#4CC3B0; --acc-ink:#0B1A17; --acc-soft:#17302C;
+  --sel:#F2A541; --sel-soft:#3A2E1A;
+  --data:#3987E5; --data-reg:#8C979D;
+  --s1:#1F3D66; --s2:#1C5CAB; --s3:#2A78D6; --s4:#5598E7; --s5:#9EC5F4;
+  --dneg:#5598E7; --dmid:#2E353B; --dpos:#E66767;
+  --bad:#E07A6B; --bad-soft:#3A2220; --ok:#5CBF8A; --ok-soft:#183025; --mid:#A9B7BE;
+  --m1:#5B6870; --m2:#B88A3E; --m3:#4CC3B0;
+  --pt-ies:#F2D16B; --pt-sub:#F08A4B; --pt-ssr:#5BB8F0; --pt-ant:#C7A2F0; --pt-pue:#E0A27A; --pt-port:#7FD6E8; --pt-aer:#E6ECEE; --ln-elec:#F08A4B; --ln-erd:#F2A541;
+  --t1:#E08FA8; --t2:#76B7B2; --t3:#B07AA1; --t4:#E0974A; --t5:#6FAF62; --t6:#5B8BC4; --t7:#D9C25A; --t8:#A47D63;
+  --nodata:#1E262C; --mapbg:#11181D;
+  --f-sans:'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-cond:'IBM Plex Sans Condensed', 'IBM Plex Sans', 'Arial Narrow', system-ui, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r:10px;
+}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+h1,h2,h3,h4{margin:0;font-weight:600;text-wrap:balance}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.num{font-variant-numeric:tabular-nums}
+.loading{min-height:60vh;display:grid;place-items:center;color:var(--ink2);font-size:15px;padding:24px;text-align:center}
+
+.app{max-width:1680px;margin:0 auto;padding-inline:24px;padding-block:18px 40px;display:flex;flex-direction:column;gap:16px}
+.hdr{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:12px;align-items:center}
+.brand b{display:block;font-size:17px;font-weight:600;letter-spacing:-.005em}
+.brand span{font-size:12.5px;color:var(--muted)}
+.hdr .meta{font-size:12px;color:var(--muted);text-align:right;max-width:520px}
+.tabs{display:flex;align-items:flex-end;gap:2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{border:0;background:none;color:var(--ink2);padding:10px 14px;font-size:14px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:center}
+.tab small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--acc)}
+.tab:hover{color:var(--ink)}
+.view{display:flex;flex-direction:column;gap:16px}
+
+.lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surf2);color:var(--ink2);border-radius:6px;padding:7px 12px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--line2);color:var(--ink)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.warm{border-color:var(--sel);color:var(--sel);background:transparent;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+.linkbtn{border:0;background:none;padding:0;color:var(--acc);font-weight:600;font-size:13px;text-align:left}
+.linkbtn:hover{text-decoration:underline}
+.sel{background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12.5px;color:var(--ink);max-width:260px}
+.ctrl{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink2);padding:6px 10px;font-size:12px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.note{font-size:12px;color:var(--muted)}
+.note.warn{color:var(--sel)}
+
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:12px 15px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:14px;color:var(--muted);font-weight:500}
+.kpi .s{font-size:12px;color:var(--ink2)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.card-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;padding:14px 16px 10px}
+.card-h h2{font-size:15px}
+.card-h .sub{font-size:12px;color:var(--muted);margin-top:2px;max-width:80ch}
+.card-b{padding:4px 16px 16px}
+.grid{display:grid;gap:16px;align-items:start}
+.g-cart{grid-template-columns:minmax(0,1.32fr) minmax(360px,1fr)}
+.g-terr{grid-template-columns:minmax(0,1.45fr) minmax(330px,1fr)}
+.g-sim{grid-template-columns:minmax(300px,.8fr) minmax(0,1.6fr)}
+.g-ev{grid-template-columns:minmax(0,.95fr) minmax(0,1.2fr)}
+table.heat td{padding:5px 8px;font-size:11.5px;border-bottom:1px solid var(--bg)}
+table.heat th{padding:7px 6px;font-size:10px;white-space:normal;min-width:46px;letter-spacing:.02em}
+table.heat td.m{padding:5px 5px;font-size:11px}
+table.heat td:first-child{white-space:nowrap;font-size:12px}
+
+/* filter bar */
+.fbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 14px;background:var(--surf);border:1px solid var(--line);border-radius:8px}
+.fgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgrp>.lbl{margin-right:2px}
+.tog{border:1px solid var(--line);background:transparent;color:var(--ink2);border-radius:999px;padding:4px 10px;font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+.tog[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc);font-weight:600}
+.tog:hover{color:var(--ink)}
+.fbar .clear{margin-left:auto}
+
+/* matriz */
+.mx-wrap{overflow-x:auto;padding-bottom:4px}
+.mx{display:grid;grid-template-columns:minmax(138px,1.1fr) repeat(6,minmax(70px,1fr));gap:3px;min-width:600px}
+.mx .ch{font-size:11.5px;color:var(--ink2);padding:2px 6px 8px;display:flex;flex-direction:column;gap:2px;justify-content:flex-end}
+.mx .ch b{font-family:var(--f-mono);font-size:12px;color:var(--ink);font-weight:500}
+.mx .ch span{font-family:var(--f-cond);font-size:12.5px;line-height:1.15}
+.mx .rh{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px 8px;border-radius:5px;border:0;background:transparent;text-align:left;color:var(--ink)}
+.mx .rh:hover{background:var(--surf2)}
+.mx .rh b{font-size:13px;font-weight:600}
+.mx .rh span{font-size:11.5px;color:var(--muted)}
+.mx .rh.on{background:var(--sel-soft)}
+.mx .rh.on b{color:var(--sel)}
+.cell{position:relative;min-height:62px;border-radius:5px;border:0;padding:6px 7px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:4px;text-align:left;transition:opacity .15s}
+.cell .code{font-family:var(--f-mono);font-size:12px;font-weight:500;background:rgba(14,19,23,.72);color:var(--ink);padding:1px 6px;border-radius:4px}
+.cell .dots{display:flex;gap:3px}
+.cell .dots i{width:7px;height:7px;border-radius:50%;background:rgba(14,19,23,.55);box-shadow:inset 0 0 0 1px rgba(230,236,238,.55)}
+.cell .dots i.on{background:var(--ink);box-shadow:none}
+.cell .v{font-family:var(--f-mono);font-size:11px;align-self:flex-end;opacity:.9}
+.cell.empty .code{background:transparent;color:inherit;opacity:.8;padding:0;font-family:var(--f-sans);font-size:11.5px}
+.cell.gap::after{content:'';position:absolute;inset:2px;border:1.5px dashed var(--sel);border-radius:4px;pointer-events:none}
+.cell.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--sel)}
+.cell.dim{opacity:.22}
+.cell:hover{filter:brightness(1.12)}
+.mxleg{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-top:12px;font-size:11.5px;color:var(--ink2)}
+.mxleg .g{display:flex;border-radius:2px;overflow:hidden}
+.mxleg .g span{width:24px;height:10px}
+.mxleg .t{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--muted)}
+.mxleg .k{display:inline-flex;gap:6px;align-items:center}
+.mxleg .k i{display:inline-block;width:16px;height:12px;border:1.5px dashed var(--sel);border-radius:3px}
+
+/* ficha */
+.ficha{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;scrollbar-width:thin}
+.fi-h{padding:16px 18px 12px;display:flex;gap:14px;align-items:flex-start;border-bottom:1px solid var(--line)}
+.fi-h .eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sel)}
+.fi-h h2{font-size:20px;line-height:1.2;letter-spacing:-.01em;margin-top:3px}
+.fi-h .loc{flex:none;width:84px}
+.fi-sec{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:9px}
+.fi-sec:last-child{border-bottom:0}
+.fi-sec h3{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fi-sec p{font-size:13.5px;line-height:1.55;color:var(--ink2)}
+.fi-sec p strong{color:var(--ink);font-weight:600}
+.line-t{display:flex;gap:10px;align-items:baseline}
+.line-t .code{font-family:var(--f-mono);font-size:13px;color:var(--acc);flex:none}
+.line-t b{font-size:15px;line-height:1.3}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--surf3);color:var(--ink2);max-width:100%;white-space:nowrap}
+.pill b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px}
+.pill.ct{background:var(--acc-soft);color:var(--acc)}
+.pill.ct b{color:var(--acc)}
+.pill.warn{background:var(--sel-soft);color:var(--sel)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.mad{display:inline-flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.mad .dots{display:flex;gap:3px}
+.mad .dots i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line2)}
+.mad .dots i.on{background:var(--acc);box-shadow:none}
+.quote{border-left:2px solid var(--line2);padding:2px 0 2px 12px;font-size:13px;line-height:1.55;color:var(--ink2)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}
+.stat .l{font-size:11.5px;color:var(--muted)}
+.stat .v{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.25}
+.stat .s{font-size:11.5px;color:var(--ink2)}
+.spark{display:block;width:100%;height:auto}
+.hab{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 12px;font-size:12.5px;align-items:center}
+.hab .n{color:var(--ink2);min-width:0}
+.hab .n em{font-style:normal;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin-left:6px;white-space:nowrap}
+.hab .x{font-family:var(--f-mono);font-size:12px;text-align:right;white-space:nowrap}
+.hab .x small{color:var(--muted);font-size:11px}
+.hab .h{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.firm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
+.firm span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.firm small{grid-column:1/-1;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.firm b{font-family:var(--f-mono);font-weight:500;font-size:12px}
+
+/* tables */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;z-index:2;background:var(--surf);text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:bottom}
+th.r,td.r{text-align:right}
+th button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;padding:0;text-align:inherit}
+th button[aria-sort]{color:var(--ink)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+td.m{font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+td .sm{display:block;font-size:11.5px;color:var(--muted)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:rgba(255,255,255,.02)}
+tr.on td{background:var(--sel-soft)}
+td.flag{color:var(--bad)}
+td.flag::before{content:'▲ ';font-size:9px;vertical-align:1px}
+td.good{color:var(--ok)}
+.tchips{display:flex;flex-wrap:wrap;gap:4px}
+.tchip{font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:4px;border:1px solid var(--line2);color:var(--ink2)}
+.tchip.m3{border-color:var(--m3);color:var(--m3)}
+.tchip.m2{border-color:var(--m2);color:var(--m2)}
+
+/* map */
+.mapwrap{position:relative;border-radius:8px;overflow:hidden;background:var(--mapbg)}
+.map-svg{display:block;width:100%;height:auto;aspect-ratio:1000/988;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--mapbg)}
+.map-svg path.com{stroke:var(--bg);stroke-width:.8;cursor:pointer;transition:fill .2s}
+.map-svg path.ter{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-opacity:.8;pointer-events:none}
+.map-svg path.selo{fill:none;stroke:var(--sel);stroke-width:3;pointer-events:none}
+.map-svg path.hovo{fill:none;stroke:var(--ink);stroke-width:1.6;pointer-events:none}
+.map-svg path.rez{fill:url(#hatch);stroke:none;pointer-events:none}
+.map-svg path.pt{fill:none;stroke-linecap:round;pointer-events:none}
+.map-svg path.ptx{fill:none;stroke-linecap:round;cursor:help}
+.map-svg path.ln{fill:none;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.map-svg text{pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-linejoin:round}
+.map-svg text.cl{fill:var(--ink2);font-weight:500}
+.map-svg text.tl{fill:var(--ink);font-weight:600;font-family:var(--f-cond)}
+.map-tools{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surf)}
+.map-tools button{width:34px;height:34px;border:0;border-bottom:1px solid var(--line);background:var(--surf);color:var(--ink);display:grid;place-items:center}
+.map-tools button:last-child{border-bottom:0}
+.map-tools button:hover{background:var(--surf2)}
+.maphint{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(14,19,23,.92);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:6px 10px;border-radius:6px;pointer-events:none}
+.legend{padding:10px 2px 2px;font-size:11.5px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center}
+.legend b{color:var(--ink);font-weight:600;font-size:12px;flex-basis:100%}
+.legend .row{display:flex;align-items:center;gap:7px}
+.legend .sw{width:16px;height:10px;border-radius:2px;flex:none}
+.layers{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px;border:0;margin:0;padding:0}
+.layers legend{padding:0;margin-bottom:6px}
+.layers label{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.layers input{accent-color:var(--acc);margin:0;width:14px;height:14px;flex:none}
+.layers .k{width:12px;height:12px;flex:none;display:inline-block;border-radius:50%}
+.layers .k.l{height:0;border-radius:0;border-top:2.5px solid;width:14px}
+.layers .k.h{border-radius:2px;background:repeating-linear-gradient(45deg,var(--sel) 0 2px,transparent 2px 5px);border:1px solid var(--sel)}
+.loc svg{display:block;width:100%;height:auto}
+
+/* territory profile */
+.prof{padding:18px;display:flex;flex-direction:column;gap:16px}
+.prof .eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sel)}
+.prof h2{font-size:24px;letter-spacing:-.01em;margin:2px 0 4px}
+.lqrow{display:grid;grid-template-columns:minmax(0,128px) minmax(0,1fr) 40px;gap:10px;align-items:center;font-size:12.5px}
+.lqrow .tr{height:10px;background:var(--surf2);border-radius:3px;position:relative}
+.lqrow .tr i{position:absolute;top:0;bottom:0;border-radius:2px}
+.lqrow .tr u{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.7}
+.lqrow .x{font-family:var(--f-mono);font-size:12px;text-align:right}
+
+/* marco */
+.cov-wrap{overflow-x:auto}
+.cov{display:grid;gap:2px;min-width:880px}
+.cov .hd{font-family:var(--f-mono);font-size:11px;color:var(--ink2);text-align:center;padding-bottom:6px;align-self:end}
+.cov .rh{font-size:12.5px;color:var(--ink2);padding:4px 8px;display:flex;gap:8px;align-items:baseline;min-width:0}
+.cov .rh b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px;flex:none;width:36px}
+.cov .rh span{min-width:0;font-size:12px;line-height:1.3}
+.cov .grp{grid-column:1/-1;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px;border-top:1px solid var(--line)}
+.cov .c{display:grid;place-items:center;min-height:24px;background:var(--surf2);border-radius:2px}
+.cov .c i{width:10px;height:10px;border-radius:50%;background:var(--acc)}
+.cov .tot{font-family:var(--f-mono);font-size:12px;display:grid;place-items:center}
+.cov .tot.zero{color:var(--sel)}
+.cov .rh.zero span{color:var(--sel)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mcard{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mcard h3{font-size:15px}
+.mcard .a{font-family:var(--f-mono);font-size:11.5px;color:var(--acc)}
+.mcard p{font-size:13px;line-height:1.55;color:var(--ink2)}
+.mcard ul{margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--ink2)}
+details.ler{border-top:1px solid var(--line);padding:10px 0}
+details.ler>summary{cursor:pointer;display:flex;gap:12px;align-items:baseline;list-style:none}
+details.ler>summary::-webkit-details-marker{display:none}
+details.ler>summary b{font-family:var(--f-mono);font-weight:500;color:var(--acc);font-size:12px;flex:none}
+details.ler>summary span{font-size:14px;font-weight:600}
+details.ler>summary small{color:var(--muted);font-size:12px;margin-left:auto;flex:none}
+details.ler ol{margin:8px 0 0;padding-left:44px;font-size:13px;line-height:1.55;color:var(--ink2)}
+details.ler ol li{margin:3px 0}
+details.ler ol li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px;margin-right:6px}
+
+/* simulador */
+.simf{display:flex;flex-direction:column;gap:14px;padding:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
+.field label b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.field input[type=range]{width:100%;accent-color:var(--acc)}
+.inp{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--ink);font-family:var(--f-mono)}
+.wts{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.checks{display:flex;flex-direction:column;gap:6px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink2)}
+.check i{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700;margin-top:1px}
+.check.ok i{background:var(--ok-soft);color:var(--ok)}
+.check.no i{background:var(--bad-soft);color:var(--bad)}
+.split{display:flex;height:30px;border-radius:5px;overflow:hidden;gap:2px}
+.split span{display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;min-width:0}
+.allo{display:flex;flex-direction:column;gap:4px}
+.arow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 92px 96px;gap:10px;align-items:center;font-size:12.5px;padding:3px 0}
+.arow .n{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .b{height:16px;position:relative;background:var(--surf2);border-radius:3px}
+.arow .b i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--data)}
+.arow .b u{position:absolute;left:0;top:0;bottom:0;border-radius:3px 0 0 3px;background:var(--acc)}
+.arow .x{font-family:var(--f-mono);font-size:12px;text-align:right}
+.arow .x small{display:block;color:var(--muted);font-size:10.5px}
+.arow.h{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* BIP */
+.srch{flex:1 1 260px;min-width:0;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink)}
+.srch::placeholder{color:var(--muted)}
+#bx-f .sel{max-width:200px}
+#bx-f .ctrl{min-width:0}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px 12px;font-size:13px;color:var(--ink2);flex-wrap:wrap}
+.pager .btn{padding:6px 10px}
+tr.det td{background:var(--surf2);padding:12px 16px 16px}
+.bpdet{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+.bpdet p{font-size:13px;line-height:1.55;color:var(--ink2);max-width:80ch}
+.bpdet table td,.bpdet table th{padding:5px 8px;font-size:12px}
+.warnmk{color:var(--sel);cursor:help}
+@media (max-width:760px){.bpdet{grid-template-columns:minmax(0,1fr)}}
+/* Claude */
+.claude{background:var(--surf2);border:1px solid var(--line2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.claude .hd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.draft{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13.5px;line-height:1.6}
+.draft h4{font-size:14px;margin:12px 0 4px}
+.draft h4:first-child{margin-top:0}
+.draft p{margin:0 0 8px;color:var(--ink2)}
+.draft ul,.draft ol{margin:0 0 8px;padding-left:18px;color:var(--ink2)}
+.draft strong{color:var(--ink)}
+
+.foot{font-size:12px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:14px;max-width:1180px}
+.foot b{color:var(--ink2);font-weight:600}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--surf3);border:1px solid var(--line2);border-radius:7px;padding:9px 11px;font-size:12px;line-height:1.45;box-shadow:0 10px 28px rgba(0,0,0,.5);max-width:300px;color:var(--ink)}
+.tip .tt{font-weight:600;font-size:13px;margin-bottom:3px}
+.tip .tr{display:flex;gap:8px;align-items:baseline}
+.tip .tr b{font-size:13px;font-variant-numeric:tabular-nums}
+.tip .tr span{color:var(--ink2)}
+.tip .tn{color:var(--muted);margin-top:3px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surf3);border:1px solid var(--line2);border-radius:8px;padding:10px 14px;font-size:13px;z-index:60;color:var(--ink)}
+
+/* ---------- filtros de empresas (barra lateral, estilo Tejido Empresarial) ---------- */
+.work{display:grid;grid-template-columns:276px minmax(0,1fr);gap:18px;align-items:start}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.work.norail,.work.collapsed{grid-template-columns:minmax(0,1fr)}
+.work.norail .rail,.work.norail .top,.work.norail .presets,.work.collapsed .rail{display:none}
+.rail{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow-y:auto;scrollbar-width:thin;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rail-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rail-h b{font-size:14px;font-weight:600}
+.btn.sm{padding:4px 9px;font-size:12px}
+.rail .scope{font-size:11.5px;color:var(--muted);line-height:1.45;margin:2px 0 8px}
+.rail .inp{font-family:var(--f-sans);font-size:13px;padding:8px 10px}
+.facet{border-top:1px solid var(--line);padding:10px 0 8px}
+.facet>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:2px 0 6px}
+.facet>summary::-webkit-details-marker{display:none}
+.facet>summary .on{color:var(--sel);letter-spacing:0;text-transform:none;font-size:12px;margin-left:auto}
+.facet>summary::after{content:'';width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);margin:0 3px 3px 8px;transition:transform .15s;flex:none}
+.facet:not([open])>summary::after{transform:rotate(-45deg)}
+.flist{display:flex;flex-direction:column;gap:1px}
+.flist.scroll{max-height:248px;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.fi{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px;color:var(--ink2);padding:4px;border-radius:5px;cursor:pointer}
+.fi:hover{background:var(--surf2)}
+.fi input,.chk input{accent-color:var(--acc);width:14px;height:14px;margin:0;flex:none}
+.fi .t{min-width:0;display:flex;flex-direction:column;gap:3px}
+.fi .t span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi .tsw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:0}
+.fi .bar{height:3px;background:var(--surf3);border-radius:2px;overflow:hidden}
+.fi .bar i{display:block;height:3px;background:#51626B;border-radius:2px}
+.fi.on{color:var(--ink)}
+.fi.on .bar i{background:var(--acc)}
+.fi.zero{opacity:.45}
+.fi .c,.chk .c{font-family:var(--f-mono);font-size:11.5px;color:var(--ink2);margin-left:auto}
+.fsearch{margin:2px 0 6px}
+.fmore{font-size:12px;color:var(--muted);padding:4px}
+.yr{display:flex;gap:6px;align-items:center}
+.yr .inp{width:84px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);margin-top:8px}
+.top{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.crumbs{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;min-width:0;flex:1 1 240px}
+.crumbs .root{color:var(--ink2)}
+.crumbs .sep{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 5px 4px 11px;border-radius:999px;background:var(--acc-soft);color:var(--acc);font-weight:600;font-size:13px;max-width:min(280px,100%);min-width:0}
+.chip.g{background:var(--sel-soft);color:var(--sel)}
+.chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip button{width:22px;height:22px;border-radius:999px;border:0;background:rgba(76,195,176,.16);color:inherit;font-size:14px;line-height:1;flex:none}
+.chip.g button{background:rgba(242,165,65,.16)}
+.count{font-size:13px;color:var(--ink2);margin-left:auto}
+.count b{color:var(--ink);font-size:15px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pgrp{display:contents}
+.pgrp>.lbl{margin:0 2px 0 10px}
+.pgrp:first-child>.lbl{margin-left:0}
+.presets .btn{padding:5px 10px;font-size:12.5px}
+.presets .btn[aria-pressed="true"]{border-color:var(--acc);color:var(--acc);background:var(--acc-soft)}
+.rail-btn{display:none}
+.work.collapsed .rail-btn{display:inline-flex}
+.only-narrow{display:none}
+.mx .rh.dim{opacity:.35}
+.mx .ch.dim{opacity:.35}
+.firm em.tagx{font-style:normal;font-size:10.5px;padding:0 6px;border-radius:999px;background:var(--surf3);color:var(--ink2);margin-left:6px;vertical-align:1px}
+.firm em.tagx.ct{background:var(--acc-soft);color:var(--acc)}
+
+/* ---------- vista Empresas (Explorar de Tejido Empresarial) ---------- */
+.kpis.k6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g-map{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.g-2{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.map-svg.static{touch-action:auto}
+.tbl-wrap.tall{max-height:560px;overflow-y:auto}
+.bars{display:flex;flex-direction:column;max-height:560px;overflow-y:auto;scrollbar-width:thin}
+.brow{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr) 64px;gap:10px;align-items:center;padding:4px 2px;border:0;background:none;text-align:left;color:var(--ink);border-radius:4px;width:100%}
+.brow:hover{background:var(--surf2)}
+.brow.static{cursor:default}
+.brow .bl{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow.on .bl{color:var(--sel);font-weight:600}
+.brow .bt{height:14px;position:relative}
+.brow .bt i{position:absolute;left:0;top:0;bottom:0;background:var(--data);border-radius:0 4px 4px 0;min-width:2px}
+.brow.on .bt i{background:var(--sel)}
+.brow .bt u{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.6}
+.brow .bv{font-family:var(--f-mono);font-size:12px;text-align:right}
+.evo2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.stack{display:flex;gap:2px;height:16px;border-radius:3px;overflow:hidden}
+.stack span{height:100%}
+.tamtab{display:grid;grid-template-columns:12px minmax(0,1fr) 56px 56px;gap:6px 8px;font-size:12px;color:var(--ink2);align-items:center}
+.tamtab .h{font-size:11px;color:var(--muted);text-align:right}
+.tamtab .r{text-align:right}
+.hgrid{display:grid;gap:2px;min-width:860px}
+.hgrid .hd{font-size:11px;line-height:1.15;color:var(--ink2);text-align:center;align-self:end;padding-bottom:6px;display:flex;flex-direction:column;gap:2px;align-items:center}
+.hgrid .hd span{font-family:var(--f-cond);font-size:11.5px;color:var(--muted)}
+.hgrid .hd b{display:block;font-size:12px;color:var(--ink)}
+.hgrid .hd.v{justify-content:flex-end;height:140px}
+.hgrid .hd.v span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:11px;line-height:1.1;max-height:122px;overflow:hidden;text-overflow:ellipsis;color:var(--ink2)}
+.hgrid .hd.on,.hgrid .hrh.on{color:var(--sel)}
+.hgrid .hgr{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 8px 2px;display:flex;gap:7px;align-items:center}
+.hgrid .hgr i{width:9px;height:9px;border-radius:2px}
+.hgrid .hrh{font-size:12.5px;display:flex;align-items:center;padding:0 8px 0 18px;color:var(--ink2);border-radius:3px}
+.hgrid .hrh.on{background:var(--sel-soft)}
+.hcell{font-size:11px;display:grid;place-items:center;border-radius:2px;border:0;padding:0;font-variant-numeric:tabular-nums;min-height:22px;font-family:var(--f-mono)}
+.hcell.na{background:var(--surf2);color:var(--muted)}
+.hcell.hl{box-shadow:inset 0 0 0 2px var(--sel)}
+.dleg{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--ink2)}
+.dleg .g{display:flex;border-radius:2px;overflow:hidden}
+.dleg .g span{width:22px;height:10px}
+.dleg .t{display:flex;justify-content:space-between}
+
+.work:not(.norail):not(.collapsed) .g-cart{grid-template-columns:minmax(0,1fr) minmax(360px,410px)}
+.mx .ch span{hyphens:auto;-webkit-hyphens:auto;overflow-wrap:anywhere}
+@media (max-width:1400px){
+  .work:not(.norail):not(.collapsed) .g-cart{grid-template-columns:minmax(0,1fr)}
+  .work:not(.norail):not(.collapsed) .ficha{position:static;max-height:none}
+}
+@media (max-width:1440px){.kpis.k6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1060px){
+  .work{grid-template-columns:minmax(0,1fr)}
+  .rail{position:fixed;inset:0 auto 0 0;top:0;width:min(330px,88vw);z-index:40;max-height:none;height:100%;border-radius:0;transform:translateX(-102%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .rail.open{transform:none}
+  .work.collapsed .rail{display:flex}
+  .rail-btn,.only-narrow{display:inline-flex}
+  .g-map,.g-2,.evo2{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .presets{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;max-width:100%}
+  .presets .btn{white-space:nowrap}
+  .kpis.k6{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brow{grid-template-columns:minmax(0,46%) minmax(0,1fr) 56px}
+  .count{margin-left:0}
+  .crumbs{flex-basis:100%;order:2}
+  .count{order:3}
+}
+.pgrp>.lbl{white-space:nowrap}
+
+@media (max-width:1280px){
+  .g-cart{grid-template-columns:minmax(0,1fr) minmax(340px,.9fr)}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:1100px){
+  .g-cart,.g-terr,.g-sim,.g-ev{grid-template-columns:minmax(0,1fr)}
+  .ficha{position:static;max-height:none}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .app{padding-inline:16px;padding-block:14px 32px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .v{font-size:21px}
+  .kpis>.kpi:last-child:nth-child(odd){grid-column:1/-1}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hdr .meta{text-align:left}
+  .arow{grid-template-columns:minmax(0,104px) minmax(0,1fr) 78px;}
+  .arow .x:last-child{display:none}
+  .fi-h .loc{width:64px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="loading" id="loading">Cargando cartera, territorios y 42.325 empresas…</div>
+<div class="app" id="app" lang="es" hidden>
+  <header class="hdr">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#4CC3B0" stroke-width="1.6" aria-hidden="true"><circle cx="15" cy="15" r="12.5" stroke-opacity=".45"/><circle cx="15" cy="15" r="7.5" stroke-opacity=".7"/><path d="M15 15L24 6.5" stroke-linecap="round"/><circle cx="20.5" cy="10" r="1.8" fill="#F2A541" stroke="none"/><circle cx="9" cy="18.5" r="1.4" fill="#4CC3B0" stroke="none"/></svg>
+      <div><b>Radar FRPD Araucanía</b><span>Cartera del Fondo Regional para la Productividad y el Desarrollo · D.S. 1.699 y ERD 2040</span></div>
+    </div>
+    <div id="live-sync-badge" style="display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surf2);padding:5px 13px;border-radius:20px;border:1px solid var(--line2);cursor:pointer" title="Conexión en vivo a Google Sheets DIFOI · Clic para refrescar">
+      <span id="live-sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted)"></span>
+      <span id="live-sync-text">Conectando con Google Workspace…</span>
+    </div>
+    <p class="meta">Fases 1 a 4 · cartera DIFOI (14 líneas, 42 entradas), territorios ERD, empresas SII 2024, condiciones habilitantes, financiamiento existente (ANID, CORFO, BIP), ejecutores habilitados, evidencia territorial y explorador de empresas con filtros</p>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Vistas">
+    <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
+    <button class="tab" role="tab" id="tab-territorios" aria-controls="v-territorios" aria-selected="false" type="button">Territorios e infraestructura</button>
+    <button class="tab" role="tab" id="tab-empresas" aria-controls="v-empresas" aria-selected="false" type="button">Empresas <small id="tab-emp-n"></small></button>
+    <button class="tab" role="tab" id="tab-evid" aria-controls="v-evid" aria-selected="false" type="button">Evidencia territorial</button>
+    <button class="tab" role="tab" id="tab-marco" aria-controls="v-marco" aria-selected="false" type="button">Marco normativo</button>
+    <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
+    <button class="tab" role="tab" id="tab-simulador" aria-controls="v-simulador" aria-selected="false" type="button">Simulador</button>
+    <button class="tab" role="tab" id="tab-compras" aria-controls="v-compras" aria-selected="false" type="button">Compras Públicas <small id="tab-cp-n">ChileCompra</small></button>
+  </nav>
+
+  <div class="work" id="work">
+  <aside class="rail" id="rail" aria-label="Filtros de empresas">
+    <div class="rail-h"><b>Filtros de empresas</b><button class="btn sm" id="rail-hide" type="button" aria-label="Ocultar los filtros">Ocultar</button></div>
+    <p class="scope">Filtran las empresas SII en Cartera, Territorios y Empresas: la matriz, los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
+    <label class="lbl" for="f-q">Buscar</label>
+    <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
+    <div id="facets"></div>
+    <details class="facet" open>
+      <summary><span>Habilitación FRPD</span><span class="on"></span></summary>
+      <label class="chk"><input type="checkbox" id="f-nom"><span>En la nómina Res. 1/2026</span><span class="c" id="f-nom-n"></span></label>
+      <p class="note" style="margin:6px 0 0">Privadas sin fines de lucro del primer llamado 2026 con casa matriz en la región. Las que solo tienen sucursal aquí no están en esta base.</p>
+    </details>
+    <details class="facet" open>
+      <summary><span>Inicio de actividades</span><span class="on"></span></summary>
+      <div class="yr"><input class="inp" id="f-y0" type="number" min="1960" max="2025" placeholder="Desde" aria-label="Año de inicio desde"><span class="note">a</span><input class="inp" id="f-y1" type="number" min="1960" max="2025" placeholder="Hasta" aria-label="Año de inicio hasta"></div>
+      <label class="chk"><input type="checkbox" id="f-vig"><span>Solo vigentes (sin término de giro)</span></label>
+    </details>
+    <details class="facet">
+      <summary><span>Periodo de comparación</span><span class="on"></span></summary>
+      <label class="ctrl" for="f-per" style="font-size:12.5px;color:var(--ink2)">Crecimiento desde
+        <select class="sel" id="f-per" style="max-width:none;width:100%;margin-top:4px"><option value="2005">2005 (19 años)</option><option value="2010">2010 (14 años)</option><option value="2014" selected>2014 (10 años)</option><option value="2019">2019 (5 años)</option><option value="2020">2020</option></select></label>
+      <p class="note" style="margin:6px 0 0">Aplica al crecimiento de la matriz, las fichas, los territorios y la evolución. El número de trabajadores está disponible desde 2010.</p>
+    </details>
+    <button class="btn" id="f-reset" type="button" style="margin-top:8px;justify-content:center">Limpiar filtros</button>
+    <button class="btn pri only-narrow" id="rail-close" type="button" style="margin-top:6px;justify-content:center">Ver resultados</button>
+  </aside>
+  <div class="main" id="main">
+    <div class="top" id="ftop">
+      <button class="btn rail-btn" id="rail-open" type="button" aria-controls="rail">Filtros <span id="rail-n"></span></button>
+      <nav class="crumbs" id="crumbs" aria-label="Filtros de empresas activos"></nav>
+      <div class="count" id="count" aria-live="polite"></div>
+    </div>
+    <div class="presets" id="presets" aria-label="Vistas rápidas"></div>
+
+  <!-- ===== Cartera ===== -->
+  <section class="view" id="v-cartera" role="tabpanel" aria-labelledby="tab-cartera">
+    <div class="kpis" id="kpis"></div>
+    <div class="fbar" id="fbar" role="group" aria-label="Filtros de la cartera"></div>
+    <div class="grid g-cart">
+      <section class="card">
+        <div class="card-h">
+          <div><h2>Territorio × lineamiento CTCI</h2><div class="sub">Cada celda es una entrada de la cartera (línea y madurez de la evidencia). El color muestra la base empresarial del territorio en ese lineamiento. Clic en una celda para abrir su ficha.</div></div>
+          <label class="ctrl">Color de las celdas<select class="sel" id="mx-mode"><option value="lq">Especialización (cociente)</option><option value="n">Empresas en el lineamiento</option><option value="g">Crecimiento 2014–2024</option><option value="mad">Madurez de la evidencia</option><option value="fin">Financiamiento existente 2019–2026</option></select></label>
+        </div>
+        <div class="card-b"><div class="mx-wrap"><div class="mx" id="mx"></div></div><div class="mxleg" id="mx-leg"></div><p class="note" id="mx-note" style="margin-top:10px"></p></div>
+      </section>
+      <aside class="card ficha" id="ficha" aria-live="polite"></aside>
+    </div>
+    <section class="card">
+      <div class="card-h"><div><h2>Líneas de inversión</h2><div class="sub">Las 14 líneas de la minuta DIFOI agrupan las 42 entradas. Clic en una fila para ver sus celdas en la matriz.</div></div><button class="btn" id="ln-clear" type="button" hidden>Ver todas las líneas</button></div>
+      <div class="tbl-wrap" id="lines"></div>
+    </section>
+  </section>
+
+  <!-- ===== Territorios ===== -->
+  <section class="view" id="v-territorios" role="tabpanel" aria-labelledby="tab-territorios" hidden>
+    <div class="grid g-terr">
+      <section class="card">
+        <div class="card-h">
+          <div><h2 id="m-title">Territorios ERD 2040</h2><div class="sub">Clic en una comuna para ver su territorio · arrastra para mover · Ctrl + rueda o botones para acercar</div></div>
+          <div class="ctrls">
+            <label class="ctrl">Colorear comunas por<select class="sel" id="m-ind"></select></label>
+            <label class="ctrl" id="m-lin-w" hidden>Lineamiento<select class="sel" id="m-lin"></select></label>
+          </div>
+        </div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+          <div class="mapwrap" id="map"></div>
+          <fieldset class="layers" id="layers"><legend class="lbl">Infraestructura y capas</legend></fieldset>
+          <p class="note" id="m-note"></p>
+        </div>
+      </section>
+      <aside class="card" id="tprof" aria-live="polite"></aside>
+    </div>
+    <section class="card">
+      <div class="card-h">
+        <div><h2>Condiciones habilitantes por comuna</h2><div class="sub">▲ marca el tercio de comunas con peor valor regional en cada indicador. Las brechas orientan inversiones del art. 8 N°2 (conectividad, descarbonización, bienes públicos) y los riesgos de ejecución de cada línea.</div></div>
+        <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="hb-scope"><option value="all">Todas las comunas</option><option value="ter">Solo el territorio seleccionado</option></select></label><button class="btn pri" id="hb-csv" type="button" hidden>Exportar CSV</button></div>
+      </div>
+      <div class="tbl-wrap" id="hab"></div>
+    </section>
+  </section>
+
+  <!-- ===== Empresas ===== -->
+  <section class="view" id="v-empresas" role="tabpanel" aria-labelledby="tab-empresas" hidden>
+    <div class="kpis k6" id="e-kpis"></div>
+    <div class="grid g-map">
+      <section class="card">
+        <div class="card-h"><div><h2>Mapa de comunas</h2><div class="sub">Pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
+        <div class="card-b"><div class="mapwrap" id="e-m1"></div><div class="note" id="e-m1-note" style="margin-top:8px"></div></div>
+      </section>
+      <section class="card">
+        <div class="card-h">
+          <div><h2>Explorar la selección</h2><div class="sub">Clic en una barra para filtrar y bajar un nivel</div></div>
+          <div class="ctrls">
+            <label class="ctrl">Agrupar por<select class="sel" id="ex-dim"></select></label>
+            <label class="ctrl">Medida<select class="sel" id="ex-met"></select></label>
+            <label class="ctrl">Mostrar<select class="sel" id="ex-top"><option value="12">12 primeros</option><option value="25">25 primeros</option><option value="9999">Todos</option></select></label>
+            <button class="btn" id="ex-view" type="button" style="padding:6px 10px">Ver tabla</button>
+          </div>
+        </div>
+        <div class="card-b"><div id="ex-body"></div><div class="note" id="ex-note" style="margin-top:8px"></div></div>
+      </section>
+    </div>
+    <section class="card"><div class="card-h"><div><h2>Evolución 2005–2024</h2><div class="sub" id="evo-sub"></div></div><div class="ctrls" style="align-items:center;gap:14px"><div class="leg" id="evo-leg"><span><i style="background:var(--data)"></i>Selección</span><span><i style="background:var(--data-reg)"></i>Región</span></div><label class="ctrl">Comparar desde<select class="sel" id="evo-per"><option value="2005">2005</option><option value="2010">2010</option><option value="2014" selected>2014</option><option value="2019">2019</option><option value="2020">2020</option></select></label></div></div><div class="card-b"><div id="evo"></div><div class="note" id="evo-note"></div></div></section>
+    <div class="grid g-2">
+      <section class="card"><div class="card-h"><div><h2>Empresas según año de inicio</h2><div class="sub" id="cre-sub"></div></div></div><div class="card-b"><div id="cre"></div></div></section>
+      <section class="card"><div class="card-h"><div><h2>Estructura por tamaño</h2><div class="sub">Según ventas anuales (tramos SII)</div></div></div><div class="card-b" id="tam"></div></section>
+    </div>
+    <section class="card">
+      <div class="card-h"><div><h2>Empresas de la selección</h2><div class="sub" id="tb-sub"></div></div><div class="ctrls"><button class="btn pri" id="tb-csv" type="button" hidden>Exportar CSV</button></div></div>
+      <div class="tbl-wrap tall" id="tb-wrap"></div>
+      <div class="pager" id="tb-pager"></div>
+    </section>
+    <section class="card">
+      <div class="card-h">
+        <div><h2>Especialización por comuna</h2><div class="sub" style="max-width:78ch">Cociente de localización: peso del grupo en la comuna dividido por su peso en la región. Sobre 1,0 la comuna está especializada. Clic en una celda para filtrar por comuna y columna.</div></div>
+        <div class="ctrls">
+          <label class="ctrl">Medida<select class="sel" id="hm-met"><option value="lqn">Cociente · empresas</option><option value="lqt">Cociente · trabajadores</option><option value="n">Empresas</option><option value="t">Trabajadores</option><option value="rowp">% de la comuna</option></select></label>
+          <label class="ctrl">Columnas<select class="sel" id="hm-col"><option value="lin">Lineamiento CTCI</option><option value="rub">Rubro (sección CIIU)</option><option value="ctci">Grupo CTCI</option><option value="sec">Sector</option><option value="tam">Tamaño según ventas</option><option value="tb">Tramo de trabajadores</option></select></label>
+          <div id="hm-leg"></div>
+        </div>
+      </div>
+      <div class="card-b"><div style="overflow-x:auto" id="hm"></div><div class="note" id="hm-note" style="margin-top:8px"></div></div>
+    </section>
+  </section>
+
+  <!-- ===== Evidencia territorial ===== -->
+  <section class="view" id="v-evid" role="tabpanel" aria-labelledby="tab-evid" hidden>
+    <div class="kpis" id="ev-kpis"></div>
+    <div class="grid g-ev">
+      <section class="card">
+        <div class="card-h"><div><h2>Estructura productiva regional</h2><div class="sub">Peso de cada actividad en el PIB de La Araucanía, especialización frente al conjunto de las regiones (cociente &gt; 1 = más peso que en el país) y crecimiento real desde 2018. Banco Central, cuentas regionales.</div></div></div>
+        <div class="card-b"><div class="tbl-wrap" id="ev-pib"></div><p class="note" style="margin-top:10px">Volumen a precios del año anterior encadenado (referencia 2018). Los volúmenes encadenados no son estrictamente aditivos: los pesos son aproximados. En rojo, actividades que crecieron más de 5 puntos menos que en el conjunto de las regiones; en verde, más de 5 puntos más.</p></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><div><h2>Cultivos y plantaciones por territorio</h2><div class="sub">Hectáreas por especie según el Censo Agropecuario y Forestal 2021. El tono indica qué parte de la superficie regional de la especie está en cada territorio.</div></div></div>
+        <div class="card-b"><div class="tbl-wrap" id="ev-caf"></div><p class="note" style="margin-top:10px">Especies con 500 ha o más en la región. Superficie de las explotaciones censadas, no del territorio completo.</p></div>
+      </section>
+    </div>
+    <section class="card" id="ev-tblc">
+      <div class="card-h">
+        <div><h2>Indicadores de necesidad por comuna</h2><div class="sub">Evidencia pública para fundamentar el problema de cada iniciativa: equidad, agua y clima, riesgos, base agropecuaria y capacidad del municipio como contraparte. Clic en una comuna para seleccionar su territorio.</div></div>
+        <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="ev-scope"><option value="all">Todas las comunas</option><option value="ter">Solo el territorio seleccionado</option></select></label>
+          <label class="ctrl">Ver en el mapa<select class="sel" id="ev-map"></select></label><button class="btn" id="ev-go" type="button">Abrir mapa</button>
+          <button class="btn pri" id="ev-csv" type="button" hidden>Exportar CSV</button></div>
+      </div>
+      <div class="card-b" style="padding-bottom:8px"><div class="seg" id="ev-g" role="group" aria-label="Grupo de indicadores"></div></div>
+      <div class="tbl-wrap" id="ev-tbl"></div>
+      <p class="note" id="ev-note" style="padding:10px 16px 16px"></p>
+    </section>
+  </section>
+
+  <!-- ===== Marco normativo ===== -->
+  <section class="view" id="v-marco" role="tabpanel" aria-labelledby="tab-marco" hidden>
+    <div class="kpis" id="mk-kpis"></div>
+    <section class="card">
+      <div class="card-h"><div><h2>Qué categorías del D.S. 1.699 cubre la cartera</h2><div class="sub">Filas: categorías del art. 8 y tipos de gasto de N°3. Columnas: las 14 líneas. En ámbar, categorías financiables que ninguna línea usa todavía.</div></div></div>
+      <div class="card-b"><div class="cov-wrap"><div class="cov" id="cov"></div></div></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h2>Lo que ya se financia en la región · 2019–2026</h2><div class="sub">Proyectos ANID ejecutados en la región, CORFO InnovaChile y las iniciativas BIP (FNDR y sectoriales) agrupadas según la categoría del art. 8 a la que se parecen. Sirve para no duplicar y para ver qué categorías ya tienen otra fuente.</div></div></div>
+      <div class="card-b"><div class="tbl-wrap" id="mk-fin"></div></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h2>Quién puede ejecutar en La Araucanía</h2><div class="sub">Instituciones con sede o casa matriz en la región que el D.S. 1.699 habilita o puede habilitar, con su capacidad científica medida en proyectos ANID 2019–2026. La nómina de privadas es la del primer llamado 2026 (Res. 1/2026).</div></div><button class="btn pri" id="exe-csv" type="button" hidden>Exportar CSV</button></div>
+      <div class="card-b" style="display:flex;flex-direction:column;gap:14px"><div class="tbl-wrap" id="mk-exe"></div></div>
+    </section>
+    <div class="cards" id="mk-cards"></div>
+    <section class="card">
+      <div class="card-h"><div><h2>Estrategia Regional de Desarrollo 2040</h2><div class="sub">Seis lineamientos estratégicos regionales (LER) y sus objetivos. El D.S. 1.699 admite iniciativas asociadas a la ERD (art. 8 N°2 i) y cada línea de la cartera declara los LER con que se alinea.</div></div></div>
+      <div class="card-b" id="ler"></div>
+    </section>
+  </section>
+
+  <!-- ===== Iniciativas BIP ===== -->
+  <section class="view" id="v-bip" role="tabpanel" aria-labelledby="tab-bip" hidden>
+    <div class="kpis" id="bx-kpis"></div>
+    <div class="fbar" id="bx-f" role="group" aria-label="Filtros de iniciativas BIP">
+      <input class="srch" id="bx-q" type="search" placeholder="Buscar por nombre, código BIP o institución" autocomplete="off" aria-label="Buscar iniciativas">
+      <label class="ctrl">Territorio<select class="sel" id="bx-t"></select></label>
+      <label class="ctrl">Comuna<select class="sel" id="bx-c"></select></label>
+      <label class="ctrl">Categoría<select class="sel" id="bx-cat"></select></label>
+      <label class="ctrl">Lineamiento<select class="sel" id="bx-l"></select></label>
+      <label class="ctrl">Año de postulación<select class="sel" id="bx-y"></select></label>
+      <label class="ctrl">Etapa<select class="sel" id="bx-e"></select></label>
+      <label class="ctrl">Financiamiento<select class="sel" id="bx-fin"></select></label>
+      <label class="ctrl">RATE<select class="sel" id="bx-r"></select></label>
+      <button class="btn clear" id="bx-clear" type="button">Quitar filtros</button>
+    </div>
+    <section class="card">
+      <div class="card-h"><div><h2 id="bx-title">Iniciativas de inversión en el BIP</h2><div class="sub" id="bx-sub"></div></div><div class="ctrls"><button class="btn pri" id="bx-csv" type="button" hidden>Exportar CSV</button></div></div>
+      <div class="tbl-wrap" id="bx-tbl"></div>
+      <div class="pager" id="bx-pager"></div>
+      <p class="note" style="padding:0 16px 16px">Fuente: Banco Integrado de Proyectos (MDSF) vía BIDAT, postulaciones 2019–2027; se muestra la última postulación de cada código y su historial. Montos en MM$ (millones de pesos): costo total de la etapa postulada y monto solicitado para el año presupuestario. ⚠ marca montos que solo son plausibles si se registraron en pesos y no en miles de pesos: se muestran tal como vienen y se excluyen de los totales. RATE del SNI: RS recomendado satisfactoriamente, FI falta información, OT objetado técnicamente, IN incumplimiento de normativa; sin RATE suele corresponder a programas o iniciativas aún sin evaluación. El sector se rotula según el contenido de las iniciativas.</p>
+    </section>
+  </section>
+
+  <!-- ===== Simulador ===== -->
+  <section class="view" id="v-simulador" role="tabpanel" aria-labelledby="tab-simulador" hidden>
+    <div class="grid g-sim">
+      <section class="card">
+        <div class="card-h"><div><h2>Supuestos</h2><div class="sub">El monto es un ejemplo: reemplázalo por el marco presupuestario del año.</div></div></div>
+        <div class="simf" id="simf"></div>
+      </section>
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <section class="card">
+          <div class="card-h"><div><h2>Distribución del fondo</h2><div class="sub" id="sim-sub"></div></div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:14px"><div id="sim-split"></div><div class="checks" id="sim-checks"></div></div>
+        </section>
+        <section class="card">
+          <div class="card-h"><div><h2>Asignación territorial indicativa</h2><div class="sub">Monto territorial repartido según los ponderadores. En verde agua, la parte que corresponde a investigación científica y tecnológica (N°3).</div></div></div>
+          <div class="card-b"><div class="allo" id="sim-allo"></div><p class="note" id="sim-note" style="margin-top:10px"></p></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Compras Públicas (ChileCompra) ===== -->
+  <section class="view" id="v-compras" role="tabpanel" aria-labelledby="tab-compras" hidden>
+    <div class="kpis" id="compras-kpis">
+      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
+        <div class="lbl">Gasto público monitoreado (M$)</div>
+        <div class="v num" id="cp-total-monto" style="font-size:24px;font-weight:700;color:var(--ink)">–</div>
+        <div class="note" id="cp-total-regs">Órdenes de compra registradas</div>
+      </div>
+      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
+        <div class="lbl">Retención regional</div>
+        <div class="v num" id="cp-ret-pct" style="font-size:24px;font-weight:700;color:var(--ok)">–</div>
+        <div class="note" id="cp-ret-monto">Adjudicado a proveedores de La Araucanía</div>
+      </div>
+      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
+        <div class="lbl">Fuga de gasto público</div>
+        <div class="v num" id="cp-fuga-pct" style="font-size:24px;font-weight:700;color:var(--bad)">–</div>
+        <div class="note">Fuga a Santiago y otras regiones</div>
+      </div>
+      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
+        <div class="lbl">Conexión en vivo</div>
+        <div class="v" id="cp-live-status" style="font-size:16px;font-weight:600;color:var(--acc);margin-top:4px">Google Workspace</div>
+        <div class="note" id="cp-live-time">Sincronizado vía Apps Script</div>
+      </div>
+    </div>
+    <section class="card">
+      <div class="card-h">
+        <div>
+          <h2>Monitoreo Diario de Compras Públicas · La Araucanía</h2>
+          <div class="sub">Compras públicas y órdenes de compra del GORE Araucanía y de los 32 municipios de la región capturadas vía API ChileCompra. Permite mapear fuga de gasto y oportunidades para proveedores locales.</div>
+        </div>
+        <div class="ctrls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select id="cp-filter-terr" class="sel" style="padding:6px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--surf);color:var(--ink);font-size:13px;font-family:inherit">
+            <option value="">Todos los territorios (ERD 2040)</option>
+            <option value="TPLC">Temuco – Padre Las Casas</option>
+            <option value="NAH">Nahuelbuta</option>
+            <option value="COS">Costa Araucanía</option>
+            <option value="MNO">Malleco Norte</option>
+            <option value="VCE">Valle Central</option>
+            <option value="CSU">Cautín Sur</option>
+            <option value="AND">Araucanía Andina</option>
+            <option value="LAC">Araucanía Lacustre</option>
+          </select>
+          <select id="cp-filter-ret" class="sel" style="padding:6px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--surf);color:var(--ink);font-size:13px;font-family:inherit">
+            <option value="">Todas las compras</option>
+            <option value="local">Solo adjudicación local (Araucanía)</option>
+            <option value="fuga">Solo fuga externa (Santiago / otras)</option>
+          </select>
+          <button class="btn" id="cp-refresh" type="button">🔄 Refrescar datos</button>
+        </div>
+      </div>
+      <div class="tbl-wrap" id="compras-table" style="max-height:600px;overflow-y:auto"></div>
+    </section>
+  </section>
+
+  </div>
+  </div>
+  <footer class="foot" id="foot">
+    <b>Fuentes.</b> D.S. N° 1.699 de 2024 (Hacienda), reglamento del FRPD, Ley N° 21.591. Estrategia Regional de Desarrollo La Araucanía 2040. Cartera y líneas: Minuta DIFOI de líneas de inversión FRPD (sept. 2026, documento de trabajo). Empresas: SII, nómina de personas jurídicas, año comercial 2024 y serie 2005–2024 (casa matriz en la región; trabajadores dependientes asignados a la casa matriz). Población: INE, Censo 2024. Infraestructura y territorio (base regional GORE): territorios ERD 2040, red vial comunal, puentes, SAIDI 2022, viviendas sin energía, antenas autorizadas (decretos 1997–2020), subestaciones y líneas de transmisión (CEN), servicios sanitarios rurales (DOH, act. dic-2025), bocatomas (CNR), embalses (DOH), sedes de educación superior (Mineduc 2020), obras portuarias (DOP), aeródromos, pasos fronterizos, inversión pública 2010–2022 y zonas de rezago. <b>Financiamiento existente:</b> ANID, Base de Datos Histórica de Proyectos Adjudicados (corte 31-12-2025, fallos 2019–2026, región de ejecución La Araucanía); CORFO, portafolio InnovaChile vía API DataInnovación (adjudicados 2019–2026); MDSF, Banco Integrado de Proyectos vía BIDAT (iniciativas postuladas 2019–2027, montos en MM$ = millones de pesos). <b>Ejecutores:</b> nómina de instituciones privadas sin fines de lucro, Res. N° 1 de 23-feb-2026 (Subsecretaría de Economía y EMT, primer llamado 2026; transcripción del anexo de las bases FRPD 2026 del GORE Antofagasta) y Res. Ex. N° 33 de 2024; presencia regional según nómina SII de empresas y sucursales; acreditación por verificar en la CNA. <b>Evidencia territorial:</b> MDSF, estimaciones comunales SAE 2022 de pobreza por ingresos, pobreza multidimensional e inseguridad alimentaria; INE, Censo 2024 (manzanas y entidades rurales: población perteneciente a pueblos indígenas y origen del agua de la vivienda); CONADI, comunidades indígenas registradas; MMA, ARClim (indicadores climáticos comunales, presente y cambio proyectado bajo SSP2-4.5); CONAF, incendios forestales temporada 2024-25; GORE, estudio PROT de amenaza de inundación (cobertura parcial); INE, VIII Censo Agropecuario y Forestal 2021 (resultados comunales del visor geográfico); Subdere, SINIM 2024; Banco Central de Chile, PIB regional por actividad y PIB por habitante (referencia 2018). <b>Empresas y filtros:</b> la pestaña Empresas y la barra de filtros reproducen el explorador del tablero Tejido Empresarial sobre la misma base SII; los filtros recalculan la matriz, los cocientes, las fichas, los perfiles territoriales y las exportaciones (el simulador y la evidencia territorial no cambian). Sector según la clasificación del SII; nómina Res. 1/2026 cruzada por RUT con las empresas con casa matriz en la región. <b>Supuestos provisionales:</b> la correspondencia entre subrubros SII y lineamientos L1–L6 y la clasificación de proyectos por palabras clave son aproximaciones del equipo, a validar por DIFOI; los ponderadores del simulador no están reglados.
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+<div class="toast" id="toast" hidden></div>
