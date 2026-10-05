@@ -743,6 +743,7 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
                 <li><b>🌲 Forestal y Madera:</b> Silvicultura, servicios de apoyo, extracción de madera, aserraderos, tableros y muebles (A021, A022, A024, C161, C162, C310).</li>
                 <li><b>🏔️ Turismo y Gastronomía:</b> Alojamientos, restaurantes, operadores turísticos y servicios deportivos/recreativos (I551, I561, N791, R931, R932).</li>
                 <li><b>🔬 I+D y EBTC:</b> Investigación y desarrollo experimental (M721, M722), laboratorios de ensayo (M712), biofármacos (C210), sensores (C265) y desarrollo de software (J620, J631).</li>
+                <li><b>⚡ Energía y Climatización:</b> Generación ERNC (hidroeléctrica, solar, eólica, biomasa), transmisión, distribución eléctrica, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279).</li>
                 <li><b>🏗️ Construcción:</b> Obras de edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439).</li>
                 <li><b>♻️ Economía Circular:</b> Recogida de desechos, reciclaje/recuperación de materiales y reparación industrial y doméstica (E381, E383, C331, S952).</li>
               </ul>
@@ -2521,6 +2522,7 @@ const PRESETS = [
   { k: 'lens-for', g: 'Cadenas Estratégicas', l: '🌲 Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
   { k: 'lens-tur', g: 'Cadenas Estratégicas', l: '🏔️ Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
   { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: '🔬 I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-ene', g: 'Cadenas Estratégicas', l: '⚡ Energía y Climatización', title: 'Generación ERNC (hidro, eólica, solar), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279) · 53 MiPyMEs (80 empresas)', fn: () => { [71, 72, 73, 46, 51].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
   { k: 'lens-const', g: 'Cadenas Estratégicas', l: '🏗️ Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
   { k: 'lens-circ', g: 'Cadenas Estratégicas', l: '♻️ Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
 
@@ -2975,6 +2977,7 @@ const STRAT_CHAINS = [
   { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'A021, A022, A024, C161, C162, C310' },
   { id: 'tur', n: 'Turismo y Gastronomía', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'I551, I561, N791, R931, R932' },
   { id: 'ebtc', n: 'I+D y EBTC', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'M721, M722, M712, C210, C265, J620, J631' },
+  { id: 'ene', n: 'Energía y Clima', icon: '⚡', subs: [71, 72, 73, 46, 51], desc: 'D351, D352, D353, C271, C279 (Generación ERNC, transmisión, gas, climatización y equipos)' },
   { id: 'const', n: 'Construcción', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'F410, F421, F432, F433, F439' },
   { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'E381, E383, C331, S952' }
 ];
