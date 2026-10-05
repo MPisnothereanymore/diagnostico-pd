@@ -175,6 +175,97 @@ function sincronizarComprasAyer() {
 }
 
 /**
+ * SERVIDOR DE ESCRITURA Y SINCRONIZACIÓN (doPost):
+ * Recibe compras públicas en lote desde GitHub Actions e inserta únicamente las que no existan.
+ * Operación en bloque (Batch Write): tiempo de ejecución < 0.5 segundos.
+ */
+function doPost(e) {
+  try {
+    let payload = {};
+    if (e && e.postData && e.postData.contents) {
+      payload = JSON.parse(e.postData.contents);
+    }
+    const compras = Array.isArray(payload.compras) ? payload.compras : [];
+    if (!compras.length) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ok",
+        insertadas: 0,
+        mensaje: "Sin compras para procesar"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("Compras_Araucania");
+    if (!sheet) {
+      sheet = ss.insertSheet("Compras_Araucania");
+      sheet.appendRow([
+        "FECHA", "CODIGO_OC", "NOMBRE_COMPRA", "ORGANISMO_COMPRADOR", 
+        "COMUNA_COMPRADOR", "TERRITORIO_ERD", "RUT_PROVEEDOR", 
+        "PROVEEDOR", "COMUNA_PROVEEDOR", "REGION_PROVEEDOR", 
+        "ES_PROVEEDOR_LOCAL", "TOTAL_CLP"
+      ]);
+      sheet.getRange(1, 1, 1, 12)
+        .setFontWeight("bold")
+        .setBackground("#1F4E78")
+        .setFontColor("#FFFFFF");
+    }
+
+    // 1. Obtener códigos de OC existentes para deduplicación instantánea
+    const lastRow = sheet.getLastRow();
+    const codigosExistentes = new Set();
+    if (lastRow > 1) {
+      const codValues = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+      for (let i = 0; i < codValues.length; i++) {
+        const c = String(codValues[i][0]).trim();
+        if (c) codigosExistentes.add(c);
+      }
+    }
+
+    // 2. Filtrar y preparar filas nuevas en memoria
+    const filasNuevas = [];
+    for (let i = 0; i < compras.length; i++) {
+      const c = compras[i];
+      const codOC = String(c.codigoOC || c.codigo || "").trim();
+      if (!codOC || codigosExistentes.has(codOC)) continue;
+      
+      codigosExistentes.add(codOC);
+      filasNuevas.push([
+        c.fecha || "",
+        codOC,
+        c.nombre || "",
+        c.organismo || "",
+        c.comuna || "",
+        c.codTerritorio || c.territorio || "",
+        c.rutProveedor || "",
+        c.proveedor || "",
+        c.comunaProveedor || "",
+        c.regionProveedor || "",
+        c.esLocal ? "SÍ" : "NO",
+        Number(c.montoCLP) || 0
+      ]);
+    }
+
+    // 3. Inserción masiva en un solo llamado (Batch Write <0.5 seg)
+    if (filasNuevas.length > 0) {
+      const targetStartRow = sheet.getLastRow() + 1;
+      sheet.getRange(targetStartRow, 1, filasNuevas.length, 12).setValues(filasNuevas);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "ok",
+      insertadas: filasNuevas.length,
+      total: sheet.getLastRow() - 1
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      mensaje: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
  * SERVIDOR WEB Y API GET:
  * 1. Si entra un funcionario desde el navegador: Sirve el Radar FRPD Araucanía completo con datos vivos.
  * 2. Si se consulta por API o JSONP (?action=... o ?callback=...): Devuelve JSON/JSONP.

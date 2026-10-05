@@ -164,6 +164,35 @@ def sincronizar_compras_fecha(fecha_dt, compras_existentes_map):
 
     return nuevas_compras
 
+def enviar_a_google_sheets(compras_para_enviar):
+    """Envía compras a Google Sheets a través de Apps Script (doPost) en un solo lote rápido."""
+    if not compras_para_enviar:
+        return
+    print(f"\n[Google Workspace] Sincronizando {len(compras_para_enviar)} compras con Google Sheets...")
+    try:
+        url_post = APPS_SCRIPT_URL.split("?")[0]
+        payload = json.dumps({"compras": compras_para_enviar}).encode("utf-8")
+        req = urllib.request.Request(
+            url_post,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "RadarFRPD-Bot/1.0"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = resp.read().decode("utf-8")
+            try:
+                res = json.loads(raw)
+                if res.get("status") == "ok":
+                    print(f"  Google Sheets actualizado: {res.get('insertadas', 0)} filas nuevas insertadas (Total en hoja: {res.get('total', 0)}).")
+                else:
+                    print(f"  Respuesta Google Sheets: {res.get('mensaje')}")
+            except Exception:
+                print("  Datos recibidos por Google Sheets.")
+    except Exception as e:
+        print(f"  Aviso al sincronizar con Google Sheets: {e}")
+
 def main():
     base_dir = Path(__file__).resolve().parent
     json_path = base_dir / "datos_radar.json"
@@ -196,6 +225,7 @@ def main():
             compras_map[cod] = c
 
     # 1.1 Intentar sincronizar iniciativas y compras base desde Apps Script si está disponible
+    as_compras = []
     try:
         req_as = urllib.request.Request(APPS_SCRIPT_URL, headers={"User-Agent": "RadarFRPD/1.0"})
         with urllib.request.urlopen(req_as, timeout=15) as resp_as:
@@ -218,17 +248,24 @@ def main():
 
     # 2. Consultar compras recientes (por defecto ayer, o días configurados)
     dias_atras = int(os.environ.get("DIAS_ATRAS", "1"))
-    total_nuevas = 0
+    compras_nuevas_totales = []
 
     for i in range(1, dias_atras + 1):
         fecha_a_consultar = datetime.now() - timedelta(days=i)
         nuevas = sincronizar_compras_fecha(fecha_a_consultar, compras_map)
-        total_nuevas += len(nuevas)
+        compras_nuevas_totales.extend(nuevas)
 
-    print(f"\nResumen de ingesta: {total_nuevas} compras públicas nuevas incorporadas.")
+    print(f"\nResumen de ingesta: {len(compras_nuevas_totales)} compras públicas nuevas incorporadas.")
 
-    # 3. Consolidar lista completa
     todas_las_compras = list(compras_map.values())
+
+    # 3. Sincronizar hacia Google Sheets (batch push)
+    # Si hay compras nuevas o si la planilla en Drive tiene menos registros que la base consolidada
+    if compras_nuevas_totales:
+        enviar_a_google_sheets(compras_nuevas_totales)
+    elif len(todas_las_compras) > len(as_compras):
+        print(f"\n[Google Workspace] Planilla en Drive tiene {len(as_compras)} OCs y base consolidada tiene {len(todas_las_compras)} OCs. Sincronizando faltantes...")
+        enviar_a_google_sheets(todas_las_compras)
     
     # Recalcular métricas consolidadas
     monto_total = sum(c.get("montoCLP", 0) for c in todas_las_compras)
