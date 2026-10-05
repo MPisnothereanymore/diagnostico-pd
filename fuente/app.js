@@ -1411,7 +1411,7 @@ $('#tab-bip-n').textContent = NF0.format(NBX);
 // fuera de Claude (archivo abierto en el computador): los CSV se descargan directamente desde el navegador
 if (!HAS_CLAUDE) {
   DL = { save: async ({ filename, data }) => { const u = URL.createObjectURL(data), a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } };
-  ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
+  ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv', '#cp-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
 }
 // ================= Compras Públicas (ChileCompra) & Conexión Google Workspace =================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQm9T0XwQzSFrmpXDyECRtkaqHHTswfhO1yIFgqbHxVVwFNaCHQwNYA58OjmrpLlq9cw/exec';
@@ -1449,6 +1449,100 @@ function getTerrColor(tCode) {
   return 'var(--acc)';
 }
 
+const CPF = {
+  q: '',
+  terr: '',
+  ret: '',
+  fecha: '',
+  limit: '100',
+  sort: 'fecha',
+  dir: -1
+};
+let CP_LAST_LIST = [];
+
+function formatCPFecha(raw) {
+  if (!raw) return '–';
+  const s = String(raw).trim();
+  if (s.includes('/')) return s;
+  if (s.includes('-')) {
+    const parts = s.split('-');
+    if (parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return s;
+  }
+  if (/^\d{7,8}$/.test(s)) {
+    const p = s.padStart(8, '0');
+    return `${p.slice(0, 2)}/${p.slice(2, 4)}/${p.slice(4)}`;
+  }
+  return s;
+}
+
+function cpFechaKey(raw) {
+  const f = formatCPFecha(raw);
+  if (!f || f === '–') return 0;
+  const p = f.split('/');
+  if (p.length === 3) {
+    return parseInt(p[2] + p[1] + p[0], 10) || 0;
+  }
+  return 0;
+}
+
+function updateCPFechaOptions(allPurchases) {
+  const selFecha = $('#cp-filter-fecha');
+  if (!selFecha) return;
+  const curr = selFecha.value || CPF.fecha;
+  const setFechas = new Set();
+  (allPurchases || []).forEach(c => {
+    const f = formatCPFecha(c.fecha);
+    if (f && f !== '–') setFechas.add(f);
+  });
+  const fechasArr = Array.from(setFechas).sort((a, b) => cpFechaKey(b) - cpFechaKey(a));
+  const existingValues = Array.from(selFecha.options).map(o => o.value).filter(Boolean);
+  const isSame = existingValues.length === fechasArr.length && existingValues.every((v, i) => v === fechasArr[i]);
+  if (!isSame) {
+    let html = '<option value="">Todas las fechas</option>';
+    fechasArr.forEach(f => {
+      html += `<option value="${esc(f)}">${esc(f)}</option>`;
+    });
+    selFecha.innerHTML = html;
+    if (setFechas.has(curr)) {
+      selFecha.value = curr;
+    }
+  }
+}
+
+function exportComprasCSV() {
+  const cp = LIVE_COMPRAS || window.LIVE_COMPRAS || (window.__LIVE_WORKSPACE_DATA__ ? window.__LIVE_WORKSPACE_DATA__.comprasPublicas : null);
+  if (!cp) {
+    toast('No hay compras cargadas para exportar.');
+    return;
+  }
+  const items = CP_LAST_LIST.length ? CP_LAST_LIST : (cp.ultimasCompras || []);
+  if (!items.length) {
+    toast('Sin compras para los filtros actuales.');
+    return;
+  }
+  const lines = [
+    ['Fecha', 'Código OC', 'Licitación / Compra', 'Organismo Comprador', 'Comuna', 'Territorio ERD 2040', 'Proveedor Adjudicado', 'Región Proveedor', 'Adjudicación Local', 'Monto (CLP)', 'Monto (M$)']
+  ];
+  for (const c of items) {
+    lines.push([
+      formatCPFecha(c.fecha),
+      c.codigo || c.codigoOC || '',
+      c.nombre || '',
+      c.organismo || '',
+      c.comuna || '',
+      getTerrName(c.territorio || c.codTerritorio),
+      c.proveedor || '',
+      c.regionProveedor || '',
+      c.esLocal ? 'Local (Araucanía)' : 'Fuga a Santiago / otras',
+      c.montoCLP || 0,
+      c.montoCLP ? Math.round(c.montoCLP / 1000) : 0
+    ]);
+  }
+  const dateStr = new Date().toISOString().slice(0, 10);
+  saveCSV(lines, `compras_publicas_araucania_${dateStr}.csv`);
+}
+
 function renderCompras() {
   const cp = LIVE_COMPRAS || window.LIVE_COMPRAS || (window.__LIVE_WORKSPACE_DATA__ ? window.__LIVE_WORKSPACE_DATA__.comprasPublicas : null);
   const tbl = $('#compras-table');
@@ -1457,56 +1551,115 @@ function renderCompras() {
     return;
   }
   const setTxt = (id, val) => { const el = $(id); if (el) el.textContent = val; };
-  const selTerr = $('#cp-filter-terr') ? $('#cp-filter-terr').value : '';
-  const selRet = $('#cp-filter-ret') ? $('#cp-filter-ret').value : '';
 
-  let list = cp.ultimasCompras || [];
+  // Poblar opciones de fechas únicas según los datos recibidos
+  updateCPFechaOptions(cp.ultimasCompras);
+
+  const selTerr = $('#cp-filter-terr') ? $('#cp-filter-terr').value : CPF.terr;
+  const selRet = $('#cp-filter-ret') ? $('#cp-filter-ret').value : CPF.ret;
+  const selFecha = $('#cp-filter-fecha') ? $('#cp-filter-fecha').value : CPF.fecha;
+  const selLimit = $('#cp-filter-limit') ? $('#cp-filter-limit').value : CPF.limit;
+  const selQ = $('#cp-filter-q') ? $('#cp-filter-q').value.trim() : CPF.q;
+
+  CPF.terr = selTerr;
+  CPF.ret = selRet;
+  CPF.fecha = selFecha;
+  CPF.limit = selLimit;
+  CPF.q = selQ;
+
+  let list = (cp.ultimasCompras || []).slice();
+
+  // 1. Filtro por territorio
   if (selTerr) {
     list = list.filter(c => (c.codTerritorio === selTerr || c.territorio === selTerr || getTerrName(c.territorio) === TERR_INFO[selTerr]?.n));
   }
+
+  // 2. Filtro por retención / fuga
   if (selRet === 'local') {
     list = list.filter(c => c.esLocal);
   } else if (selRet === 'fuga') {
     list = list.filter(c => !c.esLocal);
   }
 
-  if (selTerr || selRet) {
-    const fTotal = list.reduce((acc, c) => acc + (c.montoCLP || 0), 0);
-    const fLocal = list.filter(c => c.esLocal).reduce((acc, c) => acc + (c.montoCLP || 0), 0);
-    const fPct = fTotal > 0 ? ((fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
-    const fFuga = fTotal > 0 ? ((1 - fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
-    const fTotalM = Math.round(fTotal / 1000);
-    const fLocalM = Math.round(fLocal / 1000);
+  // 3. Filtro por fecha específica
+  if (selFecha) {
+    list = list.filter(c => formatCPFecha(c.fecha) === selFecha);
+  }
+
+  // 4. Búsqueda por texto (nombre, OC, proveedor, organismo, comuna)
+  if (selQ) {
+    const qNorm = normTxt(selQ);
+    list = list.filter(c => {
+      const haystack = normTxt((c.nombre || '') + ' ' + (c.codigo || c.codigoOC || '') + ' ' + (c.proveedor || '') + ' ' + (c.organismo || '') + ' ' + (c.comuna || '') + ' ' + (c.regionProveedor || ''));
+      return haystack.includes(qNorm);
+    });
+  }
+
+  // 5. Ordenamiento interactivo
+  if (CPF.sort) {
+    const k = CPF.sort, d = CPF.dir;
+    list.sort((a, b) => {
+      let va = 0, vb = 0;
+      if (k === 'fecha') {
+        va = cpFechaKey(a.fecha);
+        vb = cpFechaKey(b.fecha);
+      } else if (k === 'monto') {
+        va = a.montoCLP || 0;
+        vb = b.montoCLP || 0;
+      } else if (k === 'oc') {
+        va = a.codigo || a.codigoOC || '';
+        vb = b.codigo || b.codigoOC || '';
+      } else if (k === 'nombre') {
+        va = a.nombre || '';
+        vb = b.nombre || '';
+      } else if (k === 'proveedor') {
+        va = a.proveedor || '';
+        vb = b.proveedor || '';
+      } else if (k === 'terr') {
+        va = getTerrName(a.territorio || a.codTerritorio);
+        vb = getTerrName(b.territorio || b.codTerritorio);
+      }
+      return (typeof va === 'string' ? va.localeCompare(vb, 'es') : va - vb) * d;
+    });
+  }
+
+  CP_LAST_LIST = list;
+
+  // 6. Recálculo dinámico de KPIs para la selección filtrada
+  const hasFilter = !!(selTerr || selRet || selFecha || selQ);
+  const fTotal = list.reduce((acc, c) => acc + (c.montoCLP || 0), 0);
+  const fLocal = list.filter(c => c.esLocal).reduce((acc, c) => acc + (c.montoCLP || 0), 0);
+  const fFuga = fTotal - fLocal;
+  const fPct = fTotal > 0 ? ((fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
+  const fFugaPct = fTotal > 0 ? ((1 - fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
+  const fTotalM = Math.round(fTotal / 1000);
+  const fLocalM = Math.round(fLocal / 1000);
+
+  if (hasFilter) {
     setTxt('#cp-total-monto', '$' + NF0.format(fTotalM) + ' M$');
-    setTxt('#cp-total-regs', `${f0(list.length)} de ${f0(cp.totalRegistros || list.length)} compras (${f1(fTotal / 1e6)} MM$)`);
+    setTxt('#cp-total-regs', `${f0(list.length)} de ${f0(cp.totalRegistros || (cp.ultimasCompras ? cp.ultimasCompras.length : list.length))} compras (${f1(fTotal / 1e6)} MM$)`);
     setTxt('#cp-ret-pct', fPct);
     setTxt('#cp-ret-monto', '$' + NF0.format(fLocalM) + ' M$ adjudicado local');
-    setTxt('#cp-fuga-pct', fFuga);
+    setTxt('#cp-fuga-pct', fFugaPct);
   } else {
-    const totalCLP = cp.montoTotalCLP || 0;
-    const localCLP = cp.montoRetenidoAraucania || 0;
+    const totalCLP = cp.montoTotalCLP || fTotal;
+    const localCLP = cp.montoRetenidoAraucania || fLocal;
     const totalM = Math.round(totalCLP / 1000);
     const localM = Math.round(localCLP / 1000);
     setTxt('#cp-total-monto', '$' + NF0.format(totalM) + ' M$');
     setTxt('#cp-total-regs', `${f0(cp.totalRegistros || list.length)} compras públicas (${f1(totalCLP / 1e6)} MM$)`);
-    setTxt('#cp-ret-pct', cp.porcentajeRetencionLocal || '–');
+    setTxt('#cp-ret-pct', cp.porcentajeRetencionLocal || fPct);
     setTxt('#cp-ret-monto', '$' + NF0.format(localM) + ' M$ adjudicado en la región');
-    setTxt('#cp-fuga-pct', cp.porcentajeFugaSantiago || '–');
+    setTxt('#cp-fuga-pct', cp.porcentajeFugaSantiago || fFugaPct);
   }
-  const formatFecha = raw => {
-    if (!raw) return '–';
-    const s = String(raw).trim();
-    if (s.includes('-') || s.includes('/')) return s;
-    if (/^\d{7,8}$/.test(s)) {
-      const p = s.padStart(8, '0');
-      return `${p.slice(0, 2)}/${p.slice(2, 4)}/${p.slice(4)}`;
-    }
-    return s;
-  };
 
-  setTxt('#cp-live-time', 'Sincronizado vía Apps Script · ' + (list.length && list[0].fecha ? formatFecha(list[0].fecha) : ''));
+  setTxt('#cp-live-time', 'Sincronizado vía Apps Script · ' + (list.length && list[0].fecha ? formatCPFecha(list[0].fecha) : ''));
 
-  const rows = list.map(c => {
+  // 7. Corte de compras según selector de cantidad a desplegar
+  const lim = selLimit === 'all' ? list.length : (parseInt(selLimit, 10) || 100);
+  const desplegadas = list.slice(0, lim);
+
+  const rows = desplegadas.map(c => {
     const isLocal = c.esLocal;
     const badge = isLocal
       ? '<span class="pill" style="background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);font-weight:600">Local (Araucanía)</span>'
@@ -1516,7 +1669,7 @@ function renderCompras() {
     const montoM = c.montoCLP ? Math.round(c.montoCLP / 1000) : 0;
     const montoTxt = montoM ? '$' + NF0.format(montoM) + ' M$' : '–';
     return `<tr>
-      <td class="m">${esc(formatFecha(c.fecha))}</td>
+      <td class="m">${esc(formatCPFecha(c.fecha))}</td>
       <td class="m" style="color:var(--acc)">${esc(c.codigo || c.codigoOC || '')}</td>
       <td style="max-width:320px"><b style="font-weight:600">${esc(c.nombre || '')}</b><span class="sm">${esc(c.organismo || '')} (${esc(c.comuna || '')})</span></td>
       <td><span class="tchip" style="border-left:3px solid ${tColor};font-weight:600" title="${esc(tName)}">${esc(tName)}</span></td>
@@ -1526,19 +1679,50 @@ function renderCompras() {
     </tr>`;
   }).join('');
 
+  const th = (key, lab, r) => `<th class="${r ? 'r' : ''}">${key ? `<button type="button" data-cpsort="${key}"${CPF.sort === key ? ` aria-sort="${CPF.dir > 0 ? 'ascending' : 'descending'}"` : ''}>${lab}${CPF.sort === key ? (CPF.dir > 0 ? ' ↑' : ' ↓') : ''}</button>` : lab}</th>`;
+
   if (tbl) {
     tbl.innerHTML = `<table>
       <thead><tr>
-        <th>Fecha</th>
-        <th>Código OC</th>
-        <th>Licitación / Compra</th>
-        <th>Territorio ERD 2040</th>
-        <th>Proveedor Adjudicado</th>
+        ${th('fecha', 'Fecha')}
+        ${th('oc', 'Código OC')}
+        ${th('nombre', 'Licitación / Compra')}
+        ${th('terr', 'Territorio ERD 2040')}
+        ${th('proveedor', 'Proveedor Adjudicado')}
         <th style="text-align:center">Retención Regional</th>
-        <th style="text-align:right">Monto (M$)</th>
+        ${th('monto', 'Monto (M$)', 1)}
       </tr></thead>
-      <tbody>${rows || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Sin compras para los filtros seleccionados.</td></tr>'}</tbody>
+      <tbody>${rows || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Sin compras para los filtros seleccionados.</td></tr>'}</tbody>
     </table>`;
+
+    $$('#compras-table th button[data-cpsort]').forEach(b => {
+      b.addEventListener('click', () => {
+        const k = b.dataset.cpsort;
+        if (CPF.sort === k) CPF.dir *= -1;
+        else { CPF.sort = k; CPF.dir = (k === 'monto' || k === 'fecha') ? -1 : 1; }
+        renderCompras();
+      });
+    });
+  }
+
+  // 8. Barra resumen / paginación al pie de la tabla
+  const pagerEl = $('#cp-pager');
+  if (pagerEl) {
+    if (list.length > lim) {
+      pagerEl.innerHTML = `<span>Mostrando las primeras <b>${f0(desplegadas.length)}</b> de <b>${f0(list.length)}</b> compras filtradas.</span>` +
+        `<span style="display:flex;gap:6px;align-items:center"><button class="btn" type="button" id="cp-show-all">Ver todas (${f0(list.length)})</button></span>`;
+      const btnAll = $('#cp-show-all');
+      if (btnAll) {
+        btnAll.onclick = () => {
+          if ($('#cp-filter-limit')) $('#cp-filter-limit').value = 'all';
+          CPF.limit = 'all';
+          renderCompras();
+        };
+      }
+    } else {
+      pagerEl.innerHTML = `<span>Mostrando <b>${f0(list.length)}</b> compras públicas${hasFilter ? ' con los filtros activos' : ''} (${f1(fTotal / 1e6)} MM$).</span>` +
+        (list.length ? `<span class="note">Descarga el conjunto filtrado completo en CSV con el botón superior.</span>` : '');
+    }
   }
 }
 
@@ -1656,8 +1840,38 @@ async function syncLiveWorkspace() {
   setView(VIEWS.includes(h0) ? h0 : 'cartera');
   if ($('#live-sync-badge')) $('#live-sync-badge').addEventListener('click', syncLiveWorkspace);
   if ($('#cp-refresh')) $('#cp-refresh').addEventListener('click', syncLiveWorkspace);
+  if ($('#cp-csv')) $('#cp-csv').addEventListener('click', exportComprasCSV);
   if ($('#cp-filter-terr')) $('#cp-filter-terr').addEventListener('change', renderCompras);
+  if ($('#cp-filter-fecha')) $('#cp-filter-fecha').addEventListener('change', renderCompras);
   if ($('#cp-filter-ret')) $('#cp-filter-ret').addEventListener('change', renderCompras);
+  if ($('#cp-filter-limit')) $('#cp-filter-limit').addEventListener('change', renderCompras);
+  
+  let cpQt;
+  if ($('#cp-filter-q')) {
+    $('#cp-filter-q').addEventListener('input', e => {
+      clearTimeout(cpQt);
+      cpQt = setTimeout(() => {
+        CPF.q = e.target.value;
+        renderCompras();
+      }, 160);
+    });
+  }
+
+  if ($('#cp-clear')) {
+    $('#cp-clear').addEventListener('click', () => {
+      CPF.q = '';
+      CPF.terr = '';
+      CPF.fecha = '';
+      CPF.ret = '';
+      CPF.limit = '100';
+      if ($('#cp-filter-q')) $('#cp-filter-q').value = '';
+      if ($('#cp-filter-terr')) $('#cp-filter-terr').value = '';
+      if ($('#cp-filter-fecha')) $('#cp-filter-fecha').value = '';
+      if ($('#cp-filter-ret')) $('#cp-filter-ret').value = '';
+      if ($('#cp-filter-limit')) $('#cp-filter-limit').value = '100';
+      renderCompras();
+    });
+  }
   
   if (window.__LIVE_WORKSPACE_DATA__) {
     window.applyLiveWorkspaceData(window.__LIVE_WORKSPACE_DATA__);
@@ -1666,7 +1880,7 @@ async function syncLiveWorkspace() {
   }
 
 if (HAS_CLAUDE) {
-  window.claude.use('downloads').then(d => { DL = d; if (d) { $('#hb-csv').hidden = false; $('#exe-csv').hidden = false; $('#bx-csv').hidden = false; $('#ev-csv').hidden = false; $('#tb-csv').hidden = false; const b = $('#fi-csv'); if (b && FICHA && FICHA.firms.length) { b.hidden = false; b.onclick = exportFirms; } const b2 = $('#fi-fcsv'); if (b2 && FICHA && FICHA.fin && FICHA.fin.length) { b2.hidden = false; b2.onclick = exportFin; } } }).catch(() => {});
+  window.claude.use('downloads').then(d => { DL = d; if (d) { $('#hb-csv').hidden = false; $('#exe-csv').hidden = false; $('#bx-csv').hidden = false; $('#ev-csv').hidden = false; $('#tb-csv').hidden = false; $('#cp-csv').hidden = false; const b = $('#fi-csv'); if (b && FICHA && FICHA.firms.length) { b.hidden = false; b.onclick = exportFirms; } const b2 = $('#fi-fcsv'); if (b2 && FICHA && FICHA.fin && FICHA.fin.length) { b2.hidden = false; b2.onclick = exportFin; } } }).catch(() => {});
   window.claude.use('sample').then(s => { SAMPLE = s || null; wireClaude(); }).catch(() => { SAMPLE = null; wireClaude(); });
 }
 })();

@@ -753,6 +753,38 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
         <div class="note" id="cp-live-time">Sincronizado vía Apps Script</div>
       </div>
     </div>
+
+    <div class="fbar" id="cp-f" role="group" aria-label="Filtros de compras públicas">
+      <input class="srch" id="cp-filter-q" type="search" placeholder="Buscar por licitación, proveedor, código OC u organismo…" autocomplete="off" aria-label="Buscar compras">
+      <label class="ctrl">Territorio ERD<select class="sel" id="cp-filter-terr">
+        <option value="">Todos los territorios (ERD 2040)</option>
+        <option value="TPLC">Temuco – Padre Las Casas</option>
+        <option value="NAH">Nahuelbuta</option>
+        <option value="COS">Costa Araucanía</option>
+        <option value="MNO">Malleco Norte</option>
+        <option value="VCE">Valle Central</option>
+        <option value="CSU">Cautín Sur</option>
+        <option value="AND">Araucanía Andina</option>
+        <option value="LAC">Araucanía Lacustre</option>
+      </select></label>
+      <label class="ctrl">Fecha<select class="sel" id="cp-filter-fecha">
+        <option value="">Todas las fechas</option>
+      </select></label>
+      <label class="ctrl">Retención regional<select class="sel" id="cp-filter-ret">
+        <option value="">Todas las compras</option>
+        <option value="local">Solo adjudicación local (Araucanía)</option>
+        <option value="fuga">Solo fuga externa (Santiago / otras)</option>
+      </select></label>
+      <label class="ctrl">Desplegar<select class="sel" id="cp-filter-limit">
+        <option value="50">50 compras</option>
+        <option value="100" selected>100 compras</option>
+        <option value="250">250 compras</option>
+        <option value="500">500 compras</option>
+        <option value="all">Todas las compras</option>
+      </select></label>
+      <button class="btn clear" id="cp-clear" type="button">Quitar filtros</button>
+    </div>
+
     <section class="card">
       <div class="card-h">
         <div>
@@ -760,26 +792,13 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
           <div class="sub">Compras públicas y órdenes de compra del GORE Araucanía y de los 32 municipios de la región capturadas vía API ChileCompra. Permite mapear fuga de gasto y oportunidades para proveedores locales.</div>
         </div>
         <div class="ctrls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <select id="cp-filter-terr" class="sel" style="padding:6px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--surf);color:var(--ink);font-size:13px;font-family:inherit">
-            <option value="">Todos los territorios (ERD 2040)</option>
-            <option value="TPLC">Temuco – Padre Las Casas</option>
-            <option value="NAH">Nahuelbuta</option>
-            <option value="COS">Costa Araucanía</option>
-            <option value="MNO">Malleco Norte</option>
-            <option value="VCE">Valle Central</option>
-            <option value="CSU">Cautín Sur</option>
-            <option value="AND">Araucanía Andina</option>
-            <option value="LAC">Araucanía Lacustre</option>
-          </select>
-          <select id="cp-filter-ret" class="sel" style="padding:6px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--surf);color:var(--ink);font-size:13px;font-family:inherit">
-            <option value="">Todas las compras</option>
-            <option value="local">Solo adjudicación local (Araucanía)</option>
-            <option value="fuga">Solo fuga externa (Santiago / otras)</option>
-          </select>
-          <button class="btn" id="cp-refresh" type="button">🔄 Refrescar datos</button>
+          <button class="btn pri" id="cp-csv" type="button" title="Descargar compras filtradas en formato CSV">📥 Exportar CSV</button>
+          <button class="btn" id="cp-refresh" type="button" title="Refrescar y sincronizar datos">🔄 Refrescar datos</button>
         </div>
       </div>
-      <div class="tbl-wrap" id="compras-table" style="max-height:600px;overflow-y:auto"></div>
+      <div class="tbl-wrap" id="compras-table" style="max-height:650px;overflow-y:auto"></div>
+      <div class="pager" id="cp-pager"></div>
+      <p class="note" style="padding:0 16px 16px">Fuente: API Mercado Público (ChileCompra), órdenes de compra emitidas para el GORE La Araucanía y las 32 municipalidades de la región. La adjudicación local corresponde a proveedores con domicilio tributario registrado en la Región de La Araucanía.</p>
     </section>
   </section>
 
