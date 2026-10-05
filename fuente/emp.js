@@ -106,6 +106,15 @@ const PRESETS = [
   { k: 'agro', g: 'Vistas rápidas', l: 'Silvoagropecuario', fn: () => { F.rub.add(RIDX('A')); UI.exDim = 'sub'; } },
   { k: 'manu', g: 'Vistas rápidas', l: 'Manufactura', fn: () => { F.rub.add(RIDX('C')); UI.exDim = 'sub'; } },
   { k: 'tur', g: 'Vistas rápidas', l: 'Alojamiento y comidas', fn: () => { F.rub.add(RIDX('I')); UI.exDim = 'sub'; } },
+
+  // Lentes Estratégicos (Cadenas Productivas Clave)
+  { k: 'lens-agro', g: 'Cadenas Estratégicas', l: '🌾 Cadena Agroalimentaria', title: 'Apoyo agrícola y poscosecha (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472) · 3.189 MiPyMEs', fn: () => { [0, 26, 24, 23, 21, 91, 96].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-for', g: 'Cadenas Estratégicas', l: '🌲 Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-tur', g: 'Cadenas Estratégicas', l: '🏔️ Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: '🔬 I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-const', g: 'Cadenas Estratégicas', l: '🏗️ Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-circ', g: 'Cadenas Estratégicas', l: '♻️ Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+
   ...LIN.map((l, L) => ({ k: 'L' + L, g: 'Lineamiento', l: `${l.k} ${LSHORT[l.k]}`, title: l.n, fn: () => { F.lin.add(L); UI.exDim = 'sub'; } })),
   { k: 'nom', g: 'FRPD', l: 'En nómina Res. 1/2026', title: 'Instituciones privadas sin fines de lucro habilitadas para el primer llamado FRPD 2026 con casa matriz en la región', fn: () => { F.nom = true; UI.exDim = 'com'; } },
 ];
@@ -551,9 +560,204 @@ $('#hm').addEventListener('click', e => {
   if (already) { F.com.clear(); C.set(k); } else { F.com.clear(); F.com.add(c); if (!C.on(k)) C.set(k); }
   FP.preset = null; update();
 });
+// ================= MATRIZ DE CADENAS ESTRATÉGICAS Y MIPYMES POR TERRITORIO =================
+const STRAT_CHAINS = [
+  { id: 'agro', n: 'Agroalimentaria', icon: '🌾', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'A016, C103, C105, C106, C107, G463, G472' },
+  { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'A021, A022, A024, C161, C162, C310' },
+  { id: 'tur', n: 'Turismo y Gastronomía', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'I551, I561, N791, R931, R932' },
+  { id: 'ebtc', n: 'I+D y EBTC', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'M721, M722, M712, C210, C265, J620, J631' },
+  { id: 'const', n: 'Construcción', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'F410, F421, F432, F433, F439' },
+  { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'E381, E383, C331, S952' }
+];
+
+let SM_SHOW_COMUNAS = false;
+const SM_EXPANDED_TERRS = new Set();
+let SM_TAM_FILTER = 'mipyme';
+
+function computeStratMatrixData() {
+  const tamMode = SM_TAM_FILTER;
+  const cMatrix = Array.from({ length: NC }, () => new Int32Array(STRAT_CHAINS.length));
+  const tMatrix = Array.from({ length: NT }, () => new Int32Array(STRAT_CHAINS.length));
+  const regTotals = new Int32Array(STRAT_CHAINS.length);
+  const cTotals = new Int32Array(NC);
+  const tTotals = new Int32Array(NT);
+  let regGrandTotal = 0;
+
+  const subToChains = Array.from({ length: NS }, () => []);
+  STRAT_CHAINS.forEach((ch, chIdx) => {
+    ch.subs.forEach(s => { if (s < NS) subToChains[s].push(chIdx); });
+  });
+
+  for (let i = 0; i < N; i++) {
+    const tr = TRAMO[i];
+    const tam = tamOf(tr);
+    if (tamMode === 'micro' && tam !== 1) continue;
+    if (tamMode === 'peq' && tam !== 2) continue;
+    if (tamMode === 'mipyme' && tam !== 1 && tam !== 2) continue;
+    if (tamMode === 'all' && tam === 0) continue;
+
+    const s = SUB[i];
+    const chList = subToChains[s];
+    if (!chList || !chList.length) continue;
+
+    const c = COM[i];
+    const t = TOF[c];
+
+    for (let j = 0; j < chList.length; j++) {
+      const chIdx = chList[j];
+      cMatrix[c][chIdx]++;
+      cTotals[c]++;
+      if (t >= 0 && t < NT) {
+        tMatrix[t][chIdx]++;
+        tTotals[t]++;
+      }
+      regTotals[chIdx]++;
+      regGrandTotal++;
+    }
+  }
+
+  return { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal };
+}
+
+function renderStratMatrix() {
+  const wrap = $('#strat-matrix-wrap');
+  if (!wrap) return;
+
+  const { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal } = computeStratMatrixData();
+
+  let h = `<table class="strat-tbl"><thead><tr>
+    <th style="min-width:180px">Territorio / Comuna</th>`;
+  STRAT_CHAINS.forEach(ch => {
+    h += `<th title="${esc(ch.desc)}" style="min-width:115px">${ch.icon} ${esc(ch.n)}</th>`;
+  });
+  h += `<th style="min-width:90px;font-weight:700">Total</th></tr></thead><tbody>`;
+
+  for (let t = 0; t < NT; t++) {
+    const tName = TER[t].n;
+    const isExpanded = SM_SHOW_COMUNAS || SM_EXPANDED_TERRS.has(t);
+    const arrow = isExpanded ? '▼' : '▶';
+
+    h += `<tr class="terr-row">
+      <td>
+        <span class="sm-terr-toggle" data-t="${t}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Clic para expandir/plegar comunas">
+          <span style="font-size:10px;color:var(--acc)">${arrow}</span>
+          <span class="tchip" style="border-left:3px solid ${TCOL[t]};font-weight:600">${esc(tName)}</span>
+        </span>
+      </td>`;
+    STRAT_CHAINS.forEach((ch, chIdx) => {
+      const val = tMatrix[t][chIdx];
+      const cls = val > 0 ? 'val-cell' : 'zero';
+      h += `<td class="${cls}" data-t="${t}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(tName)}">${val > 0 ? f0(val) : '–'}</td>`;
+    });
+    h += `<td style="font-weight:700;color:var(--acc)">${f0(tTotals[t])}</td></tr>`;
+
+    if (isExpanded) {
+      TER[t].c.forEach(c => {
+        const cName = CN(c);
+        h += `<tr class="com-row">
+          <td style="padding-left:26px">↳ ${esc(cName)}</td>`;
+        STRAT_CHAINS.forEach((ch, chIdx) => {
+          const val = cMatrix[c][chIdx];
+          const cls = val > 0 ? 'val-cell' : 'zero';
+          h += `<td class="${cls}" data-c="${c}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(cName)}">${val > 0 ? f0(val) : '–'}</td>`;
+        });
+        h += `<td style="font-weight:600">${f0(cTotals[c])}</td></tr>`;
+      });
+    }
+  }
+
+  // Fila Total Regional
+  h += `<tr style="background:var(--surf3);font-weight:700;border-top:2px solid var(--acc)">
+    <td><b>TOTAL REGIONAL</b></td>`;
+  STRAT_CHAINS.forEach((ch, chIdx) => {
+    const val = regTotals[chIdx];
+    h += `<td class="val-cell" data-ch="${chIdx}" style="color:var(--acc);font-size:13px" title="Filtrar toda la región en ${esc(ch.n)}">${f0(val)}</td>`;
+  });
+  h += `<td style="font-size:14px;color:var(--ink);font-weight:800">${f0(regGrandTotal)}</td></tr>`;
+  h += `</tbody></table>`;
+
+  wrap.innerHTML = h;
+}
+
+function exportStratMatrixCSV() {
+  const { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal } = computeStratMatrixData();
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const lines = [];
+  lines.push(['Tipo', 'Territorio_ERD', 'Comuna', ...STRAT_CHAINS.map(ch => ch.n), 'Total']);
+
+  for (let t = 0; t < NT; t++) {
+    const tName = TER[t].n;
+    lines.push(['TERRITORIO', tName, '–', ...STRAT_CHAINS.map((_, i) => tMatrix[t][i]), tTotals[t]]);
+    TER[t].c.forEach(c => {
+      lines.push(['COMUNA', tName, CN(c), ...STRAT_CHAINS.map((_, i) => cMatrix[c][i]), cTotals[c]]);
+    });
+  }
+  lines.push(['TOTAL_REGIONAL', 'La Araucania', 'Todas las comunas', ...STRAT_CHAINS.map((_, i) => regTotals[i]), regGrandTotal]);
+  saveCSV(lines, `matriz_cadenas_estrategicas_araucania_${SM_TAM_FILTER}_${dateStr}.csv`);
+}
+
+// Eventos de la matriz estratégica
+if ($('#strat-matrix-wrap')) {
+  $('#strat-matrix-wrap').addEventListener('click', e => {
+    const toggle = e.target.closest('.sm-terr-toggle');
+    if (toggle) {
+      const t = +toggle.dataset.t;
+      if (SM_EXPANDED_TERRS.has(t)) SM_EXPANDED_TERRS.delete(t);
+      else SM_EXPANDED_TERRS.add(t);
+      renderStratMatrix();
+      return;
+    }
+
+    const cell = e.target.closest('td.val-cell');
+    if (!cell) return;
+
+    const chIdx = cell.dataset.ch != null ? +cell.dataset.ch : null;
+    const t = cell.dataset.t != null ? +cell.dataset.t : null;
+    const c = cell.dataset.c != null ? +cell.dataset.c : null;
+
+    if (chIdx != null) {
+      clearFilters();
+      const ch = STRAT_CHAINS[chIdx];
+      ch.subs.forEach(s => F.sub.add(s));
+      if (SM_TAM_FILTER === 'micro') F.tam.add(1);
+      else if (SM_TAM_FILTER === 'peq') F.tam.add(2);
+      else if (SM_TAM_FILTER === 'mipyme') { F.tam.add(1); F.tam.add(2); }
+
+      if (c != null) F.com.add(c);
+      else if (t != null) F.ter.add(t);
+
+      UI.exDim = 'sub';
+      syncInputs();
+      update();
+      toast(`Filtro aplicado: ${ch.n}` + (c != null ? ` · ${CN(c)}` : t != null ? ` · ${TER[t].n}` : ''));
+      const tbWrap = $('#tb-wrap');
+      if (tbWrap) tbWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
+if ($('#sm-tam')) {
+  $('#sm-tam').addEventListener('change', e => {
+    SM_TAM_FILTER = e.target.value;
+    renderStratMatrix();
+  });
+}
+
+if ($('#sm-toggle-com')) {
+  $('#sm-toggle-com').addEventListener('click', () => {
+    SM_SHOW_COMUNAS = !SM_SHOW_COMUNAS;
+    $('#sm-toggle-com').textContent = SM_SHOW_COMUNAS ? 'Plegar a 8 territorios' : 'Desplegar 32 comunas';
+    renderStratMatrix();
+  });
+}
+
+if ($('#sm-csv')) {
+  $('#sm-csv').addEventListener('click', exportStratMatrixCSV);
+}
+
 function renderEmpresas() {
   if (!CTX) return;
   if (!DIRTY.empresas) return;
   DIRTY.empresas = false;
-  renderKpisE(); renderM1E(); renderExplorer(); renderEvo(); renderCre(); renderTam(); renderTable(); renderHeat();
+  renderKpisE(); renderM1E(); renderExplorer(); renderEvo(); renderCre(); renderTam(); renderStratMatrix(); renderTable(); renderHeat();
 }

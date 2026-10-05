@@ -246,6 +246,28 @@ td.good{color:var(--ok)}
 .lqrow .tr u{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.7}
 .lqrow .x{font-family:var(--f-mono);font-size:12px;text-align:right}
 
+/* guias de lectura y notas didacticas */
+.guide-det{margin-top:10px;background:var(--surf2);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.guide-det[open]{border-color:var(--acc)}
+.guide-sum{cursor:pointer;padding:8px 12px;font-size:12px;font-weight:600;color:var(--acc);display:flex;align-items:center;gap:7px;background:rgba(76,195,176,.06);user-select:none}
+.guide-sum:hover{background:rgba(76,195,176,.12)}
+.guide-b{padding:12px 16px;font-size:12.5px;line-height:1.5;color:var(--ink2);border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:8px}
+.guide-b b{color:var(--ink)}
+.guide-b ul{margin:4px 0 0;padding-left:18px}
+.guide-b li{margin-bottom:4px}
+.guide-b li::marker{color:var(--acc)}
+
+/* tabla de cadenas estrategicas */
+.strat-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.strat-tbl th,.strat-tbl td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right}
+.strat-tbl th:first-child,.strat-tbl td:first-child{text-align:left}
+.strat-tbl tr.terr-row td{background:var(--surf2);font-weight:600;border-top:1px solid var(--line2)}
+.strat-tbl tr.com-row td{font-size:12px;color:var(--ink2)}
+.strat-tbl tr.com-row:hover td{background:rgba(76,195,176,.06)}
+.strat-tbl td.val-cell{cursor:pointer;font-family:var(--f-mono);font-size:12px}
+.strat-tbl td.val-cell:hover{color:var(--acc);font-weight:700;text-decoration:underline}
+.strat-tbl td.zero{color:var(--muted);opacity:.4}
+
 /* marco */
 .cov-wrap{overflow-x:auto}
 .cov{display:grid;gap:2px;min-width:880px}
@@ -556,7 +578,20 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
           <div><h2>Territorio × lineamiento CTCI</h2><div class="sub">Cada celda es una entrada de la cartera (línea y madurez de la evidencia). El color muestra la base empresarial del territorio en ese lineamiento. Clic en una celda para abrir su ficha.</div></div>
           <label class="ctrl">Color de las celdas<select class="sel" id="mx-mode"><option value="lq">Especialización (cociente)</option><option value="n">Empresas en el lineamiento</option><option value="g">Crecimiento 2014–2024</option><option value="mad">Madurez de la evidencia</option><option value="fin">Financiamiento existente 2019–2026</option></select></label>
         </div>
-        <div class="card-b"><div class="mx-wrap"><div class="mx" id="mx"></div></div><div class="mxleg" id="mx-leg"></div><p class="note" id="mx-note" style="margin-top:10px"></p></div>
+        <div class="card-b">
+          <div class="mx-wrap"><div class="mx" id="mx"></div></div>
+          <div class="mxleg" id="mx-leg"></div>
+          <p class="note" id="mx-note" style="margin-top:10px"></p>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo leer la matriz de cartera?</summary>
+            <div class="guide-b">
+              <div><b>Estructura general:</b> Filas = <b>8 Territorios ERD 2040</b>; Columnas = <b>6 Lineamientos CTCI</b> (L1 Clima/Agua a L6 Digitalización). Cada celda representa una iniciativa de inversión de la cartera DIFOI.</div>
+              <div><b>Color de celda:</b> Por defecto muestra el grado de especialización económica local (Cociente de Localización LQ). Azul más intenso = mayor base empresarial territorial en ese lineamiento. Puede alternarse a madurez, crecimiento o financiamiento existente.</div>
+              <div><b>Puntos de madurez (●●○):</b> 1 = evidencia por levantar; 2 = evidencia parcial; 3 = evidencia levantada y contraparte identificada.</div>
+              <div><b>Interactividad:</b> Clic en cualquier celda para abrir su <b>Ficha Técnica lateral</b> con ejecutores, montos estimados y marco normativo D.S. 1.699.</div>
+            </div>
+          </details>
+        </div>
       </section>
       <aside class="card ficha" id="ficha" aria-live="polite"></aside>
     </div>
@@ -581,6 +616,14 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
           <div class="mapwrap" id="map"></div>
           <fieldset class="layers" id="layers"><legend class="lbl">Infraestructura y capas</legend></fieldset>
           <p class="note" id="m-note"></p>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo leer el mapa y las capas de infraestructura?</summary>
+            <div class="guide-b">
+              <div><b>División territorial:</b> Los bordes gruesos demarcan los <b>8 Territorios de la ERD 2040</b>; las subdivisiones internas son las 32 comunas.</div>
+              <div><b>Capas de infraestructura:</b> Activa capas como <i>Sistemas Sanitarios Rurales (SSR/APR)</i>, <i>Subestaciones eléctricas</i>, <i>Plantas de tratamiento</i> o <i>Antenas</i> para identificar cuellos de botella y justificar proyectos habilitantes.</div>
+              <div><b>Ficha diagnóstica:</b> Haz clic en cualquier comuna para ver en el panel derecho su vocación productiva 2040, población Censo 2024 y situación de sus Planes Reguladores (PRC).</div>
+            </div>
+          </details>
         </div>
       </section>
       <aside class="card" id="tprof" aria-live="polite"></aside>
@@ -591,6 +634,15 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
         <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="hb-scope"><option value="all">Todas las comunas</option><option value="ter">Solo el territorio seleccionado</option></select></label><button class="btn pri" id="hb-csv" type="button" hidden>Exportar CSV</button></div>
       </div>
       <div class="tbl-wrap" id="hab"></div>
+      <div style="padding:0 16px 14px">
+        <details class="guide-det">
+          <summary class="guide-sum">ℹ️ ¿Cómo interpretar la tabla de condiciones habilitantes?</summary>
+          <div class="guide-b">
+            <div><b>Marcador ▲ (alerta de brecha):</b> Señala al <b>tercio de comunas más desfavorecidas</b> de la región en esa variable (mayor carencia de agua potable rural, rezago vial, brecha de internet o vulnerabilidad social).</div>
+            <div><b>Criterio normativo:</b> Fundamenta asignaciones del <b>Art. 8 N°2 del D.S. 1.699</b> (bienes públicos e infraestructura habilitante) y ayuda a anticipar riesgos de ejecución comunal.</div>
+          </div>
+        </details>
+      </div>
     </section>
   </section>
 
@@ -600,7 +652,17 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <div class="grid g-map">
       <section class="card">
         <div class="card-h"><div><h2>Mapa de comunas</h2><div class="sub">Pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
-        <div class="card-b"><div class="mapwrap" id="e-m1"></div><div class="note" id="e-m1-note" style="margin-top:8px"></div></div>
+        <div class="card-b">
+          <div class="mapwrap" id="e-m1"></div>
+          <div class="note" id="e-m1-note" style="margin-top:8px"></div>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo leer el mapa de empresas por comuna?</summary>
+            <div class="guide-b">
+              <div><b>Intensidad de color:</b> Refleja la concentración relativa según el indicador elegido (Densidad por habitante, Total empresas, Empresas con empleo dependiente, etc.).</div>
+              <div><b>Filtro directo:</b> Pasa el cursor para ver cifras; haz clic sobre cualquier comuna para filtrar todo el dashboard a ese territorio.</div>
+            </div>
+          </details>
+        </div>
       </section>
       <section class="card">
         <div class="card-h">
@@ -612,14 +674,77 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
             <button class="btn" id="ex-view" type="button" style="padding:6px 10px">Ver tabla</button>
           </div>
         </div>
-        <div class="card-b"><div id="ex-body"></div><div class="note" id="ex-note" style="margin-top:8px"></div></div>
+        <div class="card-b">
+          <div id="ex-body"></div>
+          <div class="note" id="ex-note" style="margin-top:8px"></div>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo explorar y descender de nivel (Drill-down)?</summary>
+            <div class="guide-b">
+              <div><b>Estructura CIIU:</b> Agrupa por <i>Rubro</i> (ej. Manufactura), <i>Subrubro</i> (ej. Productos lácteos) o <i>Actividad económica</i> detallada.</div>
+              <div><b>Navegación interactiva:</b> Haz clic en cualquier barra horizontal para filtrar por ese concepto y bajar automáticamente al siguiente nivel de detalle.</div>
+            </div>
+          </details>
+        </div>
       </section>
     </div>
-    <section class="card"><div class="card-h"><div><h2>Evolución 2005–2024</h2><div class="sub" id="evo-sub"></div></div><div class="ctrls" style="align-items:center;gap:14px"><div class="leg" id="evo-leg"><span><i style="background:var(--data)"></i>Selección</span><span><i style="background:var(--data-reg)"></i>Región</span></div><label class="ctrl">Comparar desde<select class="sel" id="evo-per"><option value="2005">2005</option><option value="2010">2010</option><option value="2014" selected>2014</option><option value="2019">2019</option><option value="2020">2020</option></select></label></div></div><div class="card-b"><div id="evo"></div><div class="note" id="evo-note"></div></div></section>
+    <section class="card"><div class="card-h"><div><h2>Evolución 2005–2024</h2><div class="sub" id="evo-sub"></div></div><div class="ctrls" style="align-items:center;gap:14px"><div class="leg" id="evo-leg"><span><i style="background:var(--data)"></i>Selección</span><span><i style="background:var(--data-reg)"></i>Región</span></div><label class="ctrl">Comparar desde<select class="sel" id="evo-per"><option value="2005">2005</option><option value="2010">2010</option><option value="2014" selected>2014</option><option value="2019">2019</option><option value="2020">2020</option></select></label></div></div>
+      <div class="card-b">
+        <div id="evo"></div>
+        <div class="note" id="evo-note"></div>
+        <details class="guide-det">
+          <summary class="guide-sum">ℹ️ ¿Cómo leer el gráfico de evolución temporal?</summary>
+          <div class="guide-b">
+            <div><b>Línea azul:</b> Trayectoria acumulada de tu selección actual de empresas o sectores.</div>
+            <div><b>Línea gris punteada:</b> Promedio regional total (benchmark). Si la línea azul está sobre la gris, la selección supera la dinámica promedio de La Araucanía.</div>
+          </div>
+        </details>
+      </div>
+    </section>
     <div class="grid g-2">
       <section class="card"><div class="card-h"><div><h2>Empresas según año de inicio</h2><div class="sub" id="cre-sub"></div></div></div><div class="card-b"><div id="cre"></div></div></section>
       <section class="card"><div class="card-h"><div><h2>Estructura por tamaño</h2><div class="sub">Según ventas anuales (tramos SII)</div></div></div><div class="card-b" id="tam"></div></section>
     </div>
+    
+    <!-- ===== Matriz de Cadenas Estratégicas y MiPyMEs por Territorio ===== -->
+    <section class="card" id="strat-matrix-card">
+      <div class="card-h">
+        <div>
+          <h2>Matriz de Cadenas Estratégicas y MiPyMEs por Territorio ERD</h2>
+          <div class="sub">Conteo SII exacto en los 8 territorios y 32 comunas. Clic en cualquier cifra para filtrar el listado de empresas.</div>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Tamaño<select class="sel" id="sm-tam">
+            <option value="mipyme" selected>Micro y Pequeña (MiPyME)</option>
+            <option value="micro">Solo Microempresa (1–2.400 UF)</option>
+            <option value="peq">Solo Pequeña empresa (2.400–25.000 UF)</option>
+            <option value="all">Todas las empresas (incluye Med/Gde)</option>
+          </select></label>
+          <button class="btn" id="sm-toggle-com" type="button">Desplegar 32 comunas</button>
+          <button class="btn pri" id="sm-csv" type="button">Exportar CSV</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="tbl-wrap" id="strat-matrix-wrap" style="max-height:540px;overflow-y:auto"></div>
+        <details class="guide-det" open>
+          <summary class="guide-sum">ℹ️ ¿Cómo leer la matriz de cadenas estratégicas?</summary>
+          <div class="guide-b">
+            <div><b>Agrupación territorial:</b> Muestra los <b>8 Territorios de la ERD 2040</b>. Pulsa en <i>"Desplegar 32 comunas"</i> o en el nombre de un territorio para abrir el detalle comunal de cada zona.</div>
+            <div><b>Cadenas Estratégicas (Columnas):</b>
+              <ul>
+                <li><b>🌾 Agroalimentaria:</b> Apoyo agrícola/poscosecha (A016), agroindustria de frutas (C103), lácteos (C105), molinería (C106), otros alimentos (C107) y comercio de alimentos (G463, G472).</li>
+                <li><b>🌲 Forestal y Madera:</b> Silvicultura, servicios de apoyo, extracción de madera, aserraderos, tableros y muebles (A021, A022, A024, C161, C162, C310).</li>
+                <li><b>🏔️ Turismo y Gastronomía:</b> Alojamientos, restaurantes, operadores turísticos y servicios deportivos/recreativos (I551, I561, N791, R931, R932).</li>
+                <li><b>🔬 I+D y EBTC:</b> Investigación y desarrollo experimental (M721, M722), laboratorios de ensayo (M712), biofármacos (C210), sensores (C265) y desarrollo de software (J620, J631).</li>
+                <li><b>🏗️ Construcción:</b> Obras de edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439).</li>
+                <li><b>♻️ Economía Circular:</b> Recogida de desechos, reciclaje/recuperación de materiales y reparación industrial y doméstica (E381, E383, C331, S952).</li>
+              </ul>
+            </div>
+            <div><b>Interactividad:</b> Al hacer clic sobre cualquier número, el explorador inferior filtra de inmediato las empresas correspondientes con razón social, RUT y trabajadores.</div>
+          </div>
+        </details>
+      </div>
+    </section>
+
     <section class="card">
       <div class="card-h"><div><h2>Empresas de la selección</h2><div class="sub" id="tb-sub"></div></div><div class="ctrls"><button class="btn pri" id="tb-csv" type="button" hidden>Exportar CSV</button></div></div>
       <div class="tbl-wrap tall" id="tb-wrap"></div>
@@ -634,7 +759,18 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
           <div id="hm-leg"></div>
         </div>
       </div>
-      <div class="card-b"><div style="overflow-x:auto" id="hm"></div><div class="note" id="hm-note" style="margin-top:8px"></div></div>
+      <div class="card-b">
+        <div style="overflow-x:auto" id="hm"></div>
+        <div class="note" id="hm-note" style="margin-top:8px"></div>
+        <details class="guide-det">
+          <summary class="guide-sum">ℹ️ ¿Cómo interpretar el Cociente de Localización (LQ)?</summary>
+          <div class="guide-b">
+            <div><b>LQ &gt; 1,0 (Azul intenso):</b> Especialización alta. La actividad tiene mayor presencia proporcional en la comuna que el promedio de toda La Araucanía (vocación productiva local).</div>
+            <div><b>LQ = 1,0 (Gris neutro):</b> Presencia idéntica al promedio regional.</div>
+            <div><b>LQ &lt; 1,0:</b> Sub-representación relativa en esa comuna (potencial brecha o oportunidad de complementariedad territorial).</div>
+          </div>
+        </details>
+      </div>
     </section>
   </section>
 
@@ -644,11 +780,31 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <div class="grid g-ev">
       <section class="card">
         <div class="card-h"><div><h2>Estructura productiva regional</h2><div class="sub">Peso de cada actividad en el PIB de La Araucanía, especialización frente al conjunto de las regiones (cociente &gt; 1 = más peso que en el país) y crecimiento real desde 2018. Banco Central, cuentas regionales.</div></div></div>
-        <div class="card-b"><div class="tbl-wrap" id="ev-pib"></div><p class="note" style="margin-top:10px">Volumen a precios del año anterior encadenado (referencia 2018). Los volúmenes encadenados no son estrictamente aditivos: los pesos son aproximados. En rojo, actividades que crecieron más de 5 puntos menos que en el conjunto de las regiones; en verde, más de 5 puntos más.</p></div>
+        <div class="card-b">
+          <div class="tbl-wrap" id="ev-pib"></div>
+          <p class="note" style="margin-top:10px">Volumen a precios del año anterior encadenado (referencia 2018). Los volúmenes encadenados no son estrictamente aditivos: los pesos son aproximados. En rojo, actividades que crecieron más de 5 puntos menos que en el conjunto de las regiones; en verde, más de 5 puntos más.</p>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo leer las cuentas de estructura productiva (PIB)?</summary>
+            <div class="guide-b">
+              <div><b>Participación en PIB:</b> Peso porcentual de cada sector en la economía regional según el Banco Central.</div>
+              <div><b>Semáforo de crecimiento relativo:</b> En verde las actividades que crecieron más de 5 puntos porcentuales sobre el promedio nacional de las regiones; en rojo las que se rezagaron más de 5 puntos.</div>
+            </div>
+          </details>
+        </div>
       </section>
       <section class="card">
         <div class="card-h"><div><h2>Cultivos y plantaciones por territorio</h2><div class="sub">Hectáreas por especie según el Censo Agropecuario y Forestal 2021. El tono indica qué parte de la superficie regional de la especie está en cada territorio.</div></div></div>
-        <div class="card-b"><div class="tbl-wrap" id="ev-caf"></div><p class="note" style="margin-top:10px">Especies con 500 ha o más en la región. Superficie de las explotaciones censadas, no del territorio completo.</p></div>
+        <div class="card-b">
+          <div class="tbl-wrap" id="ev-caf"></div>
+          <p class="note" style="margin-top:10px">Especies con 500 ha o más en la región. Superficie de las explotaciones censadas, no del territorio completo.</p>
+          <details class="guide-det">
+            <summary class="guide-sum">ℹ️ ¿Cómo leer la superficie silvoagropecuaria (CAF 2021)?</summary>
+            <div class="guide-b">
+              <div><b>Distribución territorial:</b> Hectáreas de cada cultivo localizadas en cada uno de los 8 territorios ERD.</div>
+              <div><b>Intensidad de color:</b> Mayor saturación refleja concentración territorial de la especie (ej. avellanos en Valle Central o cereales en Malleco y Cautín).</div>
+            </div>
+          </details>
+        </div>
       </section>
     </div>
     <section class="card" id="ev-tblc">
@@ -661,6 +817,15 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       <div class="card-b" style="padding-bottom:8px"><div class="seg" id="ev-g" role="group" aria-label="Grupo de indicadores"></div></div>
       <div class="tbl-wrap" id="ev-tbl"></div>
       <p class="note" id="ev-note" style="padding:10px 16px 16px"></p>
+      <div style="padding:0 16px 16px">
+        <details class="guide-det">
+          <summary class="guide-sum">ℹ️ ¿Cómo utilizar los indicadores de necesidad comunal?</summary>
+          <div class="guide-b">
+            <div><b>Fundamentación ex-ante:</b> Reúne datos oficiales (MDSF/CASEN, SINIM, Censo, ARClim) para respaldar el problema y pertinencia territorial de cada iniciativa postulada al FRPD.</div>
+            <div><b>Vínculo con el mapa:</b> Puedes usar el selector <i>"Ver en el mapa"</i> para visualizar cualquiera de estos indicadores espacialmente sobre las 32 comunas.</div>
+          </div>
+        </details>
+      </div>
     </section>
   </section>
 
@@ -669,7 +834,16 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <div class="kpis" id="mk-kpis"></div>
     <section class="card">
       <div class="card-h"><div><h2>Qué categorías del D.S. 1.699 cubre la cartera</h2><div class="sub">Filas: categorías del art. 8 y tipos de gasto de N°3. Columnas: las 14 líneas. En ámbar, categorías financiables que ninguna línea usa todavía.</div></div></div>
-      <div class="card-b"><div class="cov-wrap"><div class="cov" id="cov"></div></div></div>
+      <div class="card-b">
+        <div class="cov-wrap"><div class="cov" id="cov"></div></div>
+        <details class="guide-det" style="margin-top:14px">
+          <summary class="guide-sum">ℹ️ ¿Cómo leer la matriz de cobertura D.S. 1.699?</summary>
+          <div class="guide-b">
+            <div><b>Filas normativas:</b> Categorías de gasto elegibles según el Art. 8 del reglamento FRPD (Fomento productivo N°1, Infraestructura habilitante N°2 e I+D / CTCI N°3).</div>
+            <div><b>Columnas:</b> Las 14 líneas de la cartera regional. Los puntos verdes indican qué tipologías están cubiertas. En ámbar se destacan oportunidades elegibles aún no cubiertas.</div>
+          </div>
+        </details>
+      </div>
     </section>
     <section class="card">
       <div class="card-h"><div><h2>Lo que ya se financia en la región · 2019–2026</h2><div class="sub">Proyectos ANID ejecutados en la región, CORFO InnovaChile y las iniciativas BIP (FNDR y sectoriales) agrupadas según la categoría del art. 8 a la que se parecen. Sirve para no duplicar y para ver qué categorías ya tienen otra fuente.</div></div></div>
@@ -798,7 +972,17 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       </div>
       <div class="tbl-wrap" id="compras-table" style="max-height:650px;overflow-y:auto"></div>
       <div class="pager" id="cp-pager"></div>
-      <p class="note" style="padding:0 16px 16px">Fuente: API Mercado Público (ChileCompra), órdenes de compra emitidas para el GORE La Araucanía y las 32 municipalidades de la región. La adjudicación local corresponde a proveedores con domicilio tributario registrado en la Región de La Araucanía.</p>
+      <p class="note" style="padding:0 16px 8px">Fuente: API Mercado Público (ChileCompra), órdenes de compra emitidas para el GORE La Araucanía y las 32 municipalidades de la región. La adjudicación local corresponde a proveedores con domicilio tributario registrado en la Región de La Araucanía.</p>
+      <div style="padding:0 16px 16px">
+        <details class="guide-det">
+          <summary class="guide-sum">ℹ️ ¿Cómo leer el monitoreo de compras y fuga de gasto?</summary>
+          <div class="guide-b">
+            <div><b>Retención regional (Verde):</b> Presupuesto público que queda en manos de empresas con domicilio tributario en La Araucanía. Estimula el encadenamiento y empleo local.</div>
+            <div><b>Fuga de gasto público (Rojo):</b> Monto adjudicado a proveedores fuera de la región (principalmente Región Metropolitana).</div>
+            <div><b>Oportunidad estratégica FRPD:</b> Señala los rubros donde existe suficiente masa crítica de MiPyMEs locales pero los municipios siguen comprando afuera, justificando iniciativas de fomento de proveedores regionales.</div>
+          </div>
+        </details>
+      </div>
     </section>
   </section>
 
@@ -2323,6 +2507,15 @@ const PRESETS = [
   { k: 'agro', g: 'Vistas rápidas', l: 'Silvoagropecuario', fn: () => { F.rub.add(RIDX('A')); UI.exDim = 'sub'; } },
   { k: 'manu', g: 'Vistas rápidas', l: 'Manufactura', fn: () => { F.rub.add(RIDX('C')); UI.exDim = 'sub'; } },
   { k: 'tur', g: 'Vistas rápidas', l: 'Alojamiento y comidas', fn: () => { F.rub.add(RIDX('I')); UI.exDim = 'sub'; } },
+
+  // Lentes Estratégicos (Cadenas Productivas Clave)
+  { k: 'lens-agro', g: 'Cadenas Estratégicas', l: '🌾 Cadena Agroalimentaria', title: 'Apoyo agrícola y poscosecha (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472) · 3.189 MiPyMEs', fn: () => { [0, 26, 24, 23, 21, 91, 96].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-for', g: 'Cadenas Estratégicas', l: '🌲 Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-tur', g: 'Cadenas Estratégicas', l: '🏔️ Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: '🔬 I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-const', g: 'Cadenas Estratégicas', l: '🏗️ Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-circ', g: 'Cadenas Estratégicas', l: '♻️ Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+
   ...LIN.map((l, L) => ({ k: 'L' + L, g: 'Lineamiento', l: `${l.k} ${LSHORT[l.k]}`, title: l.n, fn: () => { F.lin.add(L); UI.exDim = 'sub'; } })),
   { k: 'nom', g: 'FRPD', l: 'En nómina Res. 1/2026', title: 'Instituciones privadas sin fines de lucro habilitadas para el primer llamado FRPD 2026 con casa matriz en la región', fn: () => { F.nom = true; UI.exDim = 'com'; } },
 ];
@@ -2768,11 +2961,206 @@ $('#hm').addEventListener('click', e => {
   if (already) { F.com.clear(); C.set(k); } else { F.com.clear(); F.com.add(c); if (!C.on(k)) C.set(k); }
   FP.preset = null; update();
 });
+// ================= MATRIZ DE CADENAS ESTRATÉGICAS Y MIPYMES POR TERRITORIO =================
+const STRAT_CHAINS = [
+  { id: 'agro', n: 'Agroalimentaria', icon: '🌾', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'A016, C103, C105, C106, C107, G463, G472' },
+  { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'A021, A022, A024, C161, C162, C310' },
+  { id: 'tur', n: 'Turismo y Gastronomía', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'I551, I561, N791, R931, R932' },
+  { id: 'ebtc', n: 'I+D y EBTC', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'M721, M722, M712, C210, C265, J620, J631' },
+  { id: 'const', n: 'Construcción', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'F410, F421, F432, F433, F439' },
+  { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'E381, E383, C331, S952' }
+];
+
+let SM_SHOW_COMUNAS = false;
+const SM_EXPANDED_TERRS = new Set();
+let SM_TAM_FILTER = 'mipyme';
+
+function computeStratMatrixData() {
+  const tamMode = SM_TAM_FILTER;
+  const cMatrix = Array.from({ length: NC }, () => new Int32Array(STRAT_CHAINS.length));
+  const tMatrix = Array.from({ length: NT }, () => new Int32Array(STRAT_CHAINS.length));
+  const regTotals = new Int32Array(STRAT_CHAINS.length);
+  const cTotals = new Int32Array(NC);
+  const tTotals = new Int32Array(NT);
+  let regGrandTotal = 0;
+
+  const subToChains = Array.from({ length: NS }, () => []);
+  STRAT_CHAINS.forEach((ch, chIdx) => {
+    ch.subs.forEach(s => { if (s < NS) subToChains[s].push(chIdx); });
+  });
+
+  for (let i = 0; i < N; i++) {
+    const tr = TRAMO[i];
+    const tam = tamOf(tr);
+    if (tamMode === 'micro' && tam !== 1) continue;
+    if (tamMode === 'peq' && tam !== 2) continue;
+    if (tamMode === 'mipyme' && tam !== 1 && tam !== 2) continue;
+    if (tamMode === 'all' && tam === 0) continue;
+
+    const s = SUB[i];
+    const chList = subToChains[s];
+    if (!chList || !chList.length) continue;
+
+    const c = COM[i];
+    const t = TOF[c];
+
+    for (let j = 0; j < chList.length; j++) {
+      const chIdx = chList[j];
+      cMatrix[c][chIdx]++;
+      cTotals[c]++;
+      if (t >= 0 && t < NT) {
+        tMatrix[t][chIdx]++;
+        tTotals[t]++;
+      }
+      regTotals[chIdx]++;
+      regGrandTotal++;
+    }
+  }
+
+  return { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal };
+}
+
+function renderStratMatrix() {
+  const wrap = $('#strat-matrix-wrap');
+  if (!wrap) return;
+
+  const { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal } = computeStratMatrixData();
+
+  let h = `<table class="strat-tbl"><thead><tr>
+    <th style="min-width:180px">Territorio / Comuna</th>`;
+  STRAT_CHAINS.forEach(ch => {
+    h += `<th title="${esc(ch.desc)}" style="min-width:115px">${ch.icon} ${esc(ch.n)}</th>`;
+  });
+  h += `<th style="min-width:90px;font-weight:700">Total</th></tr></thead><tbody>`;
+
+  for (let t = 0; t < NT; t++) {
+    const tName = TER[t].n;
+    const isExpanded = SM_SHOW_COMUNAS || SM_EXPANDED_TERRS.has(t);
+    const arrow = isExpanded ? '▼' : '▶';
+
+    h += `<tr class="terr-row">
+      <td>
+        <span class="sm-terr-toggle" data-t="${t}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Clic para expandir/plegar comunas">
+          <span style="font-size:10px;color:var(--acc)">${arrow}</span>
+          <span class="tchip" style="border-left:3px solid ${TCOL[t]};font-weight:600">${esc(tName)}</span>
+        </span>
+      </td>`;
+    STRAT_CHAINS.forEach((ch, chIdx) => {
+      const val = tMatrix[t][chIdx];
+      const cls = val > 0 ? 'val-cell' : 'zero';
+      h += `<td class="${cls}" data-t="${t}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(tName)}">${val > 0 ? f0(val) : '–'}</td>`;
+    });
+    h += `<td style="font-weight:700;color:var(--acc)">${f0(tTotals[t])}</td></tr>`;
+
+    if (isExpanded) {
+      TER[t].c.forEach(c => {
+        const cName = CN(c);
+        h += `<tr class="com-row">
+          <td style="padding-left:26px">↳ ${esc(cName)}</td>`;
+        STRAT_CHAINS.forEach((ch, chIdx) => {
+          const val = cMatrix[c][chIdx];
+          const cls = val > 0 ? 'val-cell' : 'zero';
+          h += `<td class="${cls}" data-c="${c}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(cName)}">${val > 0 ? f0(val) : '–'}</td>`;
+        });
+        h += `<td style="font-weight:600">${f0(cTotals[c])}</td></tr>`;
+      });
+    }
+  }
+
+  // Fila Total Regional
+  h += `<tr style="background:var(--surf3);font-weight:700;border-top:2px solid var(--acc)">
+    <td><b>TOTAL REGIONAL</b></td>`;
+  STRAT_CHAINS.forEach((ch, chIdx) => {
+    const val = regTotals[chIdx];
+    h += `<td class="val-cell" data-ch="${chIdx}" style="color:var(--acc);font-size:13px" title="Filtrar toda la región en ${esc(ch.n)}">${f0(val)}</td>`;
+  });
+  h += `<td style="font-size:14px;color:var(--ink);font-weight:800">${f0(regGrandTotal)}</td></tr>`;
+  h += `</tbody></table>`;
+
+  wrap.innerHTML = h;
+}
+
+function exportStratMatrixCSV() {
+  const { cMatrix, tMatrix, regTotals, cTotals, tTotals, regGrandTotal } = computeStratMatrixData();
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const lines = [];
+  lines.push(['Tipo', 'Territorio_ERD', 'Comuna', ...STRAT_CHAINS.map(ch => ch.n), 'Total']);
+
+  for (let t = 0; t < NT; t++) {
+    const tName = TER[t].n;
+    lines.push(['TERRITORIO', tName, '–', ...STRAT_CHAINS.map((_, i) => tMatrix[t][i]), tTotals[t]]);
+    TER[t].c.forEach(c => {
+      lines.push(['COMUNA', tName, CN(c), ...STRAT_CHAINS.map((_, i) => cMatrix[c][i]), cTotals[c]]);
+    });
+  }
+  lines.push(['TOTAL_REGIONAL', 'La Araucania', 'Todas las comunas', ...STRAT_CHAINS.map((_, i) => regTotals[i]), regGrandTotal]);
+  saveCSV(lines, `matriz_cadenas_estrategicas_araucania_${SM_TAM_FILTER}_${dateStr}.csv`);
+}
+
+// Eventos de la matriz estratégica
+if ($('#strat-matrix-wrap')) {
+  $('#strat-matrix-wrap').addEventListener('click', e => {
+    const toggle = e.target.closest('.sm-terr-toggle');
+    if (toggle) {
+      const t = +toggle.dataset.t;
+      if (SM_EXPANDED_TERRS.has(t)) SM_EXPANDED_TERRS.delete(t);
+      else SM_EXPANDED_TERRS.add(t);
+      renderStratMatrix();
+      return;
+    }
+
+    const cell = e.target.closest('td.val-cell');
+    if (!cell) return;
+
+    const chIdx = cell.dataset.ch != null ? +cell.dataset.ch : null;
+    const t = cell.dataset.t != null ? +cell.dataset.t : null;
+    const c = cell.dataset.c != null ? +cell.dataset.c : null;
+
+    if (chIdx != null) {
+      clearFilters();
+      const ch = STRAT_CHAINS[chIdx];
+      ch.subs.forEach(s => F.sub.add(s));
+      if (SM_TAM_FILTER === 'micro') F.tam.add(1);
+      else if (SM_TAM_FILTER === 'peq') F.tam.add(2);
+      else if (SM_TAM_FILTER === 'mipyme') { F.tam.add(1); F.tam.add(2); }
+
+      if (c != null) F.com.add(c);
+      else if (t != null) F.ter.add(t);
+
+      UI.exDim = 'sub';
+      syncInputs();
+      update();
+      toast(`Filtro aplicado: ${ch.n}` + (c != null ? ` · ${CN(c)}` : t != null ? ` · ${TER[t].n}` : ''));
+      const tbWrap = $('#tb-wrap');
+      if (tbWrap) tbWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
+if ($('#sm-tam')) {
+  $('#sm-tam').addEventListener('change', e => {
+    SM_TAM_FILTER = e.target.value;
+    renderStratMatrix();
+  });
+}
+
+if ($('#sm-toggle-com')) {
+  $('#sm-toggle-com').addEventListener('click', () => {
+    SM_SHOW_COMUNAS = !SM_SHOW_COMUNAS;
+    $('#sm-toggle-com').textContent = SM_SHOW_COMUNAS ? 'Plegar a 8 territorios' : 'Desplegar 32 comunas';
+    renderStratMatrix();
+  });
+}
+
+if ($('#sm-csv')) {
+  $('#sm-csv').addEventListener('click', exportStratMatrixCSV);
+}
+
 function renderEmpresas() {
   if (!CTX) return;
   if (!DIRTY.empresas) return;
   DIRTY.empresas = false;
-  renderKpisE(); renderM1E(); renderExplorer(); renderEvo(); renderCre(); renderTam(); renderTable(); renderHeat();
+  renderKpisE(); renderM1E(); renderExplorer(); renderEvo(); renderCre(); renderTam(); renderStratMatrix(); renderTable(); renderHeat();
 }
 
 
