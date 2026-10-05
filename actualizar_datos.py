@@ -21,7 +21,6 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 # Ticket oficial de Mercado Público (configurable por GitHub Secret o valor por defecto)
 TICKET_CHILECOMPRA = os.environ.get("CHILECOMPRA_TICKET", "2EBB5BBD-F89B-4173-A1F0-D360D98635D4")
 BASE_URL_CHILECOMPRA = "https://api.mercadopublico.cl/servicios/v1/publico/ordenesdecompra.json"
-APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQm9T0XwQzSFrmpXDyECRtkaqHHTswfhO1yIFgqbHxVVwFNaCHQwNYA58OjmrpLlq9cw/exec?action=todo"
 
 # Catálogo oficial de compradores de La Araucanía (GORE + 32 Municipalidades)
 ORGANISMOS_ARAUCANIA = {
@@ -164,41 +163,12 @@ def sincronizar_compras_fecha(fecha_dt, compras_existentes_map):
 
     return nuevas_compras
 
-def enviar_a_google_sheets(compras_para_enviar):
-    """Envía compras a Google Sheets a través de Apps Script (doPost) en un solo lote rápido."""
-    if not compras_para_enviar:
-        return
-    print(f"\n[Google Workspace] Sincronizando {len(compras_para_enviar)} compras con Google Sheets...")
-    try:
-        url_post = APPS_SCRIPT_URL.split("?")[0]
-        payload = json.dumps({"compras": compras_para_enviar}).encode("utf-8")
-        req = urllib.request.Request(
-            url_post,
-            data=payload,
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "RadarFRPD-Bot/1.0"
-            }
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            raw = resp.read().decode("utf-8")
-            try:
-                res = json.loads(raw)
-                if res.get("status") == "ok":
-                    print(f"  Google Sheets actualizado: {res.get('insertadas', 0)} filas nuevas insertadas (Total en hoja: {res.get('total', 0)}).")
-                else:
-                    print(f"  Respuesta Google Sheets: {res.get('mensaje')}")
-            except Exception:
-                print("  Datos recibidos por Google Sheets.")
-    except Exception as e:
-        print(f"  Aviso al sincronizar con Google Sheets: {e}")
-
 def main():
     base_dir = Path(__file__).resolve().parent
     json_path = base_dir / "datos_radar.json"
     dist_json_path = base_dir / "dist" / "datos_radar.json"
 
-    # 1. Cargar datos existentes (base histórica y cartera de 42 iniciativas)
+    # 1. Cargar datos existentes (base histórica y cartera de iniciativas)
     data = {}
     if json_path.exists():
         try:
@@ -224,28 +194,6 @@ def main():
             c["territorio"] = NOMBRES_TERRITORIOS.get(t_cod, c.get("territorio"))
             compras_map[cod] = c
 
-    # 1.1 Intentar sincronizar iniciativas y compras base desde Apps Script si está disponible
-    as_compras = []
-    try:
-        req_as = urllib.request.Request(APPS_SCRIPT_URL, headers={"User-Agent": "RadarFRPD/1.0"})
-        with urllib.request.urlopen(req_as, timeout=15) as resp_as:
-            raw_as = resp_as.read().decode("utf-8").strip()
-            if raw_as.startswith("handleLiveSync("):
-                raw_as = raw_as[len("handleLiveSync("):].rstrip(");")
-            as_data = json.loads(raw_as)
-            if "cartera" in as_data and as_data["cartera"]:
-                data["cartera"] = as_data["cartera"]
-            as_compras = as_data.get("comprasPublicas", {}).get("ultimasCompras", [])
-            for c in as_compras:
-                cod = c.get("codigoOC") or c.get("codigo")
-                if cod and cod not in compras_map:
-                    t_cod = c.get("codTerritorio") or c.get("territorio")
-                    c["territorio"] = NOMBRES_TERRITORIOS.get(t_cod, c.get("territorio"))
-                    compras_map[cod] = c
-            print(f"Base consolidada con fuente oficial: {len(compras_map)} compras registradas.")
-    except Exception as e:
-        print(f"Aviso de sincronización base: {e}")
-
     # 2. Consultar compras recientes (por defecto ayer, o días configurados)
     dias_atras = int(os.environ.get("DIAS_ATRAS", "1"))
     compras_nuevas_totales = []
@@ -258,14 +206,6 @@ def main():
     print(f"\nResumen de ingesta: {len(compras_nuevas_totales)} compras públicas nuevas incorporadas.")
 
     todas_las_compras = list(compras_map.values())
-
-    # 3. Sincronizar hacia Google Sheets (batch push)
-    # Si hay compras nuevas o si la planilla en Drive tiene menos registros que la base consolidada
-    if compras_nuevas_totales:
-        enviar_a_google_sheets(compras_nuevas_totales)
-    elif len(todas_las_compras) > len(as_compras):
-        print(f"\n[Google Workspace] Planilla en Drive tiene {len(as_compras)} OCs y base consolidada tiene {len(todas_las_compras)} OCs. Sincronizando faltantes...")
-        enviar_a_google_sheets(todas_las_compras)
     
     # Recalcular métricas consolidadas
     monto_total = sum(c.get("montoCLP", 0) for c in todas_las_compras)

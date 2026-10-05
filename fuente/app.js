@@ -566,7 +566,7 @@ function renderFicha() {
     if (e.liveEstado || e.liveMonto) {
       h += `<div class="fi-sec" style="background:var(--surf2);border:1px solid var(--line2);border-radius:8px;padding:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b style="color:var(--acc);font-size:13px">Gestión Viva DIFOI (Google Workspace)</b>
+          <b style="color:var(--acc);font-size:13px">Gestión Viva DIFOI · Monitoreo FRPD</b>
           <span style="font-size:11px;color:var(--muted)">${esc(e.liveFecha || 'Sincronizado')}</span>
         </div>
         <div class="pills">
@@ -1413,8 +1413,7 @@ if (!HAS_CLAUDE) {
   DL = { save: async ({ filename, data }) => { const u = URL.createObjectURL(data), a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } };
   ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv', '#cp-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
 }
-// ================= Compras Públicas (ChileCompra) & Conexión Google Workspace =================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQm9T0XwQzSFrmpXDyECRtkaqHHTswfhO1yIFgqbHxVVwFNaCHQwNYA58OjmrpLlq9cw/exec';
+// ================= Compras Públicas (ChileCompra) =================
 let LIVE_COMPRAS = null;
 window.LIVE_COMPRAS = null;
 
@@ -1547,7 +1546,7 @@ function renderCompras() {
   const cp = LIVE_COMPRAS || window.LIVE_COMPRAS || (window.__LIVE_WORKSPACE_DATA__ ? window.__LIVE_WORKSPACE_DATA__.comprasPublicas : null);
   const tbl = $('#compras-table');
   if (!cp) {
-    if (tbl) tbl.innerHTML = '<p class="note" style="padding:24px;text-align:center">Cargando compras públicas desde Google Workspace DIFOI…</p>';
+    if (tbl) tbl.innerHTML = '<p class="note" style="padding:24px;text-align:center">Cargando compras públicas monitoreadas…</p>';
     return;
   }
   const setTxt = (id, val) => { const el = $(id); if (el) el.textContent = val; };
@@ -1653,7 +1652,7 @@ function renderCompras() {
     setTxt('#cp-fuga-pct', cp.porcentajeFugaSantiago || fFugaPct);
   }
 
-  setTxt('#cp-live-time', 'Sincronizado vía Apps Script · ' + (list.length && list[0].fecha ? formatCPFecha(list[0].fecha) : ''));
+  setTxt('#cp-live-time', 'Datos al día · ' + (list.length && list[0].fecha ? formatCPFecha(list[0].fecha) : ''));
 
   // 7. Corte de compras según selector de cantidad a desplegar
   const lim = selLimit === 'all' ? list.length : (parseInt(selLimit, 10) || 100);
@@ -1758,27 +1757,14 @@ window.applyLiveWorkspaceData = function(data) {
     if (tabCp) tabCp.textContent = `${count} OCs`;
     if (UI.view === 'compras') renderCompras();
   }
-  toast('Sincronizado con Google Workspace DIFOI');
+  toast('Datos del radar actualizados');
 };
 
-async function syncLiveWorkspace() {
+async function syncRadarData() {
   const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
   if (dot) dot.style.background = 'var(--sel)';
-  if (txt) txt.textContent = 'Sincronizando con Google Workspace DIFOI…';
+  if (txt) txt.textContent = 'Cargando datos del radar…';
 
-  // Si viene inyectado directamente desde Google Apps Script
-  if (window.DATOS_INICIALES_WORKSPACE) {
-    window.applyLiveWorkspaceData(window.DATOS_INICIALES_WORKSPACE);
-    return;
-  }
-
-  // Si ya tenemos los datos en memoria
-  if (window.__LIVE_WORKSPACE_DATA__) {
-    window.applyLiveWorkspaceData(window.__LIVE_WORKSPACE_DATA__);
-    return;
-  }
-
-  // 1. Intentar cargar 'datos_radar.json' (Ideal para GitHub Pages y Netlify: ultra rápido, 0 CORS)
   try {
     const jsonRes = await fetch('./datos_radar.json?_t=' + Date.now());
     if (jsonRes.ok) {
@@ -1786,55 +1772,21 @@ async function syncLiveWorkspace() {
       if (staticData && (staticData.cartera || staticData.comprasPublicas)) {
         window.__LIVE_WORKSPACE_DATA__ = staticData;
         window.applyLiveWorkspaceData(staticData);
+        if (dot) dot.style.background = 'var(--ok)';
+        if (txt) txt.textContent = '🟢 Cartera e Indicadores FRPD';
         return;
       }
     }
-  } catch (_) {
-    // Continuar a conexión directa remota si el archivo local no está disponible
-  }
-
-  // 2. Conexión en vivo directa a Google Apps Script
-  try {
-    const fetchUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + '_t=' + Date.now();
-    const res = await fetch(fetchUrl);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rawText = await res.text();
-    let data;
-    const cleanText = rawText.trim();
-    if (cleanText.startsWith('handleLiveSync(')) {
-      const jsonStr = cleanText.replace(/^handleLiveSync\(/, '').replace(/\);?$/, '');
-      data = JSON.parse(jsonStr);
-    } else {
-      data = JSON.parse(cleanText);
-    }
-    window.__LIVE_WORKSPACE_DATA__ = data;
-    window.applyLiveWorkspaceData(data);
+    throw new Error('Formato de datos no reconocido');
   } catch (err) {
-    console.warn('Conexión directa fetch no disponible, intentando JSONP:', err);
-    // Fallback JSONP
-    const prevScript = document.getElementById('live-sync-script');
-    if (prevScript) prevScript.remove();
-
-    const script = document.createElement('script');
-    script.id = 'live-sync-script';
-    script.src = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 'callback=handleLiveSync&_t=' + Date.now();
-    
-    script.onerror = function() {
-      if (window.__LIVE_WORKSPACE_DATA__) return;
+    console.warn('Carga de datos_radar.json no disponible:', err);
+    if (!window.__LIVE_WORKSPACE_DATA__) {
       if (dot) dot.style.background = 'var(--muted)';
       if (txt) txt.textContent = '⚪ Modo local (Base de referencia)';
-    };
-    document.head.appendChild(script);
-
-    // Timeout de seguridad para JSONP
-    setTimeout(() => {
-      if (!window.__LIVE_WORKSPACE_DATA__ && dot && dot.style.background === 'var(--sel)') {
-        dot.style.background = 'var(--muted)';
-        txt.textContent = '⚪ Modo local (Base de referencia)';
-      }
-    }, 8000);
+    }
   }
 }
+const syncLiveWorkspace = syncRadarData;
 
   update(false);
   setView(VIEWS.includes(h0) ? h0 : 'cartera');
