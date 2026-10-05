@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T13:05:09.482Z",
+  "timestamp": "2026-10-05T12:17:49.083Z",
   "fuente": "DIFOI - GORE Araucanía (Google Workspace)",
   "cartera": [
     {
@@ -887,11 +887,11 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 376,
-    "montoTotalCLP": 11268928897.88,
-    "montoRetenidoAraucania": 1307302160.03,
-    "porcentajeRetencionLocal": "11.6%",
-    "porcentajeFugaSantiago": "88.4%",
+    "totalRegistros": 24,
+    "montoTotalCLP": 23649135.0,
+    "montoRetenidoAraucania": 21273415.0,
+    "porcentajeRetencionLocal": "90.0%",
+    "porcentajeFugaSantiago": "10.0%",
     "ultimasCompras": [
       {
         "fecha": "01/10/2026",
@@ -1087,8 +1087,125 @@
         "esLocal": true,
         "montoCLP": 1805000,
         "codTerritorio": "NAH"
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "5060-866-AG26",
+        "nombre": "S297.MANTENCION DE CUBIERTA Y REPOSICION DE CANAL DE AGUAS LLUVIAS SECTOR SALA DE MUSICA Y SECTOR BASICA LICEO GABRIELA MISTRAL, MEMO N°297Orden de Compra generada por invitación a compra ágil: 5060-913-COT26",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "CONSTRUCTORA SAEL SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 2367000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "5060-863-AG26",
+        "nombre": "S530.HABILITACION Y MANTENCION DE CIERROS PERIMETRALES, TABIQUES DIVISORIOS Y MAMPARAS ESCUELA LABRANZA, MEMO N°305..Orden de Compra generada por invitación a compra ágil: 5060-914-COT26",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "CONSTRUCTORA SAEL SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 4245165.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "5060-857-AG26",
+        "nombre": "S94 ADQ. EQUIPOS Y MAQUINAS, SEGÚN ET, PARA ESC. SANTA ROSA SUBV. PIE",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "EYB COMERCIAL LIMITADA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 386990.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "2548-614-SE26",
+        "nombre": "ADQUISICIÓN DE EQUIPOS MENORES, FERULAS DE INMOVILIZACIÓN Y BALANZA ELECTRÓNICA (BIA) PARA SERVICIOS DE URGENCIAS DE ESTABLECIMIENTOS DE SALUD DEPARTAMENTO DE SALUD COMUNA DE PADRE LAS CASAS.  DESDE 2548-70-L126",
+        "organismo": "I. Municipalidad de Padre Las Casas",
+        "comuna": "Padre Las Casas",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "Istec Ltda.",
+        "regionProveedor": "Región Metropolitana de Santiago",
+        "esLocal": false,
+        "montoCLP": 395190.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "1452433-153-AG26",
+        "nombre": " servicio de producción de eventos para actividad Festival de la voz: Voces de la Costa",
+        "organismo": "I. Municipalidad de Teodoro Schmidt",
+        "comuna": "Teodoro Schmidt",
+        "codTerritorio": "COS",
+        "territorio": "Costa Araucanía",
+        "proveedor": "WILHEM IGNACIO",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 252100.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "4734-178-SE26",
+        "nombre": "Transporte Escolar Liceo Bicentenario recorrido II",
+        "organismo": "I. Municipalidad de Cholchol",
+        "comuna": "Cholchol",
+        "codTerritorio": "NAH",
+        "territorio": "Nahuelbuta",
+        "proveedor": "TURISMO CARGA Y TRANSPORTE SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 1632000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3697-848-SE26",
+        "nombre": "ADQ. POR CTTO. DE COCTELERIA Y OTROS SERVICIOS GASTRONOMICOS AÑO 2024-2026 (LINEA 2), PROGRAMA COOPERA.-",
+        "organismo": "I. Municipalidad de Victoria",
+        "comuna": "Victoria",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "LISETH DE LOURDES DÍAZ RAMÍREZ",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 600000.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3697-851-SE26",
+        "nombre": "ADQ. POR CTTO. DE COCTELERIA Y OTROS SERVICIOS GASTRONOMICOS AÑO 2024-2026 (LINEA 1), PDTI.-",
+        "organismo": "I. Municipalidad de Victoria",
+        "comuna": "Victoria",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "LISETH DE LOURDES DÍAZ RAMÍREZ",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 252100.0
+      },
+      {
+        "fecha": "04/10/2026",
+        "codigoOC": "3697-846-SE26",
+        "nombre": "CONTRATACION DE SERVICIO DE DIFUSION DE A TRAVES DE TELEVISION SEÑAL DE CABLE, AÑO 2026.-",
+        "organismo": "I. Municipalidad de Victoria",
+        "comuna": "Victoria",
+        "codTerritorio": "AND",
+        "territorio": "Araucanía Andina",
+        "proveedor": "FRANCISCO ANTONIO MUÑOZ NAHUELHUAL",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 502521.0
       }
     ]
   },
-  "fechaActualizacion": "05/10/2026 13:05:12"
+  "fechaActualizacion": "05/10/2026 10:15:01"
 }

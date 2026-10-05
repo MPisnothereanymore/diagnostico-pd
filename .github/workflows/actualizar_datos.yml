@@ -4,7 +4,12 @@ on:
   schedule:
     # Corre todos los días a las 09:00 UTC (06:00 AM hora de Chile)
     - cron: '0 9 * * *'
-  workflow_dispatch: # Permite ejecutar manualmente con un clic en GitHub Actions
+  workflow_dispatch:
+    inputs:
+      dias_atras:
+        description: 'Días hacia atrás a consultar en ChileCompra'
+        required: false
+        default: '1'
   push:
     branches:
       - main
@@ -28,13 +33,15 @@ jobs:
           python-version: '3.11'
 
       - name: Actualizar datos de Cartera y Compras Públicas
+        env:
+          CHILECOMPRA_TICKET: ${{ secrets.CHILECOMPRA_TICKET || '2EBB5BBD-F89B-4173-A1F0-D360D98635D4' }}
+          DIAS_ATRAS: ${{ github.event.inputs.dias_atras || '1' }}
         run: |
           python actualizar_datos.py
-          python fuente/build.py
 
       - name: Confirmar y subir cambios
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add datos_radar.json dist/ index.html "Radar FRPD Araucanía.html"
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(datos): actualización automática de datos [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(datos): actualización automática de compras públicas [skip ci]" && git push)
