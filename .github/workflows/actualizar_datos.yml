@@ -10,12 +10,6 @@ on:
         description: 'Días hacia atrás a consultar en ChileCompra'
         required: false
         default: '1'
-  push:
-    branches:
-      - main
-    paths:
-      - 'fuente/**'
-      - 'actualizar_datos.py'
 
 permissions:
   contents: write

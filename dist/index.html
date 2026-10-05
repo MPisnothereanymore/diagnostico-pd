@@ -548,6 +548,11 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <p class="scope">Filtran las empresas SII en Cartera, Territorios y Empresas: la matriz, los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
     <label class="lbl" for="f-q">Buscar</label>
     <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
+    <details class="facet" id="f-strat-facet" open style="border:1.5px solid var(--acc);background:rgba(26,115,232,0.03);border-radius:8px;padding:4px 8px 6px;margin:8px 0">
+      <summary style="font-weight:700"><span style="color:var(--acc)">⚡ Cadenas Estratégicas Regionales</span><span class="on" id="f-strat-on"></span></summary>
+      <div class="flist" id="f-strat-list" style="max-height:none;padding-top:4px"></div>
+      <p class="note" style="margin:4px 0 0">Filtra la región en 1 clic por cadena productiva clave.</p>
+    </details>
     <div id="facets"></div>
     <details class="facet" open>
       <summary><span>Habilitación FRPD</span><span class="on"></span></summary>
@@ -2486,7 +2491,77 @@ function renderFacet(fc) {
     return `<label class="fi${isOn ? ' on' : ''}${c === 0 && !isOn ? ' zero' : ''}" title="${esc(fc.lab(j))}"><input type="checkbox" data-fk="${fc.k}" data-v="${j}"${isOn ? ' checked' : ''}><span class="t"><span>${fc.sw ? `<i class="tsw" style="background:${fc.sw(j)}"></i>` : ''}${esc(fc.lab(j))}</span><span class="bar"><i style="width:${(c / mx * 100).toFixed(1)}%"></i></span></span><span class="c">${f0(c)}</span></label>`;
   }).join('') + (more ? `<div class="fmore">${f0(more)} más · escribe para buscar</div>` : '') + (idx.length ? '' : '<div class="fmore">Sin coincidencias</div>');
 }
-const renderFacets = () => { FACETS.forEach(renderFacet); $('#f-nom-n').textContent = f0(nomCount); };
+const STRAT_CHAINS = [
+  { id: 'agro', n: 'Cadena Agroalimentaria', icon: '🌾', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'Apoyo agrícola (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472)' },
+  { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310)' },
+  { id: 'tur', n: 'Turismo y Experiencias', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932)' },
+  { id: 'ebtc', n: 'I+D y Base Tecnológica (EBTC)', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), software (J620, J631)' },
+  { id: 'ene', n: 'Energía y Climatización', icon: '⚡', subs: [71, 72, 73, 46, 51], desc: 'Generación ERNC (hidro, solar, eólica), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279)' },
+  { id: 'const', n: 'Construcción e Instalaciones', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439)' },
+  { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952)' }
+];
+let ACTIVE_CHAIN = null;
+
+function renderStratFacet() {
+  const host = $('#f-strat-list');
+  const onBadge = $('#f-strat-on');
+  if (!host) return;
+  const m = mask(new Set(['rub']));
+  let maxCnt = 1;
+  const counts = STRAT_CHAINS.map(ch => {
+    let cnt = 0;
+    const sSet = new Set(ch.subs);
+    for (let i = 0; i < N; i++) {
+      if (m[i] && sSet.has(SUB[i])) {
+        const tam = tamOf(TRAMO[i]);
+        if (tam === 1 || tam === 2) cnt++;
+      }
+    }
+    if (cnt > maxCnt) maxCnt = cnt;
+    return cnt;
+  });
+
+  let h = '';
+  STRAT_CHAINS.forEach((ch, idx) => {
+    const isSel = ACTIVE_CHAIN === ch.id;
+    const cnt = counts[idx];
+    const pct = ((cnt / maxCnt) * 100).toFixed(1);
+    h += `<label class="fi${isSel ? ' on' : ''}${cnt === 0 && !isSel ? ' zero' : ''}" style="cursor:pointer;padding:4px 6px;margin-bottom:2px" title="${esc(ch.desc)}">
+      <input type="checkbox" data-chain="${ch.id}" ${isSel ? 'checked' : ''}>
+      <span class="t">
+        <span><b>${ch.icon}</b> ${esc(ch.n)}</span>
+        <span class="bar"><i style="width:${pct}%"></i></span>
+      </span>
+      <span class="c">${f0(cnt)}</span>
+    </label>`;
+  });
+  host.innerHTML = h;
+  if (onBadge) onBadge.textContent = ACTIVE_CHAIN ? '1' : '';
+}
+
+if ($('#f-strat-list')) {
+  $('#f-strat-list').addEventListener('change', e => {
+    const chId = e.target.dataset.chain;
+    if (!chId) return;
+    if (ACTIVE_CHAIN === chId) {
+      ACTIVE_CHAIN = null;
+      clearFilters();
+    } else {
+      ACTIVE_CHAIN = chId;
+      const ch = STRAT_CHAINS.find(c => c.id === chId);
+      clearFilters();
+      ACTIVE_CHAIN = chId;
+      ch.subs.forEach(s => F.sub.add(s));
+      F.tam.add(1); F.tam.add(2); // MiPyME
+      UI.exDim = 'sub';
+    }
+    FP.preset = ACTIVE_CHAIN ? 'lens-' + ACTIVE_CHAIN : 'all';
+    syncInputs();
+    update();
+  });
+}
+
+const renderFacets = () => { FACETS.forEach(renderFacet); $('#f-nom-n').textContent = f0(nomCount); renderStratFacet(); };
 
 // ---- entradas de la barra ----
 let qT;
@@ -2498,8 +2573,8 @@ $('#f-nom').addEventListener('change', e => { F.nom = e.target.checked; FP.prese
 const setPer = v => { FP.p0 = +v; $('#f-per').value = String(v); $('#evo-per').value = String(v); update(); };
 $('#f-per').addEventListener('change', e => setPer(e.target.value));
 $('#evo-per').addEventListener('change', e => setPer(e.target.value));
-function clearFilters() { ['ter', 'com', 'lin', 'rub', 'sub', 'act', 'tam', 'tb', 'sec', 'ctci'].forEach(k => F[k].clear()); F.y0 = F.y1 = null; F.vig = false; F.nom = false; F.q = ''; }
-function syncInputs() { if (!F.q) $('#f-q').value = ''; $('#f-y0').value = F.y0 ?? ''; $('#f-y1').value = F.y1 ?? ''; $('#f-vig').checked = F.vig; $('#f-nom').checked = F.nom; }
+function clearFilters() { ACTIVE_CHAIN = null; ['ter', 'com', 'lin', 'rub', 'sub', 'act', 'tam', 'tb', 'sec', 'ctci'].forEach(k => F[k].clear()); F.y0 = F.y1 = null; F.vig = false; F.nom = false; F.q = ''; }
+function syncInputs() { if (!F.q) $('#f-q').value = ''; $('#f-y0').value = F.y0 ?? ''; $('#f-y1').value = F.y1 ?? ''; $('#f-vig').checked = F.vig; $('#f-nom').checked = F.nom; renderStratFacet(); }
 $('#f-reset').addEventListener('click', () => { clearFilters(); FP.preset = 'all'; UI.exDim = 'rub'; UI.exAuto = true; syncInputs(); update(); });
 const WORK = $('#work'), RAIL = $('#rail');
 const narrow = () => matchMedia('(max-width:1060px)').matches;
@@ -2538,7 +2613,9 @@ $('#presets').addEventListener('click', e => {
   const b = e.target.closest('button[data-p]'); if (!b) return;
   const keepGeo = { ter: new Set(F.ter), com: new Set(F.com) };
   clearFilters(); F.ter = keepGeo.ter; F.com = keepGeo.com; UI.exAuto = true;
-  const p = PRESETS.find(x => x.k === b.dataset.p); p.fn(); FP.preset = p.k; syncInputs(); update();
+  const p = PRESETS.find(x => x.k === b.dataset.p);
+  if (p.k.startsWith('lens-')) ACTIVE_CHAIN = p.k.replace('lens-', '');
+  p.fn(); FP.preset = p.k; syncInputs(); update();
   if (p.k !== 'all') toast('Vista aplicada: ' + p.l + (hasGeo() ? ' (se mantiene el territorio elegido)' : ''));
 });
 
@@ -2551,7 +2628,12 @@ function activeChips() {
   F.sec.forEach(j => out.push(['a', SECTORS[j], () => F.sec.delete(j)]));
   F.ctci.forEach(j => out.push(['a', 'CTCI: ' + ctLab(j), () => F.ctci.delete(j)]));
   F.rub.forEach(j => out.push(['a', D.rubros[j].l, () => F.rub.delete(j)]));
-  F.sub.forEach(j => out.push(['a', D.subs[j].l, () => F.sub.delete(j)]));
+  if (ACTIVE_CHAIN) {
+    const ch = STRAT_CHAINS.find(c => c.id === ACTIVE_CHAIN);
+    if (ch) out.push(['a', `${ch.icon} ${ch.n}`, () => { ACTIVE_CHAIN = null; clearFilters(); syncInputs(); update(); }]);
+  } else {
+    F.sub.forEach(j => out.push(['a', D.subs[j].l, () => F.sub.delete(j)]));
+  }
   F.act.forEach(j => out.push(['a', D.acts[j].l, () => F.act.delete(j)]));
   F.tam.forEach(j => out.push(['a', TAMS[j], () => F.tam.delete(j)]));
   F.tb.forEach(j => out.push(['a', TBS[j] + (j ? ' trabajadores' : ''), () => F.tb.delete(j)]));
@@ -2972,15 +3054,6 @@ $('#hm').addEventListener('click', e => {
   FP.preset = null; update();
 });
 // ================= MATRIZ DE CADENAS ESTRATÉGICAS Y MIPYMES POR TERRITORIO =================
-const STRAT_CHAINS = [
-  { id: 'agro', n: 'Agroalimentaria', icon: '🌾', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'A016, C103, C105, C106, C107, G463, G472' },
-  { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'A021, A022, A024, C161, C162, C310' },
-  { id: 'tur', n: 'Turismo y Gastronomía', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'I551, I561, N791, R931, R932' },
-  { id: 'ebtc', n: 'I+D y EBTC', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'M721, M722, M712, C210, C265, J620, J631' },
-  { id: 'ene', n: 'Energía y Clima', icon: '⚡', subs: [71, 72, 73, 46, 51], desc: 'D351, D352, D353, C271, C279 (Generación ERNC, transmisión, gas, climatización y equipos)' },
-  { id: 'const', n: 'Construcción', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'F410, F421, F432, F433, F439' },
-  { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'E381, E383, C331, S952' }
-];
 
 let SM_SHOW_COMUNAS = false;
 const SM_EXPANDED_TERRS = new Set();
@@ -3130,6 +3203,7 @@ if ($('#strat-matrix-wrap')) {
     if (chIdx != null) {
       clearFilters();
       const ch = STRAT_CHAINS[chIdx];
+      ACTIVE_CHAIN = ch.id;
       ch.subs.forEach(s => F.sub.add(s));
       if (SM_TAM_FILTER === 'micro') F.tam.add(1);
       else if (SM_TAM_FILTER === 'peq') F.tam.add(2);
