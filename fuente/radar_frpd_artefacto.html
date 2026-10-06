@@ -268,6 +268,27 @@ td.good{color:var(--ok)}
 .strat-tbl td.val-cell:hover{color:var(--acc);font-weight:700;text-decoration:underline}
 .strat-tbl td.zero{color:var(--muted);opacity:.4}
 
+/* Instrumentos de Planificacion Territorial (IPT) */
+.ipt-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.ipt-badge.vig{background:rgba(92,191,138,.16);color:var(--ok);border:1px solid rgba(92,191,138,.35)}
+.ipt-badge.mod{background:rgba(242,165,65,.16);color:var(--sel);border:1px solid rgba(242,165,65,.35)}
+.ipt-badge.form{background:rgba(85,152,231,.16);color:var(--data);border:1px solid rgba(85,152,231,.35)}
+.ipt-badge.lim{background:rgba(224,151,74,.16);color:#E0974A;border:1px solid rgba(224,151,74,.35)}
+.ipt-badge.sin{background:rgba(224,122,107,.16);color:var(--bad);border:1px solid rgba(224,122,107,.35)}
+.ipt-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.ipt-tbl th,.ipt-tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.ipt-tbl th{background:var(--surf2);font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink2);text-transform:uppercase;position:sticky;top:0;z-index:2}
+.ipt-tbl th button{background:none;border:0;color:inherit;font:inherit;font-weight:600;letter-spacing:inherit;text-transform:inherit;padding:0;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ipt-tbl th button:hover{color:var(--ink)}
+.ipt-tbl tr.click{cursor:pointer}
+.ipt-tbl tr.click:hover td{background:rgba(76,195,176,.05)}
+.ipt-tbl tr.on td{background:rgba(242,165,65,.08)}
+.ipt-tbl .mono{font-family:var(--f-mono);font-size:11.5px}
+.ipt-tbl .tag-zoit{background:rgba(199,162,240,.15);color:#C7A2F0;border:1px solid rgba(199,162,240,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-pri{background:rgba(85,152,231,.15);color:var(--data);border:1px solid rgba(85,152,231,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-zubc{background:rgba(76,195,176,.15);color:var(--acc);border:1px solid rgba(76,195,176,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-rez{background:rgba(242,165,65,.15);color:var(--sel);border:1px solid rgba(242,165,65,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+
 /* marco */
 .cov-wrap{overflow-x:auto}
 .cov{display:grid;gap:2px;min-width:880px}
@@ -649,6 +670,86 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
         </details>
       </div>
     </section>
+
+    <!-- ===== Instrumentos de Planificación Territorial (IPT) y Zonificaciones ===== -->
+    <section class="card" id="ipt-card">
+      <div class="card-h">
+        <div>
+          <h2>Instrumentos de Planificación Territorial (IPT) y Zonificaciones</h2>
+          <div class="sub">Catastro oficial de Planes Reguladores Comunales (PRC), límites urbanos históricos, Planes Intercomunales (PRI), Zonas de Interés Turístico (ZOIT) y Borde Costero en las 32 comunas. Fuente: ERD 2040 (Tabla 14) y MINVU 2024.</div>
+        </div>
+        <div class="ctrls">
+          <button class="btn" id="ipt-btn-map" type="button">🗺️ Ver PRC en el mapa</button>
+          <button class="btn pri" id="ipt-csv" type="button">Exportar CSV</button>
+        </div>
+      </div>
+      <div class="card-b" style="display:flex;flex-direction:column;gap:14px">
+        <!-- KPIs de IPT -->
+        <div class="kpis" id="ipt-kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+          <div class="kpi">
+            <span class="l">PRC Vigente en la Región</span>
+            <span class="v" style="color:var(--ok)">20 <small>/ 32</small></span>
+            <span class="s">8 consolidados · 12 en modificación</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Sin Plan Regulador Vigente</span>
+            <span class="v" style="color:var(--sel)">12 <small>/ 32</small></span>
+            <span class="s">6 en formulación · 5 solo límite · 1 sin límite</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Planes Intercomunales (PRI)</span>
+            <span class="v" style="color:var(--data)">2</span>
+            <span class="s">PRI Villarrica-Pucón · PRI Temuco-PLC</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Zonas de Interés Turístico (ZOIT)</span>
+            <span class="v" style="color:#C7A2F0">5</span>
+            <span class="s">Lacustre, Melipeuco, Lonquimay, Curacautín, Vilcún</span>
+          </div>
+        </div>
+
+        <!-- Filtros de la tabla de IPT -->
+        <div class="fbar" style="border-radius:6px;padding:8px 12px;background:var(--surf2)">
+          <div class="fgrp">
+            <span class="lbl">Filtros:</span>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-ter" style="max-width:180px">
+              <option value="all">Todos los territorios</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-est" style="max-width:215px">
+              <option value="all">Todos los estados PRC</option>
+              <option value="vigente">PRC Vigente consolidado (8)</option>
+              <option value="modificacion">PRC en Modificación / Actualización (12)</option>
+              <option value="formulacion">Sin PRC · En Formulación (6)</option>
+              <option value="limite">Sin PRC · Solo Límite Urbano (5)</option>
+              <option value="sin">Sin Instrumento ni Límite (1)</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-reg" style="max-width:190px">
+              <option value="all">Cualquier régimen</option>
+              <option value="zoit">Solo con ZOIT (Turismo)</option>
+              <option value="pri">Solo con PRI Intercomunal</option>
+              <option value="zubc">Solo Borde Costero (ZUBC)</option>
+              <option value="rez">Solo Zona de Rezago</option>
+            </select></label>
+          </div>
+          <input class="srch" id="ipt-q" type="search" placeholder="Buscar comuna, decreto o detalle..." style="max-width:240px;margin-left:auto">
+          <button class="btn" id="ipt-clear" type="button">Restablecer</button>
+        </div>
+
+        <!-- Tabla interactiva -->
+        <div class="tbl-wrap" id="ipt-tbl-wrap" style="max-height:560px;overflow-y:auto"></div>
+
+        <!-- Guía de interpretación de IPT para inversiones FRPD -->
+        <details class="guide-det" open>
+          <summary class="guide-sum">ℹ️ ¿Cómo inciden los Instrumentos de Planificación Territorial (IPT) en la inversión pública y el FRPD?</summary>
+          <div class="guide-b">
+            <div><b>Factibilidad de uso de suelo (LGUC Art. 55 vs. Zonificación PRC):</b> Toda inversión financiada con cargo al FRPD que contemple obras físicas (centros de acopio, plantas de bioproductos, infraestructura turística, centros tecnológicos o parcelas demostrativas) requiere verificar si el terreno se emplaza dentro del radio urbano del PRC o en área rural. Fuera del límite urbano rige el <b>Art. 55 de la Ley General de Urbanismo y Construcciones (LGUC)</b>, exigiendo Informes Favorables para la Construcción (IFC/SAG) que dilatan los plazos de ejecución.</div>
+            <div><b>Riesgo de obsolescencia de los PRC en La Araucanía:</b> Si bien 20 comunas tienen PRC, la gran mayoría data de los años 80 y 90 (más de 30 años sin actualización integral). 12 de ellas se encuentran en procesos prolongados de modificación, lo que limita la cabida de nuevos usos industriales no molestos o equipamientos científico-tecnológicos.</div>
+            <div><b>Brecha en comunas sin PRC (12 comunas):</b> Dependen de decretos de límites urbanos promulgados entre 1939 y 1995 que no definen zonas de extensión urbana, vialidad estructurante ni cartas de riesgos naturales (inundación o volcánico), requiriendo un acompañamiento técnico reforzado para cualquier proyecto territorial habilitante.</div>
+            <div><b>Instrumentos Intercomunales y Zonificaciones Especiales:</b> El <i>PRI Villarrica-Pucón</i> norma ambiental y urbanísticamente la cuenca lacustre, mientras que las <i>5 ZOIT</i> (Araucanía Lacustre, Melipeuco, Vilcún, Lonquimay y Curacautín) priorizan inversiones públicas del sector turismo y sustentabilidad. En el litoral, el D.S. 475/1994 rige los usos del borde costero.</div>
+          </div>
+        </details>
+      </div>
+    </section>
   </section>
 
   <!-- ===== Empresas ===== -->
@@ -782,6 +883,13 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 
   <!-- ===== Evidencia territorial ===== -->
   <section class="view" id="v-evid" role="tabpanel" aria-labelledby="tab-evid" hidden>
+    <div style="background:var(--surf2);border:1px solid var(--line2);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <b style="color:var(--ink);font-size:14px">🏛️ Instrumentos de Planificación Territorial (IPT)</b>
+        <span style="color:var(--ink2);margin-left:8px;font-size:13px">20 comunas con Plan Regulador Comunal vigente (12 en actualización) y 12 sin PRC. Catastro completo, límites urbanos históricos, PRI intercomunales y ZOIT según la ERD 2040.</span>
+      </div>
+      <button class="btn pri" id="ev-goto-ipt" type="button">Ver catálogo y tabla de IPT →</button>
+    </div>
     <div class="kpis" id="ev-kpis"></div>
     <div class="grid g-ev">
       <section class="card">
@@ -1700,10 +1808,48 @@ function renderCartera(withFicha) {
   if (withFicha || !rendered.ficha) { renderFicha(); rendered.ficha = true; }
 }
 
+// ================= INSTRUMENTOS DE PLANIFICACIÓN TERRITORIAL (IPT) =================
+// Catastro oficial según Estrategia Regional de Desarrollo (ERD) La Araucanía 2040 (Tabla 14) y MINVU 2024
+const IPT_DATA = [
+  { c: 0, com: 'Carahue', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'D.O. 1989 (Mod. 2010; abarca Carahue y Trovolhue)', limAno: '1989', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Zonificación urbana consolidada. Rige zonificación de borde costero D.S. 475/1994.' },
+  { c: 1, com: 'Cholchol', ti: 4, terr: 'Nahuelbuta', est: 'sin', estLbl: 'Sin Instrumento', cls: 'sin', color: '#E07A6B', val: 0, prcAno: 'Sin PRC', prcDet: 'Sin Plan Regulador Comunal ni Límite Urbano propio', limAno: '–', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, obs: 'Comuna creada en 2004 (segregada de N. Imperial). Rige área rural Art. 55 LGUC para toda edificación.' },
+  { c: 2, com: 'Cunco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1992', limAno: '1992', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'Límite urbano histórico sin zonificación interna de usos de suelo ni vialidad estructurante.' },
+  { c: 3, com: 'Curarrehue', ti: 7, terr: 'Araucanía Lacustre', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Araucanía Lacustre', reg: 'ZOIT Lacustre · Cuenca Trancura', rez: false, zubc: false, obs: 'Primer PRC en elaboración. Destino de turismo aventura con restricciones volcánicas y ambientales.' },
+  { c: 4, com: 'Freire', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Entorno Aeropuerto Regional', rez: false, zubc: false, obs: 'En actualización integral para incorporar Quepe, Radal y amortiguación del Aeropuerto La Araucanía.' },
+  { c: 5, com: 'Galvarino', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, obs: 'PRC en proceso de formulación inicial. Actualmente rige límite urbano de 1995.' },
+  { c: 6, com: 'Gorbea', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'En modificación para regular las localidades de Lastarria y Quitratúe y mitigar riesgos de inundación del Río Donguil.' },
+  { c: 7, com: 'Lautaro', ti: 1, terr: 'Valle Central', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 (Mod. 2011) · En Modificación', limAno: '1986', pri: '–', zoit: '–', reg: 'Parque Industrial · Eje Ruta 5', rez: false, zubc: false, obs: 'Cuenta con zona industrial consolidada en Ruta 5. En actualización para ampliar áreas de desarrollo productivo.' },
+  { c: 8, com: 'Loncoche', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1983', prcDet: 'PRC Vigente D.O. 1983 · En Actualización Integral', limAno: '1983', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'PRC con 40+ años de antigüedad. En actualización integral MINVU para redefinir áreas residenciales e industriales.' },
+  { c: 9, com: 'Melipeuco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Melipeuco Paraíso Cordillerano', reg: 'ZOIT Cordillerana', rez: false, zubc: false, obs: 'Destino ecoturístico clave sin PRC. Rige límite urbano 1992; proyectos fuera de radio urbano requieren Art. 55 LGUC.' },
+  { c: 10, com: 'Nueva Imperial', ti: 5, terr: 'Costa Araucanía', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Zona de Rezago Costa', rez: true, zubc: false, obs: 'En actualización integral para regular borde del Río Cholchol y nuevas áreas de equipamiento comunal.' },
+  { c: 11, com: 'Padre Las Casas', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1993', prcDet: 'PRC Vigente (derivado Temuco 1993) · PRC propio en trámite', limAno: '1993', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Área Metropolitana Temuco', rez: false, zubc: false, obs: 'Conurbación metropolitana. Cuenta con zonificación vigente; tramita PRC comunal autónomo con enfoque intercultural.' },
+  { c: 12, com: 'Perquenco', ti: 1, terr: 'Valle Central', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Eje Ruta 5', rez: false, zubc: false, obs: 'Sin PRC. Rige límite urbano de 1995. Suelo industrial no regulado detalladamente.' },
+  { c: 13, com: 'Pitrufquén', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: 'Eje Río Toltén', rez: false, zubc: false, obs: 'En modificación para regular ribera norte del Río Toltén y ensanche de zonas residenciales y de servicios.' },
+  { c: 14, com: 'Pucón', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1994', prcDet: 'PRC Vigente D.O. 1994 (Mod. 2017) · En Actualización Integral', limAno: '1994', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · Saturación Lago', rez: false, zubc: false, obs: 'Doble regulación (PRC comunal + PRI intercomunal). Fuertes restricciones por riesgo laharic y Plan Descontaminación Lago.' },
+  { c: 15, com: 'Saavedra', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1991', prcDet: 'PRC Vigente D.O. 1991 (Mod. 2011)', limAno: '1991', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Abarca Puerto Saavedra. Integra cotas de seguridad por tsunami post-1960. Rige zonificación costera regional.' },
+  { c: 16, com: 'Temuco', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 2010', prcDet: 'PRC Vigente D.O. 2010 · En Actualización Integral', limAno: '2010', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Capital Regional · Área Metropolitana', rez: false, zubc: false, obs: 'Principal centro de servicios e I+D regional. PRC 2010 en proceso de actualización integral coordinada con MINVU y SECTRA.' },
+  { c: 17, com: 'Teodoro Schmidt', ti: 5, terr: 'Costa Araucanía', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1970', limAno: '1970', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Sin PRC. Límite urbano con más de 50 años de antigüedad (1970). Abarca Teodoro Schmidt y Hualpín.' },
+  { c: 18, com: 'Toltén', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1988', prcDet: 'PRC Vigente D.O. 1988 (Nueva Toltén y Queule)', limAno: '1988', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Vigente para Nueva Toltén y Caleta Queule. Crucial para proyectos de pesca artesanal y borde costero.' },
+  { c: 19, com: 'Vilcún', ti: 6, terr: 'Araucanía Andina', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite Urbano D.O. 1970', limAno: '1970', pri: '–', zoit: 'ZOIT Vilcún Cordillera Viva', reg: 'ZOIT Cordillerana · Cajón periurbano', rez: false, zubc: false, obs: 'En formulación de su primer PRC (incluye Vilcún, Cherquenco, San Patricio y Cajón). Cajón actúa como extensión de Temuco.' },
+  { c: 20, com: 'Villarrica', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 (Seccionales Licán Ray y Ñancul) · En Actualización', limAno: '1985', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · PDA Lago', rez: false, zubc: false, obs: 'Articulador lacustre. Modificación integral en curso; articulado con el Plan de Descontaminación del Lago Villarrica.' },
+  { c: 21, com: 'Angol', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'PRC Vigente D.O. 1989 (Mod. 2008)', limAno: '1989', pri: '–', zoit: '–', reg: 'Capital Provincial Malleco', rez: false, zubc: false, obs: 'Vigente consolidado. Dispone de zonificación agroindustrial y de servicios para la provincia de Malleco.' },
+  { c: 22, com: 'Collipulli', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 (Mod. 2012)', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'Vigente. Modificación de 2012 habilitó zonas para actividades de apoyo logístico e industrial en Ruta 5.' },
+  { c: 23, com: 'Curacautín', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2009)', limAno: '1987', pri: '–', zoit: 'ZOIT Curacautín', reg: 'ZOIT · Corredor Bioceánico', rez: false, zubc: false, obs: 'Vigente. Clave para el desarrollo turístico andino y proyectos de biomasa y turismo termal.' },
+  { c: 24, com: 'Ercilla', ti: 3, terr: 'Malleco Norte', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1941', limAno: '1941', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'Sin PRC. Límite urbano histórico con más de 80 años de desfase (1941, Ercilla y Pailahueque).' },
+  { c: 25, com: 'Lonquimay', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2014)', limAno: '1987', pri: '–', zoit: 'ZOIT Lonquimay', reg: 'ZOIT · Paso Pino Hachado', rez: false, zubc: false, obs: 'Vigente con modificación 2014. Abarca Lonquimay y Liucura. Zona estratégica de corredor bioceánico.' },
+  { c: 26, com: 'Los Sauces', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1966', limAno: '1966', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación de su primer PRC. Actualmente rige límite urbano de 1966.' },
+  { c: 27, com: 'Lumaco', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano histórico D.O. 1939', limAno: '1939', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación. Límite urbano más antiguo de la región (1939, 85+ años, Lumaco, Pastene y Pichipellahuén).' },
+  { c: 28, com: 'Purén', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1947', limAno: '1947', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación de su primer PRC. Rige límite urbano de 1947.' },
+  { c: 29, com: 'Renaico', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2011)', limAno: '1987', pri: '–', zoit: '–', reg: 'Polo ERNC Eólica', rez: false, zubc: false, obs: 'Vigente con modificación 2011. Entrada norte de la región y polo estratégico de energías renovables.' },
+  { c: 30, com: 'Traiguén', ti: 4, terr: 'Nahuelbuta', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 · En Modificación', limAno: '1986', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'PRC vigente de 1986 en proceso de modificación para adecuar zonas residenciales e industriales.' },
+  { c: 31, com: 'Victoria', ti: 6, terr: 'Araucanía Andina', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 · En Modificación / Actualización', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta · Nodo UNAP', rez: true, zubc: false, obs: 'PRC de 1984 en actualización (Convenio MINVU). Sede universitaria y centro de acopio agropecuario.' },
+];
+
 // ================= TERRITORIOS (mapa) =================
 const MP = FR.map;
 const MAPIND = [
   { k: 'ter', l: 'Territorio ERD' },
+  { k: 'ipt', l: '🏛️ Planificación Territorial: Estado del PRC', grp: 'Territorio e infraestructura' },
   { k: 'bre', l: 'N° de brechas habilitantes (0–5)' },
   ...HABS.map(h => ({ k: h.k, l: `${h.l} (${h.u})`, hab: h })),
   { k: 'ipa', l: 'Inversión pública 2010–2022 por habitante' },
@@ -1727,6 +1873,7 @@ const LAYERS = [
   { k: 'aer', l: 'Aeródromos y pasos fronterizos', sw: '--pt-aer' },
 ];
 function comVal(k, c) {
+  if (k === 'ipt') return IPT_DATA[c].val;
   if (k.startsWith('ev:')) return EVV[k.slice(3)][c];
   if (k === 'bre') return BRE[c].length;
   if (k === 'ipa') return IN.ipapc[c] / 1e6;
@@ -1737,6 +1884,7 @@ function comVal(k, c) {
 }
 function comFill(k) {
   if (k === 'ter') return ALLC.map(c => TCOL[TOF[c]]);
+  if (k === 'ipt') return ALLC.map(c => IPT_DATA[c].color);
   if (k === 'lq') return ALLC.map(c => lqColor(comVal('lq', c)));
   const v = ALLC.map(c => comVal(k, c)), fv = v.filter(isFinite), mn = Math.min(...fv), mx = Math.max(...fv);
   const h = HABS.find(x => x.k === k);
@@ -1748,6 +1896,16 @@ function comFill(k) {
 function mapLegend(k) {
   const lg = MAP.legend;
   if (k === 'ter') { lg.innerHTML = '<b>Territorios ERD 2040</b>' + TER.map((t, i) => `<span class="row"><span class="sw" style="background:${TCOL[i]}"></span>${esc(t.n)}</span>`).join(''); return; }
+  if (k === 'ipt') {
+    lg.innerHTML = '<b>Instrumentos de Planificación Territorial (PRC)</b>' + [
+      ['#5CBF8A', 'PRC Vigente consolidado (8 comunas)'],
+      ['#F2A541', 'PRC en Modificación / Actualización (12 comunas)'],
+      ['#5598E7', 'Sin PRC · En Formulación (con límite) (6 comunas)'],
+      ['#E0974A', 'Sin PRC · Solo Límite Urbano histórico (5 comunas)'],
+      ['#E07A6B', 'Sin Instrumento ni Límite aprobado (1 comuna)'],
+    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+    return;
+  }
   if (k === 'lq') { lg.innerHTML = `<b>Cociente de localización en ${LIN[UI.mLin].k} ${esc(LSHORT[LIN[UI.mLin].k])} (empresas)</b>` + [[0.5, '< 0,6'], [0.8, '0,8'], [1, '1,0'], [1.25, '1,25'], [2, '> 1,7']].map(([v, l]) => `<span class="row"><span class="sw" style="background:${lqColor(v)}"></span>${l}</span>`).join(''); return; }
   const v = ALLC.map(c => comVal(k, c)).filter(isFinite), mn = Math.min(...v), mx = Math.max(...v), it = MAPIND.find(m => m.k === k), h = it.hab;
   if (it.ev) { const e = it.ev, pal = e.bad ? BADR : SEQ; lg.innerHTML = `<b>${esc(e.l)} · ${esc(e.u)}${e.bad ? ' · más rojo = peor' : ''}</b>` + [0, 0.25, 0.5, 0.75, 1].map(q => { const x = e.bad === 'low' ? mx - q * (mx - mn) : mn + q * (mx - mn); return `<span class="row"><span class="sw" style="background:${ramp(pal, q)}"></span>${e.f(x)}</span>`; }).join('') + `<span class="row">Región: ${e.f(EVREG[e.k])}</span>`; return; }
@@ -1855,7 +2013,15 @@ function createMap(host) {
 function comTip(c) {
   const k = UI.mInd, rows = [];
   rows.push([TER[TOF[c]].n, 'territorio']);
-  if (k === 'ter' || k === 'bre') rows.push([BRE[c].length ? BRE[c].map(x => HABS.find(h => h.k === x).l.split(' (')[0]).join(', ') : 'ninguna', 'brechas (tercio peor)']);
+  if (k === 'ipt') {
+    const ipt = IPT_DATA[c];
+    rows.push([ipt.estLbl, 'estado del PRC']);
+    rows.push([ipt.prcAno, 'publicación D.O.']);
+    if (ipt.pri !== '–') rows.push([ipt.pri, 'intercomunal']);
+    if (ipt.zoit !== '–') rows.push([ipt.zoit, 'turismo']);
+    if (ipt.reg !== '–') rows.push([ipt.reg, 'régimen especial']);
+  }
+  else if (k === 'ter' || k === 'bre') rows.push([BRE[c].length ? BRE[c].map(x => HABS.find(h => h.k === x).l.split(' (')[0]).join(', ') : 'ninguna', 'brechas (tercio peor)']);
   else if (k === 'ipa') rows.push([f1(IN.ipapc[c] / 1e6) + ' MM$', 'inversión pública 2010–2022 por hab.']);
   else if (k === 'emp') rows.push([f1(comVal('emp', c)), 'empresas por 1.000 hab.']);
   else if (k === 'binv') rows.push([f0(binvC[c]) + ' MM$', `BIP habilitante 2019–2027 (${f0(comVal('binv', c))} mil $ por hab.)`]);
@@ -1863,7 +2029,11 @@ function comTip(c) {
   else if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; rows.push([e.f(EVV[e.k][c]), e.l + ' · ' + e.u]); if (!e.sum) rows.push([e.f(EVREG[e.k]), 'región']); }
   else { const h = HABS.find(x => x.k === k); rows.push([h.f(HV[k][c]), h.l + ' · ' + h.u]); }
   rows.push([f0(POP[c]), 'habitantes (Censo 2024)']);
-  return [CN(c), rows, IN.rez[c] ? 'Comuna en zona de rezago' : (D.comunas[c].prc ? '' : 'Sin plan regulador comunal vigente')];
+  const ipt = IPT_DATA[c];
+  let sub = ipt.estLbl + ' (' + ipt.prcAno + ')';
+  if (ipt.zoit !== '–') sub += ' · ' + ipt.zoit;
+  else if (IN.rez[c]) sub += ' · Zona de rezago';
+  return [CN(c), rows, sub];
 }
 let MAP = null;
 function initMap() {
@@ -1921,6 +2091,11 @@ function renderTprof() {
     <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Condiciones habilitantes</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
       ${HABS.map(hb => { const v = terHab(hb, ti), st = status(hb, v); return `<span class="n">${esc(hb.l)} <small style="color:var(--muted)">${esc(hb.u)}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${hb.f(v)}</span></span><span class="x"><small>${hb.f(HREG[hb.k])}</small></span>`; }).join('')}</div>
       <p class="note">${T.c.some(c => IN.rez[c]) ? `Zona de rezago: ${esc(T.c.filter(c => IN.rez[c]).map(CN).join(', '))}. ` : ''}${T.prcSin.length ? `Sin plan regulador vigente: ${esc(T.prcSin.map(CN).join(', '))}.` : ''}</p></div>
+    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Planificación Territorial (PRC y Zonificaciones)</span>
+      <div class="hab" style="grid-template-columns:minmax(0,1fr) auto">
+        ${T.c.map(c => `<span class="n">${esc(CN(c))}</span><span class="x"><span class="ipt-badge ${IPT_DATA[c].cls}">${IPT_DATA[c].estLbl}</span></span>`).join('')}
+      </div>
+      <p class="note">Detalle comunal, fechas de aprobación, límites urbanos históricos y planes intercomunales en la tabla inferior.</p></div>
     <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Evidencia territorial</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
       ${['pmd', 'ind', 'sred', 'alj', 'prd', 'incp', 'upaa', 'rie', 'fcm', 'prof'].map(k => { const e = EVK[k], v = e.v(T.c), st = evStatus(e, v); return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u.split(' · ')[0])}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${e.f(v)}</span></span><span class="x"><small>${e.f(EVREG[k])}</small></span>`; }).join('')}</div>
       <div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div></div>
@@ -1963,8 +2138,155 @@ function renderHab() {
 $('#hb-scope').addEventListener('change', e => { UI.hbScope = e.target.value; renderHab(); });
 function renderTerritorios() {
   if (!MAP) initMap();
-  renderMapOnly(); renderTprof(); renderHab();
+  renderMapOnly(); renderTprof(); renderHab(); renderIptTable();
   $('#m-title').textContent = 'Territorios ERD 2040 · ' + TER[UI.ter].n;
+}
+
+// ================= INSTRUMENTOS DE PLANIFICACIÓN TERRITORIAL (IPT) =================
+const IPT_STATE = { ter: 'all', est: 'all', reg: 'all', q: '', sort: 'com', dir: 1 };
+let iptInitDone = false;
+
+function initIpt() {
+  if (iptInitDone) return;
+  iptInitDone = true;
+  const sTer = $('#ipt-f-ter');
+  if (sTer) {
+    sTer.innerHTML = '<option value="all">Todos los territorios</option>' +
+      TER.map((t, i) => `<option value="${i}">${esc(t.n)}</option>`).join('');
+    sTer.addEventListener('change', e => { IPT_STATE.ter = e.target.value; renderIptTable(); });
+  }
+  const sEst = $('#ipt-f-est');
+  if (sEst) sEst.addEventListener('change', e => { IPT_STATE.est = e.target.value; renderIptTable(); });
+  const sReg = $('#ipt-f-reg');
+  if (sReg) sReg.addEventListener('change', e => { IPT_STATE.reg = e.target.value; renderIptTable(); });
+  const sQ = $('#ipt-q');
+  if (sQ) sQ.addEventListener('input', e => { IPT_STATE.q = e.target.value.toLowerCase().trim(); renderIptTable(); });
+  const bClear = $('#ipt-clear');
+  if (bClear) bClear.addEventListener('click', () => {
+    IPT_STATE.ter = 'all'; IPT_STATE.est = 'all'; IPT_STATE.reg = 'all'; IPT_STATE.q = '';
+    if (sTer) sTer.value = 'all';
+    if (sEst) sEst.value = 'all';
+    if (sReg) sReg.value = 'all';
+    if (sQ) sQ.value = '';
+    renderIptTable();
+  });
+  const bCsv = $('#ipt-csv');
+  if (bCsv) bCsv.addEventListener('click', exportIptCSV);
+  const bMap = $('#ipt-btn-map');
+  if (bMap) bMap.addEventListener('click', () => {
+    UI.mInd = 'ipt';
+    renderMapOnly();
+    $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  const bEv = $('#ev-goto-ipt');
+  if (bEv) bEv.addEventListener('click', () => {
+    setView('territorios');
+    setTimeout(() => {
+      const card = $('#ipt-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  });
+}
+
+function renderIptTable() {
+  initIpt();
+  const wrap = $('#ipt-tbl-wrap');
+  if (!wrap) return;
+  const q = IPT_STATE.q;
+  const filtered = IPT_DATA.filter(it => {
+    if (IPT_STATE.ter !== 'all' && TOF[it.c] !== +IPT_STATE.ter) return false;
+    if (IPT_STATE.est !== 'all' && it.est !== IPT_STATE.est) return false;
+    if (IPT_STATE.reg === 'zoit' && it.zoit === '–') return false;
+    if (IPT_STATE.reg === 'pri' && it.pri === '–') return false;
+    if (IPT_STATE.reg === 'zubc' && !it.zubc) return false;
+    if (IPT_STATE.reg === 'rez' && !it.rez) return false;
+    if (q) {
+      const s = (it.com + ' ' + it.terr + ' ' + it.estLbl + ' ' + it.prcAno + ' ' + it.prcDet + ' ' + it.limAno + ' ' + it.pri + ' ' + it.zoit + ' ' + it.reg + ' ' + it.obs).toLowerCase();
+      if (!s.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const sv = it => {
+    if (IPT_STATE.sort === 'com') return it.com;
+    if (IPT_STATE.sort === 'terr') return it.terr;
+    if (IPT_STATE.sort === 'est') return it.val;
+    if (IPT_STATE.sort === 'prc') return it.prcAno;
+    if (IPT_STATE.sort === 'lim') return it.limAno;
+    if (IPT_STATE.sort === 'pri') return it.pri;
+    if (IPT_STATE.sort === 'zoit') return it.zoit;
+    return it.com;
+  };
+  filtered.sort((a, b) => {
+    const va = sv(a), vb = sv(b);
+    return (typeof va === 'string' ? va.localeCompare(vb, 'es') : va - vb) * IPT_STATE.dir || a.c - b.c;
+  });
+
+  const th = (col, label) => `<th scope="col"><button type="button" data-col="${col}">${label}${IPT_STATE.sort === col ? (IPT_STATE.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
+
+  wrap.innerHTML = `<table class="ipt-tbl">
+    <thead>
+      <tr>
+        ${th('com', 'Comuna')}
+        ${th('terr', 'Territorio ERD')}
+        ${th('est', 'Estado Plan Regulador')}
+        ${th('prc', 'Año / Instrumento D.O.')}
+        ${th('lim', 'Límite Urbano')}
+        ${th('pri', 'PRI Intercomunal')}
+        ${th('zoit', 'ZOIT Turismo')}
+        <th>Régimen Especial</th>
+        <th style="min-width:240px">Diagnóstico e Implicancia FRPD</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No se encontraron comunas con los filtros seleccionados.</td></tr>' : filtered.map(it => {
+        const isSel = TOF[it.c] === UI.ter;
+        return `<tr class="click${isSel ? ' on' : ''}" data-c="${it.c}">
+          <td><b style="color:var(--ink)">${esc(it.com)}</b></td>
+          <td><span style="font-size:12px;color:var(--ink2)">${esc(it.terr)}</span></td>
+          <td><span class="ipt-badge ${it.cls}">${esc(it.estLbl)}</span></td>
+          <td><span class="mono">${esc(it.prcAno)}</span><br><span style="font-size:11px;color:var(--muted)">${esc(it.prcDet)}</span></td>
+          <td><span class="mono">${esc(it.limAno)}</span></td>
+          <td>${it.pri !== '–' ? `<span class="tag-pri">${esc(it.pri)}</span>` : '<span style="color:var(--muted)">–</span>'}</td>
+          <td>${it.zoit !== '–' ? `<span class="tag-zoit">${esc(it.zoit)}</span>` : '<span style="color:var(--muted)">–</span>'}</td>
+          <td>
+            ${it.zubc ? '<span class="tag-zubc" title="D.S. 475/1994">Borde Costero</span> ' : ''}
+            ${it.rez ? '<span class="tag-rez" title="Zona de Rezago Subdere">Rezago</span> ' : ''}
+            ${!it.zubc && !it.rez ? '<span style="color:var(--muted)">–</span>' : ''}
+          </td>
+          <td><span style="font-size:12px;line-height:1.4;color:var(--ink2)">${esc(it.obs)}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+
+  // Listener para sorting
+  $$('#ipt-tbl-wrap th button').forEach(b => b.addEventListener('click', () => {
+    const col = b.dataset.col;
+    if (IPT_STATE.sort === col) IPT_STATE.dir *= -1;
+    else { IPT_STATE.sort = col; IPT_STATE.dir = 1; }
+    renderIptTable();
+  }));
+
+  // Listener para clic en fila: selecciona territorio y actualiza
+  $$('#ipt-tbl-wrap tr[data-c]').forEach(r => r.addEventListener('click', () => {
+    const c = +r.dataset.c;
+    UI.ter = TOF[c];
+    renderTerritorios();
+  }));
+}
+
+function exportIptCSV() {
+  const head = [
+    'Comuna', 'Territorio ERD', 'Estado Plan Regulador', 'Año Aprobación PRC', 'Detalle Instrumento',
+    'Límite Urbano (D.O.)', 'Plan Regulador Intercomunal (PRI)', 'Zona de Interés Turístico (ZOIT)',
+    'Zonificación Borde Costero (ZUBC)', 'Zona de Rezago', 'Régimen Especial', 'Diagnóstico e Implicancia FRPD'
+  ];
+  const lines = [head].concat(IPT_DATA.map(it => [
+    it.com, it.terr, it.estLbl, it.prcAno, it.prcDet, it.limAno, it.pri, it.zoit,
+    it.zubc ? 'Sí' : 'No', it.rez ? 'Sí' : 'No', it.reg, it.obs
+  ]));
+  saveCSV(lines, 'instrumentos_planificacion_territorial_araucania_erd2040.csv');
 }
 
 // ================= EVIDENCIA TERRITORIAL =================

@@ -268,6 +268,27 @@ td.good{color:var(--ok)}
 .strat-tbl td.val-cell:hover{color:var(--acc);font-weight:700;text-decoration:underline}
 .strat-tbl td.zero{color:var(--muted);opacity:.4}
 
+/* Instrumentos de Planificacion Territorial (IPT) */
+.ipt-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.ipt-badge.vig{background:rgba(92,191,138,.16);color:var(--ok);border:1px solid rgba(92,191,138,.35)}
+.ipt-badge.mod{background:rgba(242,165,65,.16);color:var(--sel);border:1px solid rgba(242,165,65,.35)}
+.ipt-badge.form{background:rgba(85,152,231,.16);color:var(--data);border:1px solid rgba(85,152,231,.35)}
+.ipt-badge.lim{background:rgba(224,151,74,.16);color:#E0974A;border:1px solid rgba(224,151,74,.35)}
+.ipt-badge.sin{background:rgba(224,122,107,.16);color:var(--bad);border:1px solid rgba(224,122,107,.35)}
+.ipt-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.ipt-tbl th,.ipt-tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.ipt-tbl th{background:var(--surf2);font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink2);text-transform:uppercase;position:sticky;top:0;z-index:2}
+.ipt-tbl th button{background:none;border:0;color:inherit;font:inherit;font-weight:600;letter-spacing:inherit;text-transform:inherit;padding:0;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ipt-tbl th button:hover{color:var(--ink)}
+.ipt-tbl tr.click{cursor:pointer}
+.ipt-tbl tr.click:hover td{background:rgba(76,195,176,.05)}
+.ipt-tbl tr.on td{background:rgba(242,165,65,.08)}
+.ipt-tbl .mono{font-family:var(--f-mono);font-size:11.5px}
+.ipt-tbl .tag-zoit{background:rgba(199,162,240,.15);color:#C7A2F0;border:1px solid rgba(199,162,240,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-pri{background:rgba(85,152,231,.15);color:var(--data);border:1px solid rgba(85,152,231,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-zubc{background:rgba(76,195,176,.15);color:var(--acc);border:1px solid rgba(76,195,176,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.ipt-tbl .tag-rez{background:rgba(242,165,65,.15);color:var(--sel);border:1px solid rgba(242,165,65,.3);border-radius:3px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+
 /* marco */
 .cov-wrap{overflow-x:auto}
 .cov{display:grid;gap:2px;min-width:880px}
@@ -649,6 +670,86 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
         </details>
       </div>
     </section>
+
+    <!-- ===== Instrumentos de Planificación Territorial (IPT) y Zonificaciones ===== -->
+    <section class="card" id="ipt-card">
+      <div class="card-h">
+        <div>
+          <h2>Instrumentos de Planificación Territorial (IPT) y Zonificaciones</h2>
+          <div class="sub">Catastro oficial de Planes Reguladores Comunales (PRC), límites urbanos históricos, Planes Intercomunales (PRI), Zonas de Interés Turístico (ZOIT) y Borde Costero en las 32 comunas. Fuente: ERD 2040 (Tabla 14) y MINVU 2024.</div>
+        </div>
+        <div class="ctrls">
+          <button class="btn" id="ipt-btn-map" type="button">🗺️ Ver PRC en el mapa</button>
+          <button class="btn pri" id="ipt-csv" type="button">Exportar CSV</button>
+        </div>
+      </div>
+      <div class="card-b" style="display:flex;flex-direction:column;gap:14px">
+        <!-- KPIs de IPT -->
+        <div class="kpis" id="ipt-kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+          <div class="kpi">
+            <span class="l">PRC Vigente en la Región</span>
+            <span class="v" style="color:var(--ok)">20 <small>/ 32</small></span>
+            <span class="s">8 consolidados · 12 en modificación</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Sin Plan Regulador Vigente</span>
+            <span class="v" style="color:var(--sel)">12 <small>/ 32</small></span>
+            <span class="s">6 en formulación · 5 solo límite · 1 sin límite</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Planes Intercomunales (PRI)</span>
+            <span class="v" style="color:var(--data)">2</span>
+            <span class="s">PRI Villarrica-Pucón · PRI Temuco-PLC</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Zonas de Interés Turístico (ZOIT)</span>
+            <span class="v" style="color:#C7A2F0">5</span>
+            <span class="s">Lacustre, Melipeuco, Lonquimay, Curacautín, Vilcún</span>
+          </div>
+        </div>
+
+        <!-- Filtros de la tabla de IPT -->
+        <div class="fbar" style="border-radius:6px;padding:8px 12px;background:var(--surf2)">
+          <div class="fgrp">
+            <span class="lbl">Filtros:</span>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-ter" style="max-width:180px">
+              <option value="all">Todos los territorios</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-est" style="max-width:215px">
+              <option value="all">Todos los estados PRC</option>
+              <option value="vigente">PRC Vigente consolidado (8)</option>
+              <option value="modificacion">PRC en Modificación / Actualización (12)</option>
+              <option value="formulacion">Sin PRC · En Formulación (6)</option>
+              <option value="limite">Sin PRC · Solo Límite Urbano (5)</option>
+              <option value="sin">Sin Instrumento ni Límite (1)</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-reg" style="max-width:190px">
+              <option value="all">Cualquier régimen</option>
+              <option value="zoit">Solo con ZOIT (Turismo)</option>
+              <option value="pri">Solo con PRI Intercomunal</option>
+              <option value="zubc">Solo Borde Costero (ZUBC)</option>
+              <option value="rez">Solo Zona de Rezago</option>
+            </select></label>
+          </div>
+          <input class="srch" id="ipt-q" type="search" placeholder="Buscar comuna, decreto o detalle..." style="max-width:240px;margin-left:auto">
+          <button class="btn" id="ipt-clear" type="button">Restablecer</button>
+        </div>
+
+        <!-- Tabla interactiva -->
+        <div class="tbl-wrap" id="ipt-tbl-wrap" style="max-height:560px;overflow-y:auto"></div>
+
+        <!-- Guía de interpretación de IPT para inversiones FRPD -->
+        <details class="guide-det" open>
+          <summary class="guide-sum">ℹ️ ¿Cómo inciden los Instrumentos de Planificación Territorial (IPT) en la inversión pública y el FRPD?</summary>
+          <div class="guide-b">
+            <div><b>Factibilidad de uso de suelo (LGUC Art. 55 vs. Zonificación PRC):</b> Toda inversión financiada con cargo al FRPD que contemple obras físicas (centros de acopio, plantas de bioproductos, infraestructura turística, centros tecnológicos o parcelas demostrativas) requiere verificar si el terreno se emplaza dentro del radio urbano del PRC o en área rural. Fuera del límite urbano rige el <b>Art. 55 de la Ley General de Urbanismo y Construcciones (LGUC)</b>, exigiendo Informes Favorables para la Construcción (IFC/SAG) que dilatan los plazos de ejecución.</div>
+            <div><b>Riesgo de obsolescencia de los PRC en La Araucanía:</b> Si bien 20 comunas tienen PRC, la gran mayoría data de los años 80 y 90 (más de 30 años sin actualización integral). 12 de ellas se encuentran en procesos prolongados de modificación, lo que limita la cabida de nuevos usos industriales no molestos o equipamientos científico-tecnológicos.</div>
+            <div><b>Brecha en comunas sin PRC (12 comunas):</b> Dependen de decretos de límites urbanos promulgados entre 1939 y 1995 que no definen zonas de extensión urbana, vialidad estructurante ni cartas de riesgos naturales (inundación o volcánico), requiriendo un acompañamiento técnico reforzado para cualquier proyecto territorial habilitante.</div>
+            <div><b>Instrumentos Intercomunales y Zonificaciones Especiales:</b> El <i>PRI Villarrica-Pucón</i> norma ambiental y urbanísticamente la cuenca lacustre, mientras que las <i>5 ZOIT</i> (Araucanía Lacustre, Melipeuco, Vilcún, Lonquimay y Curacautín) priorizan inversiones públicas del sector turismo y sustentabilidad. En el litoral, el D.S. 475/1994 rige los usos del borde costero.</div>
+          </div>
+        </details>
+      </div>
+    </section>
   </section>
 
   <!-- ===== Empresas ===== -->
@@ -782,6 +883,13 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 
   <!-- ===== Evidencia territorial ===== -->
   <section class="view" id="v-evid" role="tabpanel" aria-labelledby="tab-evid" hidden>
+    <div style="background:var(--surf2);border:1px solid var(--line2);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <b style="color:var(--ink);font-size:14px">🏛️ Instrumentos de Planificación Territorial (IPT)</b>
+        <span style="color:var(--ink2);margin-left:8px;font-size:13px">20 comunas con Plan Regulador Comunal vigente (12 en actualización) y 12 sin PRC. Catastro completo, límites urbanos históricos, PRI intercomunales y ZOIT según la ERD 2040.</span>
+      </div>
+      <button class="btn pri" id="ev-goto-ipt" type="button">Ver catálogo y tabla de IPT →</button>
+    </div>
     <div class="kpis" id="ev-kpis"></div>
     <div class="grid g-ev">
       <section class="card">
