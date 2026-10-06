@@ -280,6 +280,10 @@ const EVI = [
   { k: 'upaa', g: 'agro', l: 'UPA de autoconsumo', u: '% de las UPA · CAF 2021', bad: 'high', f: pc1, v: cs => cxS('caf_upaa', cs) / cxS('caf_upa', cs) },
   { k: 'rie', g: 'agro', l: 'Superficie cultivada con riego', u: '% · CAF 2021', bad: 'low', f: pc1, v: cs => cxS('caf_rie', cs) / (cxS('caf_rie', cs) + cxS('caf_sec', cs)) },
   { k: 'cul', g: 'agro', l: 'Cultivos anuales, frutales y forrajeras', u: 'ha · CAF 2021', f: f0, v: cs => CULT.reduce((a, k) => a + cxS(k, cs), 0), sum: 1 },
+  { k: 'bov', g: 'agro', l: 'Existencias de bovinos (total)', u: 'cabezas · CAF 2021 / ODEPA', f: f0, v: cs => cxS('caf_bov', cs), sum: 1 },
+  { k: 'bovc', g: 'agro', l: 'Bovinos cárnicos', u: 'cabezas · CAF 2021 / ODEPA', f: f0, v: cs => cxS('caf_bovc', cs), sum: 1 },
+  { k: 'bovl', g: 'agro', l: 'Bovinos lácteos / doble propósito', u: 'cabezas · CAF 2021 / ODEPA', f: f0, v: cs => cxS('caf_bovl', cs), sum: 1 },
+  { k: 'ovi', g: 'agro', l: 'Existencias de ovinos', u: 'cabezas · CAF 2021 / ODEPA', f: f0, v: cs => cxS('caf_ovi', cs), sum: 1 },
   { k: 'pra', g: 'agro', l: 'Praderas naturales y mejoradas', u: 'ha · CAF 2021', f: f0, v: cs => cxS('caf_pra', cs), sum: 1 },
   { k: 'pla', g: 'agro', l: 'Plantaciones forestales en predios censados', u: 'ha · CAF 2021', f: f0, v: cs => cxS('caf_pla', cs), sum: 1 },
   { k: 'bn', g: 'agro', l: 'Bosque nativo en predios censados', u: 'ha · CAF 2021', f: f0, v: cs => cxS('caf_bn', cs), sum: 1 },
@@ -305,10 +309,10 @@ const evWorst = (e, cs) => [...cs].filter(c => isFinite(EVV[e.k][c])).sort((a, b
 // indicadores de necesidad por lineamiento (más equidad y contraparte municipal en todas las fichas)
 const EVL = {
   L1: ['prd', 'cdd', 'txd', 'etod', 'sred', 'alj', 'rie', 'incp', 'inu'],
-  L2: ['bn', 'pla', 'incp', 'cind', 'upa'],
-  L3: ['upa', 'upaa', 'rie', 'pnt', 'ia', 'prd', 'sud'],
+  L2: ['bn', 'pla', 'incp', 'cind', 'upa', 'bov'],
+  L3: ['upa', 'upaa', 'rie', 'pnt', 'ia', 'bov', 'ovi', 'pra'],
   L4: ['gdc', 'pin', 'rur'],
-  L5: ['pla', 'incp', 'upa', 'pinv'],
+  L5: ['pla', 'incp', 'upa', 'bov', 'pinv'],
   L6: ['rur', 'pin', 'prof'],
 };
 const evFor = Lk => [...new Set([...EVL[Lk], 'pmd', 'ind', 'fcm', 'prof'])].map(k => EVK[k]);
@@ -623,7 +627,9 @@ function renderFicha() {
       return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u)}</small>${w != null ? `<small style="display:block;color:var(--muted)">más crítica: ${esc(CN(w))} ${e.f(EVV[e.k][w])}</small>` : ''}</span><span class="x">${e.sum ? evVal(e, T.c) : `<span class="pill ${st}" title="${ST_LAB[st]}">${e.f(v)}</span>`}</span><span class="x"><small>${e.f(EVREG[e.k])}</small></span>`; }).join('') + '</div>';
   if (Lk === 'L2' || Lk === 'L3' || Lk === 'L5') {
     const sp = spTer(T.c), top = SPV.map((n, j) => [n, sp[j], SPREG[j]]).filter(x => x[1] > 0 && (Lk !== 'L3' || x[0] !== 'Eucalipto')).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const bovT = cxS('caf_bov', T.c), oviT = cxS('caf_ovi', T.c);
     h += top.length ? `<p class="note" style="margin-top:4px"><strong style="color:var(--ink)">Principales cultivos y plantaciones (CAF 2021):</strong> ${top.map(([n, v, r]) => `${esc(n)} ${f0(v)} ha (${pc(v / r, 0)} de la región)`).join(' · ')}.</p>` : '';
+    h += `<p class="note" style="margin-top:2px"><strong style="color:var(--ink)">Existencias ganaderas:</strong> ${f0(bovT)} bovinos (${pc(bovT / EVREG.bov, 0)} de la región) · ${f0(oviT)} ovinos (${pc(oviT / EVREG.ovi, 0)} de la región).</p>`;
   }
   h += `<p class="note">Verde, gris o rojo: mejor, similar (±10 %) o peor que la región. Fuentes: SAE 2022 (MDSF), Censo 2024, ARClim (cambio a mitad de siglo, escenario SSP2-4.5), CONAF 2024-25, PROT, CAF 2021 y SINIM 2024. Los indicadores municipales del territorio son promedios ponderados por población.</p>
     <div class="ctrls"><button class="btn" type="button" id="fi-ev">Ver las comunas del territorio en «Evidencia territorial»</button></div></div>`;
@@ -1449,6 +1455,20 @@ function renderCafHeat() {
   $('#ev-caf').innerHTML = `<table class="heat"><thead><tr><th>Especie</th>${TER.map((T, i) => `<th class="r" title="${esc(T.n)}"><span style="color:${TCOL[i]}">■</span> ${esc(T.n.replace('Araucanía ', '').replace('Temuco – Padre Las Casas', 'Temuco–PLC').replace('Malleco Norte', 'Malleco N.'))}</th>`).join('')}<th class="r">Región</th></tr></thead><tbody>` +
     rows.map(x => `<tr><td>${esc(x.n)}</td>${TER.map((T, i) => { const v = st[i][x.j], s = v / x.r, bg = v ? mix(SURF2, css('--s4'), Math.min(1, s / 0.45)) : 'transparent'; return `<td class="m r" style="background:${bg};color:${v ? inkOn(bg) : 'var(--muted)'}" title="${esc(T.n)}: ${f0(v)} ha, ${pc(s, 0)} de la región">${v >= 1 ? f0(v) : '–'}</td>`; }).join('')}<td class="m r">${f0(x.r)}</td></tr>`).join('') + '</tbody></table>';
 }
+function renderGanHeat() {
+  const items = [
+    { k: 'caf_bovc', n: 'Bovinos cárnicos' },
+    { k: 'caf_bovl', n: 'Bovinos lácteos / doble propósito' },
+    { k: 'caf_bov',  n: 'Total bovinos' },
+    { k: 'caf_ovi',  n: 'Ovinos' }
+  ];
+  const st = TER.map(T => items.map(it => cxS(it.k, T.c)));
+  const reg = items.map(it => cxS(it.k, ALLC));
+  const el = $('#ev-gan');
+  if (!el) return;
+  el.innerHTML = `<table class="heat"><thead><tr><th>Especie ganadera</th>${TER.map((T, i) => `<th class="r" title="${esc(T.n)}"><span style="color:${TCOL[i]}">■</span> ${esc(T.n.replace('Araucanía ', '').replace('Temuco – Padre Las Casas', 'Temuco–PLC').replace('Malleco Norte', 'Malleco N.'))}</th>`).join('')}<th class="r">Región</th></tr></thead><tbody>` +
+    items.map((it, j) => `<tr><td>${esc(it.n)}</td>${TER.map((T, i) => { const v = st[i][j], r = reg[j], s = r ? v / r : 0, bg = v ? mix(SURF2, css('--s4'), Math.min(1, s / 0.45)) : 'transparent'; return `<td class="m r" style="background:${bg};color:${v ? inkOn(bg) : 'var(--muted)'}" title="${esc(T.n)}: ${f0(v)} cabezas, ${pc(s, 0)} de la región">${v ? f0(v) : '–'}</td>`; }).join('')}<td class="m r">${f0(reg[j])}</td></tr>`).join('') + '</tbody></table>';
+}
 function evCols() { return EVI.filter(e => e.g === UI.evG); }
 function renderEvTable() {
   $$('#ev-g button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === UI.evG)));
@@ -1473,7 +1493,7 @@ function renderEvTable() {
 }
 function renderEvid() {
   if (!rendered.evid) {
-    renderEvKpis(); renderPib(); renderCafHeat();
+    renderEvKpis(); renderPib(); renderCafHeat(); renderGanHeat();
     $('#ev-g').innerHTML = Object.entries(EVG).map(([g, l]) => `<button type="button" data-g="${g}" aria-pressed="false">${esc(l)}</button>`).join('');
     $$('#ev-g button').forEach(b => b.addEventListener('click', () => { UI.evG = b.dataset.g; if (!['com', 'pop'].includes(UI.evSort)) { UI.evSort = 'com'; UI.evDir = 1; } renderEvTable(); }));
     $('#ev-scope').addEventListener('change', e => { UI.evScope = e.target.value; renderEvTable(); });

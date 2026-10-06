@@ -1101,15 +1101,18 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
         </div>
       </section>
       <section class="card">
-        <div class="card-h"><div><h2>Cultivos y plantaciones por territorio</h2><div class="sub">Hectáreas por especie según el Censo Agropecuario y Forestal 2021. El tono indica qué parte de la superficie regional de la especie está en cada territorio.</div></div></div>
+        <div class="card-h"><div><h2>Cultivos, plantaciones y ganadería por territorio</h2><div class="sub">Superficie por especie de cultivo (ha) y existencias ganaderas (cabezas) según el VIII Censo Agropecuario y Forestal (CAF 2021 / ODEPA). El tono indica la proporción de la producción/existencia regional en cada territorio.</div></div></div>
         <div class="card-b">
+          <h3 style="margin:0 0 8px 0;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Principales cultivos (ha)</h3>
           <div class="tbl-wrap" id="ev-caf"></div>
-          <p class="note" style="margin-top:10px">Especies con 500 ha o más en la región. Superficie de las explotaciones censadas, no del territorio completo.</p>
+          <h3 style="margin:16px 0 8px 0;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Existencias ganaderas (cabezas)</h3>
+          <div class="tbl-wrap" id="ev-gan"></div>
+          <p class="note" style="margin-top:10px">Cultivos con 500 ha o más en la región. Datos ganaderos incluyen bovinos (cárnicos, lácteos/doble propósito) y ovinos según el CAF 2021 / ODEPA.</p>
           <details class="guide-det">
-            <summary class="guide-sum">ℹ️ ¿Cómo leer la superficie silvoagropecuaria (CAF 2021)?</summary>
+            <summary class="guide-sum">ℹ️ ¿Cómo leer la información silvoagropecuaria y ganadera (CAF 2021)?</summary>
             <div class="guide-b">
-              <div><b>Distribución territorial:</b> Hectáreas de cada cultivo localizadas en cada uno de los 8 territorios ERD.</div>
-              <div><b>Intensidad de color:</b> Mayor saturación refleja concentración territorial de la especie (ej. avellanos en Valle Central o cereales en Malleco y Cautín).</div>
+              <div><b>Distribución territorial:</b> Hectáreas de cultivos y cabezas de ganado localizadas en cada uno de los 8 territorios ERD.</div>
+              <div><b>Intensidad de color:</b> Mayor saturación refleja concentración territorial (ej. avellanos en Valle Central, ganado cárnico en Cautín Sur y Nahuelbuta, ovinos en Costa Araucanía y Malleco Norte).</div>
             </div>
           </details>
         </div>
