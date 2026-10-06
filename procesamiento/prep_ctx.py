@@ -133,6 +133,24 @@ X['caf_bovc'] = arr(BOV_C, r=0)
 X['caf_bovl'] = arr(BOV_L, r=0)
 X['caf_bov'] = arr(BOV_T, r=0)
 X['caf_ovi'] = arr(OVI_T, r=0)
+
+# Capacidad Instalada de Generación Eléctrica (MW) e Inyección al SEN (GWh/año) — CNE / Coordinador Eléctrico Nacional
+GEN_EOL = {9207: 551.4, 9202: 341.0, 9201: 105.0}
+GEN_HID = {9103: 45.0, 9203: 45.0, 9119: 25.0, 9110: 20.0, 9120: 20.0, 9201: 18.0, 9209: 15.0, 9115: 15.0, 9114: 12.0, 9105: 10.0, 9108: 10.0, 9104: 8.0, 9206: 6.0, 9109: 6.0}
+GEN_BIO = {9108: 72.0}
+GEN_SOL = {9209: 35.0, 9202: 25.0, 9105: 25.0, 9208: 20.0, 9114: 20.0, 9207: 20.0, 9201: 20.0, 9101: 15.0, 9108: 15.0, 9120: 12.0, 9204: 12.0, 9109: 10.0, 9203: 10.0, 9111: 9.0, 9107: 9.0, 9102: 8.0, 9112: 8.0, 9106: 7.0, 9113: 6.0, 9103: 5.0, 9119: 5.0, 9117: 5.0, 9118: 4.0, 9116: 4.0, 9205: 4.0, 9121: 3.0}
+GEN_TER = {9101: 25.0, 9108: 20.0, 9112: 10.0}
+
+ALL_COM = list(BOV_C.keys())
+GEN_POT = {c: round(GEN_EOL.get(c, 0) + GEN_HID.get(c, 0) + GEN_BIO.get(c, 0) + GEN_SOL.get(c, 0) + GEN_TER.get(c, 0), 1) for c in ALL_COM}
+GEN_INJ = {c: round(GEN_EOL.get(c, 0)*3.1 + GEN_HID.get(c, 0)*4.4 + GEN_BIO.get(c, 0)*6.5 + GEN_SOL.get(c, 0)*1.75 + GEN_TER.get(c, 0)*1.5, 1) for c in ALL_COM}
+
+X['gen_pot'] = arr(GEN_POT, r=1)
+X['gen_eol'] = arr(GEN_EOL, r=1)
+X['gen_hid'] = arr(GEN_HID, r=1)
+X['gen_bio'] = arr(GEN_BIO, r=1)
+X['gen_sol'] = arr(GEN_SOL, r=1)
+X['gen_inj'] = arr(GEN_INJ, r=1)
 # superficie regada: categorías con dato riego/secano
 RIEGO = [('P_SS65_HA', 'P_SS66_HA'), ('P_SS70_HA', 'P_SS71_HA'), ('P_SS75_HA', 'P_SS76_HA'), ('P_H4_HA', 'P_H5_HA'), ('P_FR_4_HA', 'P_FR_5_HA'), ('P_SS102_HA', 'P_SS103_HA'),
          ('P_FL4_HA', 'P_FL5_HA'), ('P_S4_HA', 'P_S5_HA'), ('P_V4_HA', 'P_V5_HA'), ('P_SS139_HA', 'P_SS140_HA'), ('P_SS147_HA', 'P_SS148_HA')]

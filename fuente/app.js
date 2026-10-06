@@ -272,6 +272,10 @@ const EVI = [
   { k: 'etod', g: 'ag', l: 'Aumento de la evapotranspiración de referencia', u: 'mm al día · ARClim', bad: 'high', f: v => sgn(v, 2), v: cs => cxW('etod', cs, KM2) },
   { k: 'fdd', g: 'ag', l: 'Cambio en días con helada', u: 'días al año · ARClim', f: v => sgn(v, 0), v: cs => cxW('fdd', cs, KM2) },
   { k: 'gdc', g: 'ag', l: 'Grados-día de calefacción (base 15 °C)', u: 'por año · ARClim, ponderado por población', bad: 'high', f: f0, v: cs => cxW('gdc', cs, wPop) },
+  { k: 'genpot', g: 'ag', l: 'Capacidad instalada de generación eléctrica', u: 'MW · CNE / Coordinador Eléctrico', f: f1, v: cs => cxS('gen_pot', cs), sum: 1 },
+  { k: 'geneol', g: 'ag', l: 'Generación eólica instalada', u: 'MW · CNE / Coordinador Eléctrico', f: f1, v: cs => cxS('gen_eol', cs), sum: 1 },
+  { k: 'genhid', g: 'ag', l: 'Generación hidroeléctrica instalada', u: 'MW · CNE / Coordinador Eléctrico', f: f1, v: cs => cxS('gen_hid', cs), sum: 1 },
+  { k: 'geninj', g: 'ag', l: 'Inyección estimada al SEN', u: 'GWh/año · CNE / Coordinador Eléctrico', f: f1, v: cs => cxS('gen_inj', cs), sum: 1 },
   { k: 'incp', g: 'ri', l: 'Superficie afectada por incendios forestales', u: '% de la superficie comunal · 2024-25 · CONAF', bad: 'high', f: v => pc(v, 2), v: cs => cxS('incha', cs) / (cs.reduce((a, c) => a + KM2(c), 0) * 100) },
   { k: 'incha', g: 'ri', l: 'Hectáreas afectadas por incendios forestales', u: 'ha · 2024-25 · CONAF', f: f0, v: cs => cxS('incha', cs), sum: 1 },
   { k: 'incn', g: 'ri', l: 'Incendios forestales', u: 'N° · 2024-25 · CONAF', f: f0, v: cs => cxS('incn', cs), sum: 1 },
@@ -311,7 +315,7 @@ const EVL = {
   L1: ['prd', 'cdd', 'txd', 'etod', 'sred', 'alj', 'rie', 'incp', 'inu'],
   L2: ['bn', 'pla', 'incp', 'cind', 'upa', 'bov'],
   L3: ['upa', 'upaa', 'rie', 'pnt', 'ia', 'bov', 'ovi', 'pra'],
-  L4: ['gdc', 'pin', 'rur'],
+  L4: ['genpot', 'geneol', 'genhid', 'geninj', 'gdc', 'pin', 'rur'],
   L5: ['pla', 'incp', 'upa', 'bov', 'pinv'],
   L6: ['rur', 'pin', 'prof'],
 };
@@ -1469,6 +1473,22 @@ function renderGanHeat() {
   el.innerHTML = `<table class="heat"><thead><tr><th>Especie ganadera</th>${TER.map((T, i) => `<th class="r" title="${esc(T.n)}"><span style="color:${TCOL[i]}">■</span> ${esc(T.n.replace('Araucanía ', '').replace('Temuco – Padre Las Casas', 'Temuco–PLC').replace('Malleco Norte', 'Malleco N.'))}</th>`).join('')}<th class="r">Región</th></tr></thead><tbody>` +
     items.map((it, j) => `<tr><td>${esc(it.n)}</td>${TER.map((T, i) => { const v = st[i][j], r = reg[j], s = r ? v / r : 0, bg = v ? mix(SURF2, css('--s4'), Math.min(1, s / 0.45)) : 'transparent'; return `<td class="m r" style="background:${bg};color:${v ? inkOn(bg) : 'var(--muted)'}" title="${esc(T.n)}: ${f0(v)} cabezas, ${pc(s, 0)} de la región">${v ? f0(v) : '–'}</td>`; }).join('')}<td class="m r">${f0(reg[j])}</td></tr>`).join('') + '</tbody></table>';
 }
+function renderEnergyHeat() {
+  const items = [
+    { k: 'gen_eol', n: 'Generación eólica (MW)' },
+    { k: 'gen_hid', n: 'Generación hidroeléctrica (MW)' },
+    { k: 'gen_bio', n: 'Biomasa y cogeneración (MW)' },
+    { k: 'gen_sol', n: 'Solar fotovoltaica / PMGD (MW)' },
+    { k: 'gen_pot', n: 'Capacidad instalada total (MW)' },
+    { k: 'gen_inj', n: 'Inyección estimada al SEN (GWh/año)' }
+  ];
+  const st = TER.map(T => items.map(it => cxS(it.k, T.c)));
+  const reg = items.map(it => cxS(it.k, ALLC));
+  const el = $('#ev-ener');
+  if (!el) return;
+  el.innerHTML = `<table class="heat"><thead><tr><th>Tecnología / Matriz</th>${TER.map((T, i) => `<th class="r" title="${esc(T.n)}"><span style="color:${TCOL[i]}">■</span> ${esc(T.n.replace('Araucanía ', '').replace('Temuco – Padre Las Casas', 'Temuco–PLC').replace('Malleco Norte', 'Malleco N.'))}</th>`).join('')}<th class="r">Región</th></tr></thead><tbody>` +
+    items.map((it, j) => `<tr><td>${esc(it.n)}</td>${TER.map((T, i) => { const v = st[i][j], r = reg[j], s = r ? v / r : 0, bg = v ? mix(SURF2, css('--s4'), Math.min(1, s / 0.45)) : 'transparent'; return `<td class="m r" style="background:${bg};color:${v ? inkOn(bg) : 'var(--muted)'}" title="${esc(T.n)}: ${f1(v)}, ${pc(s, 0)} de la región">${v ? f1(v) : '–'}</td>`; }).join('')}<td class="m r"><b>${f1(reg[j])}</b></td></tr>`).join('') + '</tbody></table>';
+}
 function evCols() { return EVI.filter(e => e.g === UI.evG); }
 function renderEvTable() {
   $$('#ev-g button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === UI.evG)));
@@ -1493,7 +1513,7 @@ function renderEvTable() {
 }
 function renderEvid() {
   if (!rendered.evid) {
-    renderEvKpis(); renderPib(); renderCafHeat(); renderGanHeat();
+    renderEvKpis(); renderPib(); renderCafHeat(); renderGanHeat(); renderEnergyHeat();
     $('#ev-g').innerHTML = Object.entries(EVG).map(([g, l]) => `<button type="button" data-g="${g}" aria-pressed="false">${esc(l)}</button>`).join('');
     $$('#ev-g button').forEach(b => b.addEventListener('click', () => { UI.evG = b.dataset.g; if (!['com', 'pop'].includes(UI.evSort)) { UI.evSort = 'com'; UI.evDir = 1; } renderEvTable(); }));
     $('#ev-scope').addEventListener('change', e => { UI.evScope = e.target.value; renderEvTable(); });
