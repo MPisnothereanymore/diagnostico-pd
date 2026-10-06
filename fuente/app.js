@@ -695,41 +695,41 @@ function renderCartera(withFicha) {
   if (withFicha || !rendered.ficha) { renderFicha(); rendered.ficha = true; }
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN TERRITORIAL (IPT) =================
-// Catastro oficial según Estrategia Regional de Desarrollo (ERD) La Araucanía 2040 (Tabla 14) y MINVU 2024
+// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
+// Catastro oficial: ERD 2040 (Tabla 14), MINVU 2024, SUBDERE/SINIM y SENAPRED Dirección Regional La Araucanía 2024 (Ley 21.364)
 const IPT_DATA = [
-  { c: 0, com: 'Carahue', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'D.O. 1989 (Mod. 2010; abarca Carahue y Trovolhue)', limAno: '1989', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Zonificación urbana consolidada. Rige zonificación de borde costero D.S. 475/1994.' },
-  { c: 1, com: 'Cholchol', ti: 4, terr: 'Nahuelbuta', est: 'sin', estLbl: 'Sin Instrumento', cls: 'sin', color: '#E07A6B', val: 0, prcAno: 'Sin PRC', prcDet: 'Sin Plan Regulador Comunal ni Límite Urbano propio', limAno: '–', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, obs: 'Comuna creada en 2004 (segregada de N. Imperial). Rige área rural Art. 55 LGUC para toda edificación.' },
-  { c: 2, com: 'Cunco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1992', limAno: '1992', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'Límite urbano histórico sin zonificación interna de usos de suelo ni vialidad estructurante.' },
-  { c: 3, com: 'Curarrehue', ti: 7, terr: 'Araucanía Lacustre', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Araucanía Lacustre', reg: 'ZOIT Lacustre · Cuenca Trancura', rez: false, zubc: false, obs: 'Primer PRC en elaboración. Destino de turismo aventura con restricciones volcánicas y ambientales.' },
-  { c: 4, com: 'Freire', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Entorno Aeropuerto Regional', rez: false, zubc: false, obs: 'En actualización integral para incorporar Quepe, Radal y amortiguación del Aeropuerto La Araucanía.' },
-  { c: 5, com: 'Galvarino', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, obs: 'PRC en proceso de formulación inicial. Actualmente rige límite urbano de 1995.' },
-  { c: 6, com: 'Gorbea', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'En modificación para regular las localidades de Lastarria y Quitratúe y mitigar riesgos de inundación del Río Donguil.' },
-  { c: 7, com: 'Lautaro', ti: 1, terr: 'Valle Central', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 (Mod. 2011) · En Modificación', limAno: '1986', pri: '–', zoit: '–', reg: 'Parque Industrial · Eje Ruta 5', rez: false, zubc: false, obs: 'Cuenta con zona industrial consolidada en Ruta 5. En actualización para ampliar áreas de desarrollo productivo.' },
-  { c: 8, com: 'Loncoche', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1983', prcDet: 'PRC Vigente D.O. 1983 · En Actualización Integral', limAno: '1983', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, obs: 'PRC con 40+ años de antigüedad. En actualización integral MINVU para redefinir áreas residenciales e industriales.' },
-  { c: 9, com: 'Melipeuco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Melipeuco Paraíso Cordillerano', reg: 'ZOIT Cordillerana', rez: false, zubc: false, obs: 'Destino ecoturístico clave sin PRC. Rige límite urbano 1992; proyectos fuera de radio urbano requieren Art. 55 LGUC.' },
-  { c: 10, com: 'Nueva Imperial', ti: 5, terr: 'Costa Araucanía', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Zona de Rezago Costa', rez: true, zubc: false, obs: 'En actualización integral para regular borde del Río Cholchol y nuevas áreas de equipamiento comunal.' },
-  { c: 11, com: 'Padre Las Casas', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1993', prcDet: 'PRC Vigente (derivado Temuco 1993) · PRC propio en trámite', limAno: '1993', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Área Metropolitana Temuco', rez: false, zubc: false, obs: 'Conurbación metropolitana. Cuenta con zonificación vigente; tramita PRC comunal autónomo con enfoque intercultural.' },
-  { c: 12, com: 'Perquenco', ti: 1, terr: 'Valle Central', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Eje Ruta 5', rez: false, zubc: false, obs: 'Sin PRC. Rige límite urbano de 1995. Suelo industrial no regulado detalladamente.' },
-  { c: 13, com: 'Pitrufquén', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: 'Eje Río Toltén', rez: false, zubc: false, obs: 'En modificación para regular ribera norte del Río Toltén y ensanche de zonas residenciales y de servicios.' },
-  { c: 14, com: 'Pucón', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1994', prcDet: 'PRC Vigente D.O. 1994 (Mod. 2017) · En Actualización Integral', limAno: '1994', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · Saturación Lago', rez: false, zubc: false, obs: 'Doble regulación (PRC comunal + PRI intercomunal). Fuertes restricciones por riesgo laharic y Plan Descontaminación Lago.' },
-  { c: 15, com: 'Saavedra', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1991', prcDet: 'PRC Vigente D.O. 1991 (Mod. 2011)', limAno: '1991', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Abarca Puerto Saavedra. Integra cotas de seguridad por tsunami post-1960. Rige zonificación costera regional.' },
-  { c: 16, com: 'Temuco', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 2010', prcDet: 'PRC Vigente D.O. 2010 · En Actualización Integral', limAno: '2010', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Capital Regional · Área Metropolitana', rez: false, zubc: false, obs: 'Principal centro de servicios e I+D regional. PRC 2010 en proceso de actualización integral coordinada con MINVU y SECTRA.' },
-  { c: 17, com: 'Teodoro Schmidt', ti: 5, terr: 'Costa Araucanía', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1970', limAno: '1970', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Sin PRC. Límite urbano con más de 50 años de antigüedad (1970). Abarca Teodoro Schmidt y Hualpín.' },
-  { c: 18, com: 'Toltén', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1988', prcDet: 'PRC Vigente D.O. 1988 (Nueva Toltén y Queule)', limAno: '1988', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, obs: 'Vigente para Nueva Toltén y Caleta Queule. Crucial para proyectos de pesca artesanal y borde costero.' },
-  { c: 19, com: 'Vilcún', ti: 6, terr: 'Araucanía Andina', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite Urbano D.O. 1970', limAno: '1970', pri: '–', zoit: 'ZOIT Vilcún Cordillera Viva', reg: 'ZOIT Cordillerana · Cajón periurbano', rez: false, zubc: false, obs: 'En formulación de su primer PRC (incluye Vilcún, Cherquenco, San Patricio y Cajón). Cajón actúa como extensión de Temuco.' },
-  { c: 20, com: 'Villarrica', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 (Seccionales Licán Ray y Ñancul) · En Actualización', limAno: '1985', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · PDA Lago', rez: false, zubc: false, obs: 'Articulador lacustre. Modificación integral en curso; articulado con el Plan de Descontaminación del Lago Villarrica.' },
-  { c: 21, com: 'Angol', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'PRC Vigente D.O. 1989 (Mod. 2008)', limAno: '1989', pri: '–', zoit: '–', reg: 'Capital Provincial Malleco', rez: false, zubc: false, obs: 'Vigente consolidado. Dispone de zonificación agroindustrial y de servicios para la provincia de Malleco.' },
-  { c: 22, com: 'Collipulli', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 (Mod. 2012)', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'Vigente. Modificación de 2012 habilitó zonas para actividades de apoyo logístico e industrial en Ruta 5.' },
-  { c: 23, com: 'Curacautín', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2009)', limAno: '1987', pri: '–', zoit: 'ZOIT Curacautín', reg: 'ZOIT · Corredor Bioceánico', rez: false, zubc: false, obs: 'Vigente. Clave para el desarrollo turístico andino y proyectos de biomasa y turismo termal.' },
-  { c: 24, com: 'Ercilla', ti: 3, terr: 'Malleco Norte', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano histórico D.O. 1941', limAno: '1941', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'Sin PRC. Límite urbano histórico con más de 80 años de desfase (1941, Ercilla y Pailahueque).' },
-  { c: 25, com: 'Lonquimay', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2014)', limAno: '1987', pri: '–', zoit: 'ZOIT Lonquimay', reg: 'ZOIT · Paso Pino Hachado', rez: false, zubc: false, obs: 'Vigente con modificación 2014. Abarca Lonquimay y Liucura. Zona estratégica de corredor bioceánico.' },
-  { c: 26, com: 'Los Sauces', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1966', limAno: '1966', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación de su primer PRC. Actualmente rige límite urbano de 1966.' },
-  { c: 27, com: 'Lumaco', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano histórico D.O. 1939', limAno: '1939', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación. Límite urbano más antiguo de la región (1939, 85+ años, Lumaco, Pastene y Pichipellahuén).' },
-  { c: 28, com: 'Purén', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1947', limAno: '1947', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'En formulación de su primer PRC. Rige límite urbano de 1947.' },
-  { c: 29, com: 'Renaico', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2011)', limAno: '1987', pri: '–', zoit: '–', reg: 'Polo ERNC Eólica', rez: false, zubc: false, obs: 'Vigente con modificación 2011. Entrada norte de la región y polo estratégico de energías renovables.' },
-  { c: 30, com: 'Traiguén', ti: 4, terr: 'Nahuelbuta', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 · En Modificación', limAno: '1986', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, obs: 'PRC vigente de 1986 en proceso de modificación para adecuar zonas residenciales e industriales.' },
-  { c: 31, com: 'Victoria', ti: 6, terr: 'Araucanía Andina', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 · En Modificación / Actualización', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta · Nodo UNAP', rez: true, zubc: false, obs: 'PRC de 1984 en actualización (Convenio MINVU). Sede universitaria y centro de acopio agropecuario.' },
+  { c: 0, com: 'Carahue', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'D.O. 1989 (Mod. 2010; Carahue y Trovolhue)', limAno: '1989', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'fire'], threatStr: '🌊 Tsunami / Inundación Imperial · 🔥 Incendios', obs: 'Zonificación urbana consolidada. Rige ZUBC costera D.S. 475/1994 y planes de emergencia/RRD aprobados ante riesgo tsunami.' },
+  { c: 1, com: 'Cholchol', ti: 4, terr: 'Nahuelbuta', est: 'sin', estLbl: 'Sin Instrumento', cls: 'sin', color: '#E07A6B', val: 0, prcAno: 'Sin PRC', prcDet: 'Sin Plan Regulador Comunal ni Límite propio', limAno: '–', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (previo)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: '🔥 Incendios interfaz · 💧 Déficit hídrico severo', obs: 'Comuna creada en 2004 sin PRC ni límite. Alta dependencia FCM, PLADECO vencido y planes de GRD pendientes; todo proyecto requiere Art. 55 LGUC.' },
+  { c: 2, com: 'Cunco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#5598E7', threats: ['volc', 'snow'], threatStr: '🌋 Volcán Llaima · ❄️ Nieve cordillerana', obs: 'Límite urbano histórico sin zonificación interna. En actualización de PLADECO e instrumentos de GRD por exposición a erupciones y nieve.' },
+  { c: 3, com: 'Curarrehue', ti: 7, terr: 'Araucanía Lacustre', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Araucanía Lacustre', reg: 'ZOIT Lacustre · Cuenca Trancura', rez: false, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (en diseño)', pladCol: '#E07A6B', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['volc', 'snow', 'water'], threatStr: '🌋 Volcán Villarrica · ❄️ Nevadas · 🌊 Desbordes', obs: 'Primer PRC en elaboración. Destino de turismo aventura con plan de emergencia aprobado por alta amenaza volcánica del Volcán Villarrica.' },
+  { c: 4, com: 'Freire', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Entorno Aeropuerto Regional', rez: false, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water', 'fire'], threatStr: '🌊 Desborde Río Toltén · 🔥 Incendios', obs: 'En actualización integral para incorporar Quepe, Radal y amortiguación del Aeropuerto. Plan de emergencia aprobado y RRD en curso.' },
+  { c: 5, com: 'Galvarino', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (en gestión)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: '🔥 Incendios extremos (crítico) · 💧 Déficit hídrico', obs: 'Zona de rezago Nahuelbuta. Recurrencia crítica de megaincendios forestales y escasez de agua; brecha en actualización de PLADECO y RRD.' },
+  { c: 6, com: 'Gorbea', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water', 'fire'], threatStr: '🌊 Inundación Río Donguil · 🔥 Incendios', obs: 'En modificación para regular Lastarria y Quitratúe. Plan de emergencia municipal aprobado ante anegamientos recurrentes.' },
+  { c: 7, com: 'Lautaro', ti: 1, terr: 'Valle Central', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 (Mod. 2011) · En Mod.', limAno: '1986', pri: '–', zoit: '–', reg: 'Parque Industrial · Eje Ruta 5', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'fire'], threatStr: '🌊 Inundación Río Cautín · 🔥 Incendios interfaz', obs: 'Parque industrial Ruta 5 consolidado. Alta madurez institucional: PLADECO vigente, plan de emergencia y RRD aprobados con SENAPRED.' },
+  { c: 8, com: 'Loncoche', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1983', prcDet: 'PRC Vigente D.O. 1983 · En Actualización Integral', limAno: '1983', pri: '–', zoit: '–', reg: '–', rez: false, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water', 'fire'], threatStr: '🌊 Inundación riberas · 🔥 Incendios', obs: 'PRC de 40+ años en actualización integral. Plan de emergencia comunal vigente por desbordes ribereños en invierno.' },
+  { c: 9, com: 'Melipeuco', ti: 6, terr: 'Araucanía Andina', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1992', limAno: '1992', pri: '–', zoit: 'ZOIT Melipeuco Paraíso Cordillerano', reg: 'ZOIT Cordillerana', rez: false, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (previo 2021)', pladCol: '#E07A6B', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['volc', 'snow'], threatStr: '🌋 Volcán Llaima (crítico) · ❄️ Aislamiento nieve', obs: 'Destino ecoturístico clave sin PRC. Alto riesgo volcánico Llaima con plan de emergencia aprobado y monitoreo activo OVDAS-SENAPRED.' },
+  { c: 10, com: 'Nueva Imperial', ti: 5, terr: 'Costa Araucanía', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 · En Actualización Integral', limAno: '1985', pri: '–', zoit: '–', reg: 'Zona de Rezago Costa', rez: true, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#5598E7', threats: ['water', 'fire'], threatStr: '🌊 Inundación Cholchol/Imperial · 🔥 Incendios', obs: 'Zona de rezago. En actualización integral urbana y formulación de PLADECO 2024–2028; riesgo de crecidas fluviales en confluencia de ríos.' },
+  { c: 11, com: 'Padre Las Casas', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1993', prcDet: 'PRC Vigente (derivado Temuco 1993) · Propio en trámite', limAno: '1993', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Área Metropolitana Temuco', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water', 'fire'], threatStr: '🌊 Inundación Río Cautín · 🌫️ Humo / Interfaz', obs: 'Área metropolitana. PLADECO vigente y plan de emergencia aprobado. En trámite PRC comunal propio y plan RRD intercomunal.' },
+  { c: 12, com: 'Perquenco', ti: 1, terr: 'Valle Central', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1995', limAno: '1995', pri: '–', zoit: '–', reg: 'Eje Ruta 5', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2021–2025', pladCol: '#5CBF8A', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: '🔥 Incendios · 💧 Déficit hídrico', obs: 'Sin PRC. Cuenta con PLADECO vigente; instrumentos de GRD en actualización técnica con apoyo SENAPRED.' },
+  { c: 13, com: 'Pitrufquén', ti: 2, terr: 'Cautín Sur', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 · En Modificación', limAno: '1987', pri: '–', zoit: '–', reg: 'Eje Río Toltén', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water', 'fire'], threatStr: '🌊 Inundación Río Toltén · 🔥 Incendios', obs: 'PLADECO y plan de emergencia vigentes. Modificación de PRC en curso para ribera norte de Río Toltén y ensanche de servicios.' },
+  { c: 14, com: 'Pucón', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1994', prcDet: 'PRC Vigente D.O. 1994 (Mod. 2017) · En Actualización', limAno: '1994', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · Saturación Lago', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2027', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['volc', 'water', 'fire'], threatStr: '🌋 Volcán Villarrica (lahares) · 🌊 Saturación lago', obs: 'Máxima exigencia de planificación (PRI + ZOIT + PDA Lago). PLADECO, plan de emergencia y RRD aprobados por riesgo laharic extremo.' },
+  { c: 15, com: 'Saavedra', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1991', prcDet: 'PRC Vigente D.O. 1991 (Mod. 2011)', limAno: '1991', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'dry'], threatStr: '🌊 Tsunami / Inundación costera · 💧 Déficit hídrico', obs: 'Puerto Saavedra. Instrumentos al día: PRC con cotas tsunami, ZUBC costera, PLADECO vigente y planes de GRD aprobados.' },
+  { c: 16, com: 'Temuco', ti: 0, terr: 'Temuco – Padre Las Casas', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 2010', prcDet: 'PRC Vigente D.O. 2010 · En Actualización Integral', limAno: '2010', pri: 'PRI Temuco - Padre Las Casas', zoit: '–', reg: 'Capital Regional · Área Metropolitana', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2023–2028', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'fire'], threatStr: '🌊 Inundación Río Cautín · 🔥 Interfaz cerros', obs: 'Capital regional. Máxima robustez institucional: PLADECO 2023–2028, plan de emergencia y RRD aprobados con SENAPRED y COGRID permanente.' },
+  { c: 17, com: 'Teodoro Schmidt', ti: 5, terr: 'Costa Araucanía', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1970', limAno: '1970', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (previo 2021)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#5598E7', threats: ['water', 'dry'], threatStr: '🌊 Tsunami / Marejadas · 💧 Déficit hídrico', obs: 'Sin PRC (límite 1970) y PLADECO vencido. Requiere fortalecimiento municipal en gestión de proyectos y mitigación costera.' },
+  { c: 18, com: 'Toltén', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1988', prcDet: 'PRC Vigente D.O. 1988 (Toltén y Queule)', limAno: '1988', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['water'], threatStr: '🌊 Tsunami Queule · 🌊 Inundación Río Toltén', obs: 'PRC vigente en Toltén y Caleta Queule. Plan de emergencia aprobado y RRD en curso por exposición crítica a tsunami e inundación fluvial.' },
+  { c: 19, com: 'Vilcún', ti: 6, terr: 'Araucanía Andina', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación (Convenio MINVU) · Límite 1970', limAno: '1970', pri: '–', zoit: 'ZOIT Vilcún Cordillera Viva', reg: 'ZOIT Cordillerana · Cajón periurbano', rez: false, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['volc', 'fire', 'snow'], threatStr: '🌋 Volcán Llaima · 🔥 Incendios · ❄️ Nieve', obs: 'ZOIT Cordillera Viva. En formulación de PRC y actualización PLADECO; planes de emergencia y RRD aprobados ante riesgo volcánico Llaima.' },
+  { c: 20, com: 'Villarrica', ti: 7, terr: 'Araucanía Lacustre', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1985', prcDet: 'PRC Vigente D.O. 1985 (Licán Ray / Ñancul) · En Act.', limAno: '1985', pri: 'PRI Villarrica - Pucón (D.O. 2002)', zoit: 'ZOIT Araucanía Lacustre', reg: 'PRI Intercomunal · ZOIT · PDA Lago', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['volc', 'water', 'fire'], threatStr: '🌋 Volcán Villarrica · 🌊 Saturación lago · 🔥 Interfaz', obs: 'Articulador lacustre. Instrumentos al día: PLADECO vigente, PRI intercomunal, PDA descontaminación lago y planes de emergencia/RRD aprobados.' },
+  { c: 21, com: 'Angol', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'PRC Vigente D.O. 1989 (Mod. 2008)', limAno: '1989', pri: '–', zoit: '–', reg: 'Capital Provincial Malleco', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2021–2025', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['fire', 'water'], threatStr: '🔥 Incendios forestales cordillera · 🌊 Río Vergara', obs: 'Capital provincial de Malleco. PRC consolidado, PLADECO vigente y planes de GRD aprobados; capacidad técnica instalada.' },
+  { c: 22, com: 'Collipulli', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 (Mod. 2012)', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['fire'], threatStr: '🔥 Incendios forestales extremos · 🌊 Quebradas', obs: 'Zona de rezago. PRC vigente y plan de emergencia aprobado; recurrencia extrema de incendios forestales en temporada estival.' },
+  { c: 23, com: 'Curacautín', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2009)', limAno: '1987', pri: '–', zoit: 'ZOIT Curacautín', reg: 'ZOIT · Corredor Bioceánico', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2021–2025', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['volc', 'snow'], threatStr: '🌋 Volcanes Llaima/Lonquimay · ❄️ Nieve/Aislamiento', obs: 'ZOIT termal y andina. Instrumentos de planificación y GRD al día por coexistencia con dos macizos volcánicos activos y pasos cordilleranos.' },
+  { c: 24, com: 'Ercilla', ti: 3, terr: 'Malleco Norte', est: 'limite', estLbl: 'Solo Límite Urbano', cls: 'lim', color: '#E0974A', val: 1, prcAno: 'Sin PRC', prcDet: 'Sin PRC · Solo Límite Urbano D.O. 1941', limAno: '1941', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (en gestión)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: '🔥 Incendios forestales · 💧 Déficit hídrico', obs: 'Rezago Malleco. Desfase de más de 80 años en su límite urbano (1941), PLADECO vencido y planes de GRD en trámite; alta necesidad de apoyo técnico.' },
+  { c: 25, com: 'Lonquimay', ti: 6, terr: 'Araucanía Andina', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2014)', limAno: '1987', pri: '–', zoit: 'ZOIT Lonquimay', reg: 'ZOIT · Paso Pino Hachado', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['snow', 'volc'], threatStr: '❄️ Nevadas extremas / Aislamiento · 🌋 Volcánico', obs: 'Paso Fronterizo Pino Hachado. PRC y PLADECO vigentes; plan invernal de emergencia y RRD aprobados por severo aislamiento cordillerano.' },
+  { c: 26, com: 'Los Sauces', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1966', limAno: '1966', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#5598E7', threats: ['fire', 'dry'], threatStr: '🔥 Incendios forestales · 💧 Déficit hídrico', obs: 'Zona de rezago. En formulación de su primer PRC y actualización de PLADECO; expuesta a severos incendios de interfase y déficit hídrico.' },
+  { c: 27, com: 'Lumaco', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite histórico D.O. 1939', limAno: '1939', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (en diseño)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: '🔥 Incendios forestales masivos · 💧 Déficit hídrico', obs: 'Rezago Nahuelbuta. Límite urbano de 1939 (85 años). PLADECO vencido e instrumentos de GRD pendientes frente a recurrencia crítica de fuego.' },
+  { c: 28, com: 'Purén', ti: 4, terr: 'Nahuelbuta', est: 'formulacion', estLbl: 'En Formulación', cls: 'form', color: '#5598E7', val: 2, prcAno: 'En Formulación', prcDet: 'En Formulación · Límite Urbano D.O. 1947', limAno: '1947', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#5598E7', threats: ['fire', 'dry'], threatStr: '🔥 Incendios forestales severos · 💧 Sequía', obs: 'Zona de rezago Nahuelbuta. Severamente afectada por incendios 2023; en reformulación de PLADECO, PRC y plan RRD.' },
+  { c: 29, com: 'Renaico', ti: 3, terr: 'Malleco Norte', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1987', prcDet: 'PRC Vigente D.O. 1987 (Mod. 2011)', limAno: '1987', pri: '–', zoit: '–', reg: 'Polo ERNC Eólica', rez: false, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['fire', 'water'], threatStr: '🔥 Incendios forestales · 🌊 Inundación Río Renaico', obs: 'Polo eólico. PRC vigente, PLADECO 2022–2026 y plan de emergencia aprobado; articulado con inversiones de transición energética.' },
+  { c: 30, com: 'Traiguén', ti: 4, terr: 'Nahuelbuta', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1986', prcDet: 'PRC Vigente D.O. 1986 · En Modificación', limAno: '1986', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta', rez: true, zubc: false, pladEst: 'actualizacion', pladLbl: 'En Actualización', pladCls: 'act', pladPer: 'En elab. 2024–28', pladCol: '#F2A541', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'elaboracion', grdRrdLbl: 'En Elaboración', grdRrdCls: 'act', grdCol: '#F2A541', threats: ['fire', 'water'], threatStr: '🔥 Incendios forestales · 🌊 Inundación Río Traiguén', obs: 'Rezago Nahuelbuta. PRC en modificación y PLADECO en actualización; plan de emergencia aprobado ante crecidas de río e incendios.' },
+  { c: 31, com: 'Victoria', ti: 6, terr: 'Araucanía Andina', est: 'modificacion', estLbl: 'En Modificación', cls: 'mod', color: '#F2A541', val: 3, prcAno: 'D.O. 1984', prcDet: 'PRC Vigente D.O. 1984 · En Mod. / Actualización', limAno: '1984', pri: '–', zoit: '–', reg: 'Zona de Rezago Malleco-Nahuelbuta · Nodo UNAP', rez: true, zubc: false, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2021–2025', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['fire', 'water'], threatStr: '🔥 Incendios forestales · 🌊 Inundación riberas', obs: 'Nodo universitario y logístico de Malleco. PLADECO vigente, plan de emergencia y RRD aprobados con SENAPRED; PRC en actualización.' },
 ];
 
 // ================= TERRITORIOS (mapa) =================
@@ -737,6 +737,8 @@ const MP = FR.map;
 const MAPIND = [
   { k: 'ter', l: 'Territorio ERD' },
   { k: 'ipt', l: '🏛️ Planificación Territorial: Estado del PRC', grp: 'Territorio e infraestructura' },
+  { k: 'pladeco', l: '📋 Plan de Desarrollo Comunal (PLADECO)', grp: 'Territorio e infraestructura' },
+  { k: 'grd', l: '🚨 Gestión del Riesgo de Desastres (GRD · SENAPRED)', grp: 'Territorio e infraestructura' },
   { k: 'bre', l: 'N° de brechas habilitantes (0–5)' },
   ...HABS.map(h => ({ k: h.k, l: `${h.l} (${h.u})`, hab: h })),
   { k: 'ipa', l: 'Inversión pública 2010–2022 por habitante' },
@@ -745,6 +747,7 @@ const MAPIND = [
   { k: 'lq', l: 'Especialización en un lineamiento' },
   ...EVI.map(e => ({ k: 'ev:' + e.k, l: `${e.l} (${e.u.split(' · ')[0]})`, ev: e, grp: EVG[e.g] })),
 ];
+
 const LAYERS = [
   { k: 'tl', l: 'Nombres de territorios', sw: '' },
   { k: 'cl', l: 'Nombres de comunas', sw: '' },
@@ -761,6 +764,8 @@ const LAYERS = [
 ];
 function comVal(k, c) {
   if (k === 'ipt') return IPT_DATA[c].val;
+  if (k === 'pladeco') return IPT_DATA[c].pladEst === 'vigente' ? 2 : IPT_DATA[c].pladEst === 'actualizacion' ? 1 : 0;
+  if (k === 'grd') return IPT_DATA[c].grdRrd === 'aprobado' ? 3 : IPT_DATA[c].grdEmerg === 'aprobado' ? 2 : IPT_DATA[c].grdEmerg === 'tramite' ? 1 : 0;
   if (k.startsWith('ev:')) return EVV[k.slice(3)][c];
   if (k === 'bre') return BRE[c].length;
   if (k === 'ipa') return IN.ipapc[c] / 1e6;
@@ -772,6 +777,8 @@ function comVal(k, c) {
 function comFill(k) {
   if (k === 'ter') return ALLC.map(c => TCOL[TOF[c]]);
   if (k === 'ipt') return ALLC.map(c => IPT_DATA[c].color);
+  if (k === 'pladeco') return ALLC.map(c => IPT_DATA[c].pladCol);
+  if (k === 'grd') return ALLC.map(c => IPT_DATA[c].grdCol);
   if (k === 'lq') return ALLC.map(c => lqColor(comVal('lq', c)));
   const v = ALLC.map(c => comVal(k, c)), fv = v.filter(isFinite), mn = Math.min(...fv), mx = Math.max(...fv);
   const h = HABS.find(x => x.k === k);
@@ -790,6 +797,23 @@ function mapLegend(k) {
       ['#5598E7', 'Sin PRC · En Formulación (con límite) (6 comunas)'],
       ['#E0974A', 'Sin PRC · Solo Límite Urbano histórico (5 comunas)'],
       ['#E07A6B', 'Sin Instrumento ni Límite aprobado (1 comuna)'],
+    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+    return;
+  }
+  if (k === 'pladeco') {
+    lg.innerHTML = '<b>Plan de Desarrollo Comunal (PLADECO)</b>' + [
+      ['#5CBF8A', 'PLADECO Vigente (14 comunas)'],
+      ['#F2A541', 'PLADECO en Actualización / Licitación (10 comunas)'],
+      ['#E07A6B', 'PLADECO Vencido / Desactualizado (8 comunas)'],
+    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+    return;
+  }
+  if (k === 'grd') {
+    lg.innerHTML = '<b>Gestión del Riesgo de Desastres (GRD · SENAPRED)</b>' + [
+      ['#5CBF8A', 'Plan Emergencia + RRD Aprobados (11 comunas)'],
+      ['#F2A541', 'Plan Emergencia Aprobado · RRD en Elaboración (11 comunas)'],
+      ['#5598E7', 'Plan Emergencia en Trámite / Actualización (5 comunas)'],
+      ['#E07A6B', 'Planes de Emergencia y RRD Pendientes (5 comunas)'],
     ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
     return;
   }
@@ -900,13 +924,22 @@ function createMap(host) {
 function comTip(c) {
   const k = UI.mInd, rows = [];
   rows.push([TER[TOF[c]].n, 'territorio']);
+  const ipt = IPT_DATA[c];
   if (k === 'ipt') {
-    const ipt = IPT_DATA[c];
     rows.push([ipt.estLbl, 'estado del PRC']);
     rows.push([ipt.prcAno, 'publicación D.O.']);
     if (ipt.pri !== '–') rows.push([ipt.pri, 'intercomunal']);
     if (ipt.zoit !== '–') rows.push([ipt.zoit, 'turismo']);
     if (ipt.reg !== '–') rows.push([ipt.reg, 'régimen especial']);
+  }
+  else if (k === 'pladeco') {
+    rows.push([ipt.pladLbl, 'estado PLADECO']);
+    rows.push([ipt.pladPer, 'periodo']);
+  }
+  else if (k === 'grd') {
+    rows.push([ipt.grdEmergLbl, 'Plan Emergencia']);
+    rows.push([ipt.grdRrdLbl, 'Plan RRD (Prevención)']);
+    rows.push([ipt.threatStr, 'amenazas críticas']);
   }
   else if (k === 'ter' || k === 'bre') rows.push([BRE[c].length ? BRE[c].map(x => HABS.find(h => h.k === x).l.split(' (')[0]).join(', ') : 'ninguna', 'brechas (tercio peor)']);
   else if (k === 'ipa') rows.push([f1(IN.ipapc[c] / 1e6) + ' MM$', 'inversión pública 2010–2022 por hab.']);
@@ -916,10 +949,9 @@ function comTip(c) {
   else if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; rows.push([e.f(EVV[e.k][c]), e.l + ' · ' + e.u]); if (!e.sum) rows.push([e.f(EVREG[e.k]), 'región']); }
   else { const h = HABS.find(x => x.k === k); rows.push([h.f(HV[k][c]), h.l + ' · ' + h.u]); }
   rows.push([f0(POP[c]), 'habitantes (Censo 2024)']);
-  const ipt = IPT_DATA[c];
-  let sub = ipt.estLbl + ' (' + ipt.prcAno + ')';
+  let sub = `PRC ${ipt.estLbl} · PLADECO ${ipt.pladLbl} (${ipt.pladPer})`;
   if (ipt.zoit !== '–') sub += ' · ' + ipt.zoit;
-  else if (IN.rez[c]) sub += ' · Zona de rezago';
+  else if (IN.rez[c]) sub += ' · Rezago';
   return [CN(c), rows, sub];
 }
 let MAP = null;
@@ -978,11 +1010,12 @@ function renderTprof() {
     <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Condiciones habilitantes</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
       ${HABS.map(hb => { const v = terHab(hb, ti), st = status(hb, v); return `<span class="n">${esc(hb.l)} <small style="color:var(--muted)">${esc(hb.u)}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${hb.f(v)}</span></span><span class="x"><small>${hb.f(HREG[hb.k])}</small></span>`; }).join('')}</div>
       <p class="note">${T.c.some(c => IN.rez[c]) ? `Zona de rezago: ${esc(T.c.filter(c => IN.rez[c]).map(CN).join(', '))}. ` : ''}${T.prcSin.length ? `Sin plan regulador vigente: ${esc(T.prcSin.map(CN).join(', '))}.` : ''}</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Planificación Territorial (PRC y Zonificaciones)</span>
-      <div class="hab" style="grid-template-columns:minmax(0,1fr) auto">
-        ${T.c.map(c => `<span class="n">${esc(CN(c))}</span><span class="x"><span class="ipt-badge ${IPT_DATA[c].cls}">${IPT_DATA[c].estLbl}</span></span>`).join('')}
+    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Planificación y Gestión Territorial (PRC · PLADECO · GRD)</span>
+      <div class="hab" style="grid-template-columns:minmax(0,1fr) auto auto auto">
+        <span class="h">Comuna</span><span class="h" style="text-align:center">Plan Regulador</span><span class="h" style="text-align:center">PLADECO</span><span class="h" style="text-align:right">GRD Emerg.</span>
+        ${T.c.map(c => `<span class="n">${esc(CN(c))}</span><span class="x" style="text-align:center"><span class="ipt-badge ${IPT_DATA[c].cls}">${IPT_DATA[c].estLbl}</span></span><span class="x" style="text-align:center"><span class="plad-badge ${IPT_DATA[c].pladCls}">${IPT_DATA[c].pladLbl}</span></span><span class="x" style="text-align:right"><span class="grd-badge ${IPT_DATA[c].grdEmergCls}">${IPT_DATA[c].grdEmergLbl}</span></span>`).join('')}
       </div>
-      <p class="note">Detalle comunal, fechas de aprobación, límites urbanos históricos y planes intercomunales en la tabla inferior.</p></div>
+      <p class="note">Detalle comunal, fechas de aprobación, límites urbanos, planes de emergencia SENAPRED y RRD en la tabla inferior.</p></div>
     <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Evidencia territorial</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
       ${['pmd', 'ind', 'sred', 'alj', 'prd', 'incp', 'upaa', 'rie', 'fcm', 'prof'].map(k => { const e = EVK[k], v = e.v(T.c), st = evStatus(e, v); return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u.split(' · ')[0])}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${e.f(v)}</span></span><span class="x"><small>${e.f(EVREG[k])}</small></span>`; }).join('')}</div>
       <div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div></div>
@@ -1029,8 +1062,8 @@ function renderTerritorios() {
   $('#m-title').textContent = 'Territorios ERD 2040 · ' + TER[UI.ter].n;
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN TERRITORIAL (IPT) =================
-const IPT_STATE = { ter: 'all', est: 'all', reg: 'all', q: '', sort: 'com', dir: 1 };
+// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
+const IPT_STATE = { ter: 'all', est: 'all', plad: 'all', grd: 'all', threat: 'all', reg: 'all', q: '', sort: 'com', dir: 1 };
 let iptInitDone = false;
 
 function initIpt() {
@@ -1044,24 +1077,45 @@ function initIpt() {
   }
   const sEst = $('#ipt-f-est');
   if (sEst) sEst.addEventListener('change', e => { IPT_STATE.est = e.target.value; renderIptTable(); });
+  const sPlad = $('#ipt-f-plad');
+  if (sPlad) sPlad.addEventListener('change', e => { IPT_STATE.plad = e.target.value; renderIptTable(); });
+  const sGrd = $('#ipt-f-grd');
+  if (sGrd) sGrd.addEventListener('change', e => { IPT_STATE.grd = e.target.value; renderIptTable(); });
+  const sThreat = $('#ipt-f-threat');
+  if (sThreat) sThreat.addEventListener('change', e => { IPT_STATE.threat = e.target.value; renderIptTable(); });
   const sReg = $('#ipt-f-reg');
   if (sReg) sReg.addEventListener('change', e => { IPT_STATE.reg = e.target.value; renderIptTable(); });
   const sQ = $('#ipt-q');
   if (sQ) sQ.addEventListener('input', e => { IPT_STATE.q = e.target.value.toLowerCase().trim(); renderIptTable(); });
   const bClear = $('#ipt-clear');
   if (bClear) bClear.addEventListener('click', () => {
-    IPT_STATE.ter = 'all'; IPT_STATE.est = 'all'; IPT_STATE.reg = 'all'; IPT_STATE.q = '';
+    IPT_STATE.ter = 'all'; IPT_STATE.est = 'all'; IPT_STATE.plad = 'all'; IPT_STATE.grd = 'all'; IPT_STATE.threat = 'all'; IPT_STATE.reg = 'all'; IPT_STATE.q = '';
     if (sTer) sTer.value = 'all';
     if (sEst) sEst.value = 'all';
+    if (sPlad) sPlad.value = 'all';
+    if (sGrd) sGrd.value = 'all';
+    if (sThreat) sThreat.value = 'all';
     if (sReg) sReg.value = 'all';
     if (sQ) sQ.value = '';
     renderIptTable();
   });
   const bCsv = $('#ipt-csv');
   if (bCsv) bCsv.addEventListener('click', exportIptCSV);
-  const bMap = $('#ipt-btn-map');
-  if (bMap) bMap.addEventListener('click', () => {
+  const bMapPrc = $('#ipt-btn-map');
+  if (bMapPrc) bMapPrc.addEventListener('click', () => {
     UI.mInd = 'ipt';
+    renderMapOnly();
+    $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  const bMapPlad = $('#ipt-btn-map-plad');
+  if (bMapPlad) bMapPlad.addEventListener('click', () => {
+    UI.mInd = 'pladeco';
+    renderMapOnly();
+    $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  const bMapGrd = $('#ipt-btn-map-grd');
+  if (bMapGrd) bMapGrd.addEventListener('click', () => {
+    UI.mInd = 'grd';
     renderMapOnly();
     $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
@@ -1083,12 +1137,18 @@ function renderIptTable() {
   const filtered = IPT_DATA.filter(it => {
     if (IPT_STATE.ter !== 'all' && TOF[it.c] !== +IPT_STATE.ter) return false;
     if (IPT_STATE.est !== 'all' && it.est !== IPT_STATE.est) return false;
+    if (IPT_STATE.plad !== 'all' && it.pladEst !== IPT_STATE.plad) return false;
+    if (IPT_STATE.grd === 'ambos' && !(it.grdEmerg === 'aprobado' && it.grdRrd === 'aprobado')) return false;
+    if (IPT_STATE.grd === 'emerg' && it.grdEmerg !== 'aprobado') return false;
+    if (IPT_STATE.grd === 'rrd' && it.grdRrd !== 'aprobado') return false;
+    if (IPT_STATE.grd === 'pend' && !(it.grdEmerg === 'pendiente' || it.grdRrd === 'pendiente' || it.grdEmerg === 'tramite')) return false;
+    if (IPT_STATE.threat !== 'all' && !it.threats.includes(IPT_STATE.threat)) return false;
     if (IPT_STATE.reg === 'zoit' && it.zoit === '–') return false;
     if (IPT_STATE.reg === 'pri' && it.pri === '–') return false;
     if (IPT_STATE.reg === 'zubc' && !it.zubc) return false;
     if (IPT_STATE.reg === 'rez' && !it.rez) return false;
     if (q) {
-      const s = (it.com + ' ' + it.terr + ' ' + it.estLbl + ' ' + it.prcAno + ' ' + it.prcDet + ' ' + it.limAno + ' ' + it.pri + ' ' + it.zoit + ' ' + it.reg + ' ' + it.obs).toLowerCase();
+      const s = (it.com + ' ' + it.terr + ' ' + it.estLbl + ' ' + it.prcAno + ' ' + it.prcDet + ' ' + it.limAno + ' ' + it.pladLbl + ' ' + it.pladPer + ' ' + it.grdEmergLbl + ' ' + it.grdRrdLbl + ' ' + it.threatStr + ' ' + it.pri + ' ' + it.zoit + ' ' + it.reg + ' ' + it.obs).toLowerCase();
       if (!s.includes(q)) return false;
     }
     return true;
@@ -1099,7 +1159,9 @@ function renderIptTable() {
     if (IPT_STATE.sort === 'terr') return it.terr;
     if (IPT_STATE.sort === 'est') return it.val;
     if (IPT_STATE.sort === 'prc') return it.prcAno;
-    if (IPT_STATE.sort === 'lim') return it.limAno;
+    if (IPT_STATE.sort === 'plad') return it.pladEst;
+    if (IPT_STATE.sort === 'emerg') return it.grdEmerg;
+    if (IPT_STATE.sort === 'rrd') return it.grdRrd;
     if (IPT_STATE.sort === 'pri') return it.pri;
     if (IPT_STATE.sort === 'zoit') return it.zoit;
     return it.com;
@@ -1114,34 +1176,51 @@ function renderIptTable() {
   wrap.innerHTML = `<table class="ipt-tbl">
     <thead>
       <tr>
-        ${th('com', 'Comuna')}
-        ${th('terr', 'Territorio ERD')}
-        ${th('est', 'Estado Plan Regulador')}
-        ${th('prc', 'Año / Instrumento D.O.')}
-        ${th('lim', 'Límite Urbano')}
-        ${th('pri', 'PRI Intercomunal')}
-        ${th('zoit', 'ZOIT Turismo')}
+        ${th('com', 'Comuna & Territorio')}
+        ${th('est', 'Plan Regulador (PRC)')}
+        ${th('plad', 'PLADECO (Periodo)')}
+        ${th('emerg', 'Plan Emergencia')}
+        ${th('rrd', 'Plan RRD')}
+        <th style="min-width:180px">Amenazas Críticas (GRD)</th>
         <th>Régimen Especial</th>
         <th style="min-width:240px">Diagnóstico e Implicancia FRPD</th>
       </tr>
     </thead>
     <tbody>
-      ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No se encontraron comunas con los filtros seleccionados.</td></tr>' : filtered.map(it => {
+      ${filtered.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">No se encontraron comunas con los filtros seleccionados.</td></tr>' : filtered.map(it => {
         const isSel = TOF[it.c] === UI.ter;
         return `<tr class="click${isSel ? ' on' : ''}" data-c="${it.c}">
-          <td><b style="color:var(--ink)">${esc(it.com)}</b></td>
-          <td><span style="font-size:12px;color:var(--ink2)">${esc(it.terr)}</span></td>
-          <td><span class="ipt-badge ${it.cls}">${esc(it.estLbl)}</span></td>
-          <td><span class="mono">${esc(it.prcAno)}</span><br><span style="font-size:11px;color:var(--muted)">${esc(it.prcDet)}</span></td>
-          <td><span class="mono">${esc(it.limAno)}</span></td>
-          <td>${it.pri !== '–' ? `<span class="tag-pri">${esc(it.pri)}</span>` : '<span style="color:var(--muted)">–</span>'}</td>
-          <td>${it.zoit !== '–' ? `<span class="tag-zoit">${esc(it.zoit)}</span>` : '<span style="color:var(--muted)">–</span>'}</td>
           <td>
+            <b style="color:var(--ink);font-size:13px">${esc(it.com)}</b>
+            <span class="sm" style="display:block;color:var(--ink2)">${esc(it.terr)}</span>
+          </td>
+          <td>
+            <span class="ipt-badge ${it.cls}">${esc(it.estLbl)}</span>
+            <span class="mono" style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.prcAno)}</span>
+          </td>
+          <td>
+            <span class="plad-badge ${it.pladCls}">${esc(it.pladLbl)}</span>
+            <span class="mono" style="display:block;font-size:11px;color:var(--ink2);margin-top:2px">${esc(it.pladPer)}</span>
+          </td>
+          <td>
+            <span class="grd-badge ${it.grdEmergCls}" title="Plan Comunal de Emergencia (SENAPRED / Ley 21.364)">${esc(it.grdEmergLbl)}</span>
+          </td>
+          <td>
+            <span class="grd-badge ${it.grdRrdCls}" title="Plan Comunal para la Reducción del Riesgo de Desastres">${esc(it.grdRrdLbl)}</span>
+          </td>
+          <td>
+            <span style="font-size:11.5px;color:var(--ink2);line-height:1.3">${esc(it.threatStr)}</span>
+          </td>
+          <td>
+            ${it.pri !== '–' ? `<span class="tag-pri" style="margin-bottom:2px">${esc(it.pri)}</span><br>` : ''}
+            ${it.zoit !== '–' ? `<span class="tag-zoit" style="margin-bottom:2px">${esc(it.zoit)}</span><br>` : ''}
             ${it.zubc ? '<span class="tag-zubc" title="D.S. 475/1994">Borde Costero</span> ' : ''}
             ${it.rez ? '<span class="tag-rez" title="Zona de Rezago Subdere">Rezago</span> ' : ''}
-            ${!it.zubc && !it.rez ? '<span style="color:var(--muted)">–</span>' : ''}
+            ${it.pri === '–' && it.zoit === '–' && !it.zubc && !it.rez ? '<span style="color:var(--muted)">–</span>' : ''}
           </td>
-          <td><span style="font-size:12px;line-height:1.4;color:var(--ink2)">${esc(it.obs)}</span></td>
+          <td>
+            <span style="font-size:12px;line-height:1.45;color:var(--ink2)">${esc(it.obs)}</span>
+          </td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -1165,15 +1244,17 @@ function renderIptTable() {
 
 function exportIptCSV() {
   const head = [
-    'Comuna', 'Territorio ERD', 'Estado Plan Regulador', 'Año Aprobación PRC', 'Detalle Instrumento',
-    'Límite Urbano (D.O.)', 'Plan Regulador Intercomunal (PRI)', 'Zona de Interés Turístico (ZOIT)',
+    'Comuna', 'Territorio ERD', 'Estado Plan Regulador', 'Año Aprobación PRC', 'Detalle PRC',
+    'Límite Urbano Histórico', 'Estado PLADECO', 'Periodo PLADECO', 'Plan Emergencia SENAPRED',
+    'Plan RRD Prevención Ley 21.364', 'Amenazas Críticas (GRD)', 'PRI Intercomunal', 'ZOIT Turismo',
     'Zonificación Borde Costero (ZUBC)', 'Zona de Rezago', 'Régimen Especial', 'Diagnóstico e Implicancia FRPD'
   ];
   const lines = [head].concat(IPT_DATA.map(it => [
-    it.com, it.terr, it.estLbl, it.prcAno, it.prcDet, it.limAno, it.pri, it.zoit,
+    it.com, it.terr, it.estLbl, it.prcAno, it.prcDet, it.limAno, it.pladLbl, it.pladPer,
+    it.grdEmergLbl, it.grdRrdLbl, it.threatStr, it.pri, it.zoit,
     it.zubc ? 'Sí' : 'No', it.rez ? 'Sí' : 'No', it.reg, it.obs
   ]));
-  saveCSV(lines, 'instrumentos_planificacion_territorial_araucania_erd2040.csv');
+  saveCSV(lines, 'instrumentos_planificacion_y_gestion_araucania_erd2040.csv');
 }
 
 // ================= EVIDENCIA TERRITORIAL =================

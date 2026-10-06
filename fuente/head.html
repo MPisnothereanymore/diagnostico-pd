@@ -275,6 +275,25 @@ td.good{color:var(--ok)}
 .ipt-badge.form{background:rgba(85,152,231,.16);color:var(--data);border:1px solid rgba(85,152,231,.35)}
 .ipt-badge.lim{background:rgba(224,151,74,.16);color:#E0974A;border:1px solid rgba(224,151,74,.35)}
 .ipt-badge.sin{background:rgba(224,122,107,.16);color:var(--bad);border:1px solid rgba(224,122,107,.35)}
+
+/* PLADECO y GRD Badges */
+.plad-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.plad-badge.vig{background:rgba(92,191,138,.16);color:var(--ok);border:1px solid rgba(92,191,138,.35)}
+.plad-badge.act{background:rgba(242,165,65,.16);color:var(--sel);border:1px solid rgba(242,165,65,.35)}
+.plad-badge.ven{background:rgba(224,122,107,.16);color:var(--bad);border:1px solid rgba(224,122,107,.35)}
+
+.grd-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.grd-badge.ok{background:rgba(92,191,138,.16);color:var(--ok);border:1px solid rgba(92,191,138,.35)}
+.grd-badge.act{background:rgba(85,152,231,.16);color:var(--data);border:1px solid rgba(85,152,231,.35)}
+.grd-badge.pend{background:rgba(224,122,107,.16);color:var(--bad);border:1px solid rgba(224,122,107,.35)}
+
+.chip-threat{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:3px;font-size:11px;line-height:1.2;background:var(--surf2);border:1px solid var(--line2);color:var(--ink2);margin:1px 2px 1px 0;white-space:nowrap}
+.chip-threat.volc{border-color:rgba(242,165,65,.4);color:#F5B05E}
+.chip-threat.fire{border-color:rgba(224,103,103,.4);color:#E66767}
+.chip-threat.water{border-color:rgba(85,152,231,.4);color:#6BA8F2}
+.chip-threat.snow{border-color:rgba(127,214,232,.4);color:#7FD6E8}
+.chip-threat.dry{border-color:rgba(217,194,90,.4);color:#E0C963}
+
 .ipt-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .ipt-tbl th,.ipt-tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
 .ipt-tbl th{background:var(--surf2);font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink2);text-transform:uppercase;position:sticky;top:0;z-index:2}
@@ -671,81 +690,118 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       </div>
     </section>
 
-    <!-- ===== Instrumentos de Planificación Territorial (IPT) y Zonificaciones ===== -->
+    <!-- ===== Instrumentos de Planificación y Gestión Territorial (IPT · PLADECO · GRD) ===== -->
     <section class="card" id="ipt-card">
       <div class="card-h">
         <div>
-          <h2>Instrumentos de Planificación Territorial (IPT) y Zonificaciones</h2>
-          <div class="sub">Catastro oficial de Planes Reguladores Comunales (PRC), límites urbanos históricos, Planes Intercomunales (PRI), Zonas de Interés Turístico (ZOIT) y Borde Costero en las 32 comunas. Fuente: ERD 2040 (Tabla 14) y MINVU 2024.</div>
+          <h2>Instrumentos de Planificación y Gestión Territorial (IPT · PLADECO · Planes GRD)</h2>
+          <div class="sub">Catastro integrado de Planes Reguladores Comunales (PRC), Planes de Desarrollo Comunal (PLADECO) y Planes de Gestión del Riesgo de Desastres (GRD / SENAPRED Ley 21.364) en las 32 comunas de La Araucanía. Fuentes: ERD 2040, MINVU, SUBDERE/SINIM y SENAPRED 2024.</div>
         </div>
-        <div class="ctrls">
-          <button class="btn" id="ipt-btn-map" type="button">🗺️ Ver PRC en el mapa</button>
+        <div class="ctrls" style="gap:8px">
+          <button class="btn" id="ipt-btn-map" type="button" title="Colorear el mapa por estado del PRC">🏛️ Ver PRC</button>
+          <button class="btn" id="ipt-btn-map-plad" type="button" title="Colorear el mapa por estado del PLADECO">📋 Ver PLADECO</button>
+          <button class="btn" id="ipt-btn-map-grd" type="button" title="Colorear el mapa por estado de los Planes de GRD">🚨 Ver GRD</button>
           <button class="btn pri" id="ipt-csv" type="button">Exportar CSV</button>
         </div>
       </div>
       <div class="card-b" style="display:flex;flex-direction:column;gap:14px">
-        <!-- KPIs de IPT -->
-        <div class="kpis" id="ipt-kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+        <!-- KPIs integrados de Planificación y Gestión -->
+        <div class="kpis" id="ipt-kpis" style="grid-template-columns:repeat(6,minmax(0,1fr))">
           <div class="kpi">
-            <span class="l">PRC Vigente en la Región</span>
+            <span class="l">PRC Vigentes</span>
             <span class="v" style="color:var(--ok)">20 <small>/ 32</small></span>
-            <span class="s">8 consolidados · 12 en modificación</span>
+            <span class="s">8 consolidados · 12 en mod.</span>
           </div>
           <div class="kpi">
-            <span class="l">Sin Plan Regulador Vigente</span>
+            <span class="l">Sin Plan Regulador</span>
             <span class="v" style="color:var(--sel)">12 <small>/ 32</small></span>
-            <span class="s">6 en formulación · 5 solo límite · 1 sin límite</span>
+            <span class="s">6 en form. · 5 solo límite · 1 sin límite</span>
           </div>
           <div class="kpi">
-            <span class="l">Planes Intercomunales (PRI)</span>
-            <span class="v" style="color:var(--data)">2</span>
-            <span class="s">PRI Villarrica-Pucón · PRI Temuco-PLC</span>
+            <span class="l">PLADECOs Vigentes</span>
+            <span class="v" style="color:var(--ok)">14 <small>/ 32</small></span>
+            <span class="s">10 en actualización · 8 vencidos</span>
           </div>
           <div class="kpi">
-            <span class="l">Zonas de Interés Turístico (ZOIT)</span>
-            <span class="v" style="color:#C7A2F0">5</span>
-            <span class="s">Lacustre, Melipeuco, Lonquimay, Curacautín, Vilcún</span>
+            <span class="l">Plan Emergencia GRD</span>
+            <span class="v" style="color:var(--data)">22 <small>/ 32</small></span>
+            <span class="s">Decreto Alcaldicio / SENAPRED</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Plan RRD (Prevención)</span>
+            <span class="v" style="color:#C7A2F0">11 <small>/ 32</small></span>
+            <span class="s">16 en elaboración · 5 pendientes</span>
+          </div>
+          <div class="kpi">
+            <span class="l">Régimen Especial</span>
+            <span class="v" style="color:var(--acc)">5 ZOIT <small>· 2 PRI</small></span>
+            <span class="s">4 Borde Costero · 12 Rezago</span>
           </div>
         </div>
 
-        <!-- Filtros de la tabla de IPT -->
-        <div class="fbar" style="border-radius:6px;padding:8px 12px;background:var(--surf2)">
-          <div class="fgrp">
+        <!-- Filtros avanzados de la tabla -->
+        <div class="fbar" style="border-radius:6px;padding:8px 12px;background:var(--surf2);gap:10px 14px">
+          <div class="fgrp" style="gap:8px 12px">
             <span class="lbl">Filtros:</span>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-ter" style="max-width:180px">
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-ter" style="max-width:160px">
               <option value="all">Todos los territorios</option>
             </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-est" style="max-width:215px">
-              <option value="all">Todos los estados PRC</option>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-est" style="max-width:180px">
+              <option value="all">PRC: Todos los estados</option>
               <option value="vigente">PRC Vigente consolidado (8)</option>
-              <option value="modificacion">PRC en Modificación / Actualización (12)</option>
+              <option value="modificacion">PRC en Modificación (12)</option>
               <option value="formulacion">Sin PRC · En Formulación (6)</option>
               <option value="limite">Sin PRC · Solo Límite Urbano (5)</option>
               <option value="sin">Sin Instrumento ni Límite (1)</option>
             </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-reg" style="max-width:190px">
-              <option value="all">Cualquier régimen</option>
-              <option value="zoit">Solo con ZOIT (Turismo)</option>
-              <option value="pri">Solo con PRI Intercomunal</option>
-              <option value="zubc">Solo Borde Costero (ZUBC)</option>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-plad" style="max-width:180px">
+              <option value="all">PLADECO: Todos</option>
+              <option value="vigente">PLADECO Vigente (14)</option>
+              <option value="actualizacion">PLADECO en Actualización (10)</option>
+              <option value="vencido">PLADECO Vencido / Desactualizado (8)</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-grd" style="max-width:180px">
+              <option value="all">GRD: Todos los estados</option>
+              <option value="ambos">Emergencia + RRD Aprobados (11)</option>
+              <option value="emerg">Plan Emergencia Aprobado (22)</option>
+              <option value="rrd">Plan RRD Aprobado (11)</option>
+              <option value="pend">Con instrumentos pendientes</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-threat" style="max-width:170px">
+              <option value="all">Amenaza crítica: Todas</option>
+              <option value="fire">🔥 Incendios Forestales</option>
+              <option value="volc">🌋 Riesgo Volcánico / Lahares</option>
+              <option value="water">🌊 Inundación / Tsunami</option>
+              <option value="snow">❄️ Nieve / Aislamiento</option>
+              <option value="dry">💧 Déficit Hídrico Severo</option>
+            </select></label>
+            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-reg" style="max-width:160px">
+              <option value="all">Régimen especial</option>
+              <option value="zoit">Solo ZOIT (Turismo)</option>
+              <option value="pri">Solo PRI Intercomunal</option>
+              <option value="zubc">Solo Borde Costero</option>
               <option value="rez">Solo Zona de Rezago</option>
             </select></label>
           </div>
-          <input class="srch" id="ipt-q" type="search" placeholder="Buscar comuna, decreto o detalle..." style="max-width:240px;margin-left:auto">
+          <input class="srch" id="ipt-q" type="search" placeholder="Buscar comuna, amenaza o detalle..." style="max-width:220px;margin-left:auto">
           <button class="btn" id="ipt-clear" type="button">Restablecer</button>
         </div>
 
-        <!-- Tabla interactiva -->
-        <div class="tbl-wrap" id="ipt-tbl-wrap" style="max-height:560px;overflow-y:auto"></div>
+        <!-- Tabla interactiva ampliada -->
+        <div class="tbl-wrap" id="ipt-tbl-wrap" style="max-height:580px;overflow-y:auto"></div>
 
-        <!-- Guía de interpretación de IPT para inversiones FRPD -->
+        <!-- Guía de interpretación integrada de Planificación y Gestión -->
         <details class="guide-det" open>
-          <summary class="guide-sum">ℹ️ ¿Cómo inciden los Instrumentos de Planificación Territorial (IPT) en la inversión pública y el FRPD?</summary>
+          <summary class="guide-sum">ℹ️ ¿Cómo se articulan el PRC, PLADECO y Planes de GRD en la inversión pública y el FRPD?</summary>
           <div class="guide-b">
-            <div><b>Factibilidad de uso de suelo (LGUC Art. 55 vs. Zonificación PRC):</b> Toda inversión financiada con cargo al FRPD que contemple obras físicas (centros de acopio, plantas de bioproductos, infraestructura turística, centros tecnológicos o parcelas demostrativas) requiere verificar si el terreno se emplaza dentro del radio urbano del PRC o en área rural. Fuera del límite urbano rige el <b>Art. 55 de la Ley General de Urbanismo y Construcciones (LGUC)</b>, exigiendo Informes Favorables para la Construcción (IFC/SAG) que dilatan los plazos de ejecución.</div>
-            <div><b>Riesgo de obsolescencia de los PRC en La Araucanía:</b> Si bien 20 comunas tienen PRC, la gran mayoría data de los años 80 y 90 (más de 30 años sin actualización integral). 12 de ellas se encuentran en procesos prolongados de modificación, lo que limita la cabida de nuevos usos industriales no molestos o equipamientos científico-tecnológicos.</div>
-            <div><b>Brecha en comunas sin PRC (12 comunas):</b> Dependen de decretos de límites urbanos promulgados entre 1939 y 1995 que no definen zonas de extensión urbana, vialidad estructurante ni cartas de riesgos naturales (inundación o volcánico), requiriendo un acompañamiento técnico reforzado para cualquier proyecto territorial habilitante.</div>
-            <div><b>Instrumentos Intercomunales y Zonificaciones Especiales:</b> El <i>PRI Villarrica-Pucón</i> norma ambiental y urbanísticamente la cuenca lacustre, mientras que las <i>5 ZOIT</i> (Araucanía Lacustre, Melipeuco, Vilcún, Lonquimay y Curacautín) priorizan inversiones públicas del sector turismo y sustentabilidad. En el litoral, el D.S. 475/1994 rige los usos del borde costero.</div>
+            <div><b>Tríada de gestión municipal para el FRPD:</b> Para que un proyecto financiado con recursos del FRPD o FNDR sea viable y sostenible, requiere tres habilitaciones institucionales concurrentes:
+              <ul>
+                <li><b>1. Factibilidad de Suelo (PRC / LGUC Art. 55):</b> Si el proyecto contempla infraestructura física (centros de acopio, laboratorios, estaciones de transferencia o sedes comunitarias), debe ubicarse en suelo conforme al PRC o contar con Informes Favorables para la Construcción (IFC/SAG) si es rural. 12 comunas no tienen PRC vigente y dependen de límites urbanos históricos de hace más de 40 años.</li>
+                <li><b>2. Coherencia Estratégica (PLADECO - Ley 18.695 Art. 7):</b> El PLADECO es la carta de navegación de la comuna. Iniciativas que no coinciden con los ejes del PLADECO enfrentan reparos técnicos, falta de asignación presupuestaria municipal para operación/mantención o rechazo en la consulta ciudadana. Comunas con PLADECO vencido presentan mayor debilidad como unidad técnica ejecutora.</li>
+                <li><b>3. Resiliencia y Mitigación de Desastres (GRD / SENAPRED - Ley 21.364):</b> La Araucanía presenta zonas de altísima exposición a incendios forestales de interfase, vulcanismo activo (Villarrica, Llaima, Lonquimay), inundaciones y tsunami en el litoral. Todo proyecto habilitante debe considerar las directrices del <i>Plan Comunal de Emergencia</i> y del <i>Plan Comunal para la Reducción del Riesgo de Desastres (RRD)</i> para no emplazarse en áreas de amenaza no mitigable.</li>
+              </ul>
+            </div>
+            <div><b>Zonificaciones Intercomunales y Turísticas:</b> El <i>PRI Villarrica-Pucón</i> norma ambiental y urbanísticamente la cuenca lacustre. Las <i>5 ZOIT</i> (Araucanía Lacustre, Melipeuco, Vilcún, Lonquimay y Curacautín) priorizan inversiones públicas turísticas de SERNATUR y CORFO. En el litoral, el D.S. 475/1994 regula la Zonificación de Usos del Borde Costero (ZUBC).</div>
           </div>
         </details>
       </div>
