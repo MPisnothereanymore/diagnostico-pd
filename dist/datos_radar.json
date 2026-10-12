@@ -887,8 +887,8 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 2417,
-    "montoTotalCLP": 9625258490.55,
+    "totalRegistros": 2418,
+    "montoTotalCLP": 9625858490.55,
     "montoRetenidoAraucania": 6147565636.0,
     "porcentajeRetencionLocal": "63.9%",
     "porcentajeFugaSantiago": "36.1%",
@@ -32313,8 +32313,21 @@
         "regionProveedor": "Región de la Araucanía",
         "esLocal": true,
         "montoCLP": 3245799.0
+      },
+      {
+        "fecha": "11/10/2026",
+        "codigoOC": "3201-446-AG26",
+        "nombre": "TRANSPORTE PARA 21 ESTUDIANTES Y 2 DOCENTES A LA RESERVA NACIONAL MALALCAHUELLO",
+        "organismo": "I. Municipalidad de Loncoche",
+        "comuna": "Loncoche",
+        "codTerritorio": "CSU",
+        "territorio": "Cautín Sur",
+        "proveedor": "ELIANA MAGALY MORALES SALAZAR",
+        "regionProveedor": "Región de Los Ríos",
+        "esLocal": false,
+        "montoCLP": 600000.0
       }
     ]
   },
-  "fechaActualizacion": "11/10/2026 15:12:24"
+  "fechaActualizacion": "12/10/2026 18:19:38"
 }
