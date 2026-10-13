@@ -887,11 +887,11 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 2418,
-    "montoTotalCLP": 9625858490.55,
-    "montoRetenidoAraucania": 6147565636.0,
-    "porcentajeRetencionLocal": "63.9%",
-    "porcentajeFugaSantiago": "36.1%",
+    "totalRegistros": 2422,
+    "montoTotalCLP": 9664650456.55,
+    "montoRetenidoAraucania": 6186357602.0,
+    "porcentajeRetencionLocal": "64.0%",
+    "porcentajeFugaSantiago": "36.0%",
     "ultimasCompras": [
       {
         "fecha": "01/10/2026",
@@ -32326,8 +32326,60 @@
         "regionProveedor": "Región de Los Ríos",
         "esLocal": false,
         "montoCLP": 600000.0
+      },
+      {
+        "fecha": "12/10/2026",
+        "codigoOC": "5061-666-AG26",
+        "nombre": "SP 1389 Servicios coffe break intercultural , para talleres educativos de sensibilización a  funcionarios los Cesfam del Departamento de Salud de Temuco,  en el segundo semestre del año 2026 /  Programa. de Atención de Salud a migrantes 5061-607-COT26",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "PRODUCTORA DE EVENTOS MATEO SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 415966.0
+      },
+      {
+        "fecha": "12/10/2026",
+        "codigoOC": "1658-778-SE26",
+        "nombre": "ORDEN DE COMPRA DESDE 1658-532-LP25",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "PAOLA ANDREA CURIHUAL HUENCHO",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 33576000.0
+      },
+      {
+        "fecha": "12/10/2026",
+        "codigoOC": "514848-1078-SE26",
+        "nombre": "REPOSICION DE PANDERETAS PARA LICEO C-52",
+        "organismo": "I. Municipalidad de Lautaro",
+        "comuna": "Lautaro",
+        "codTerritorio": "VCE",
+        "territorio": "Valle Central",
+        "proveedor": "CRISTIAN OSVALDO MORALES ESCOBAR",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 3250000.0
+      },
+      {
+        "fecha": "12/10/2026",
+        "codigoOC": "4104-170-AG26",
+        "nombre": " TRASLADOS ESCUELA CINCO, ESCUELA CUARTA FAJA Y ESCUELA MELIRREHUE",
+        "organismo": "I. Municipalidad de Gorbea",
+        "comuna": "Gorbea",
+        "codTerritorio": "CSU",
+        "territorio": "Cautín Sur",
+        "proveedor": "HÉCTOR ANDRÉS FUENTES NÚÑEZ",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 1550000.0
       }
     ]
   },
-  "fechaActualizacion": "12/10/2026 18:19:38"
+  "fechaActualizacion": "13/10/2026 16:33:54"
 }
