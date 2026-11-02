@@ -887,9 +887,9 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 7756,
-    "montoTotalCLP": 30889855633.409996,
-    "montoRetenidoAraucania": 19943474526.0,
+    "totalRegistros": 7757,
+    "montoTotalCLP": 30890255633.409996,
+    "montoRetenidoAraucania": 19943874526.0,
     "porcentajeRetencionLocal": "64.6%",
     "porcentajeFugaSantiago": "35.4%",
     "ultimasCompras": [
@@ -101720,8 +101720,21 @@
         "regionProveedor": "Región de la Araucanía",
         "esLocal": true,
         "montoCLP": 39750.0
+      },
+      {
+        "fecha": "01/11/2026",
+        "codigoOC": "3869-607-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 3869-805-COT26",
+        "organismo": "I. Municipalidad de Gorbea",
+        "comuna": "Gorbea",
+        "codTerritorio": "CSU",
+        "territorio": "Cautín Sur",
+        "proveedor": "TRANSPORTES PANORAMA SUR SPA",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 400000.0
       }
     ]
   },
-  "fechaActualizacion": "01/11/2026 15:33:31"
+  "fechaActualizacion": "02/11/2026 18:57:32"
 }
