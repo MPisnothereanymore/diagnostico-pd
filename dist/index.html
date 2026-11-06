@@ -3276,7 +3276,7 @@ function bxLeafletInit() {
   const comLab = D.comunas.map(c => lab(svgLL(+c.lx, +c.ly), c.l));
   const terLab = TER.map(t => lab(svgLL(+t.lx, +t.ly), t.n, 't'));
   const labG = L.layerGroup().addTo(map);
-  // mapa base: relieve incrustado (siempre disponible) o teselas en línea
+  // mapa base: teselas en línea (OpenTopoMap, Esri, OpenStreetMap) o sin fondo
   let baseL = null, opTouched = false, baseTouched = false; const tileOk = {};
   function setBase(k) {
     if (baseL) { map.removeLayer(baseL); baseL = null; }
