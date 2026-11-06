@@ -356,7 +356,7 @@ function comunaTipE(ci) {
   return { title: c.l + ' · ' + TER[TOF[ci]].n, rows: [[fmtInd(UI.eM1, v[ci]), indLabelE(UI.eM1).toLowerCase()], [f0(A.n[ci]), 'empresas' + (hasLin() || hasAttr() ? ' en la selección' : '')], [f0(A.t[ci]), 'trabajadores dependientes'], [f0(c.pop), 'habitantes (Censo 2024)']], note: F.com.has(ci) ? 'Clic para quitar el filtro' : 'Clic para filtrar por esta comuna' };
 }
 function renderM1E() {
-  if (!ME) ME = createMapE($('#e-m1'), { click: toggleCom, tip: comunaTipE, selected: () => F.com });
+  if (!ME) { const o = { click: toggleCom, tip: comunaTipE, selected: () => F.com, sub: [$('#e-m1-sub'), 'Pasa el cursor para ver cifras · clic para filtrar por comuna · rueda o botones para acercar'] }; ME = mapAuto($('#e-m1'), o, () => createMapE($('#e-m1'), o)); }
   const seg = $('#e-m1-ind');
   seg.innerHTML = MAPIND_E.map(m => `<button type="button" data-k="${m.k}" aria-pressed="${UI.eM1 === m.k}">${m.short}</button>`).join('');
   const ind = UI.eM1, { v, ok } = comunaValues(ind); let fills, rows;

@@ -578,16 +578,21 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .obp .bip{margin-top:8px;padding:7px 9px;background:var(--surf2);border-radius:6px;font-size:12px}
 .obp .bip b{font-family:var(--f-mono);font-weight:500;color:var(--sel)}
 .obp .btn{margin-top:8px;width:100%}
-.bx-mapcol{display:flex;flex-direction:column;gap:8px;min-width:0}
-.bx-mtools{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
-.bx-mtools .seg button{padding:4px 9px;font-size:12px}
-.bx-mtools .seg button:disabled{opacity:.45;cursor:not-allowed}
-.bx-op{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
-.bx-op input{width:110px;accent-color:var(--acc)}
-.bx-op b{font-family:var(--f-mono);font-weight:500;color:var(--ink);min-width:34px}
-.bx-mbtn{display:flex;gap:6px;margin-left:auto}
-.bx-mapcol:fullscreen{background:var(--bg);padding:14px;overflow:auto}
-.bx-mapcol:fullscreen .mapwrap.lf{aspect-ratio:auto;flex:1 1 auto;min-height:60vh}
+.lf-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.prof .hab{overflow-x:auto}
+.lf-col .legend{padding-top:2px}
+.lf-tools{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.lf-tools .seg button{padding:4px 9px;font-size:12px}
+.lf-tools .seg button:disabled{opacity:.45;cursor:not-allowed}
+.lf-op{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+.lf-op input{width:110px;accent-color:var(--acc)}
+.lf-op b{font-family:var(--f-mono);font-weight:500;color:var(--ink);min-width:34px}
+.lf-btn{display:flex;gap:6px;margin-left:auto}
+.lf-note{margin:0}
+.lf-sq i{display:block;width:100%;height:100%;border:1px solid var(--mapbg);box-sizing:border-box}
+.lf-sq{cursor:help}
+.lf-col:fullscreen{background:var(--bg);padding:14px;overflow:auto}
+.lf-col:fullscreen .mapwrap.lf{aspect-ratio:auto;flex:1 1 auto;min-height:60vh}
 .ov .h{display:none}
 .ov circle.l{fill:var(--sel);stroke:var(--mapbg);stroke-width:.8px;vector-effect:non-scaling-stroke;cursor:pointer}
 .ov circle.u{fill:var(--mid);fill-opacity:.8;stroke:var(--mapbg);stroke-width:.5px;vector-effect:non-scaling-stroke}
@@ -754,7 +759,7 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <div class="grid g-terr">
       <section class="card">
         <div class="card-h">
-          <div><h2 id="m-title">Territorios ERD 2040</h2><div class="sub">Clic en una comuna para ver su territorio · arrastra para mover · Ctrl + rueda o botones para acercar</div></div>
+          <div><h2 id="m-title">Territorios ERD 2040</h2><div class="sub" id="m-sub">Clic en una comuna para ver su territorio · arrastra para mover · Ctrl + rueda o botones para acercar</div></div>
           <div class="ctrls">
             <label class="ctrl">Colorear comunas por<select class="sel" id="m-ind"></select></label>
             <label class="ctrl" id="m-lin-w" hidden>Lineamiento<select class="sel" id="m-lin"></select></label>
@@ -1027,7 +1032,7 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <div class="kpis k6" id="e-kpis"></div>
     <div class="grid g-map">
       <section class="card">
-        <div class="card-h"><div><h2>Mapa de comunas</h2><div class="sub">Pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
+        <div class="card-h"><div><h2>Mapa de comunas</h2><div class="sub" id="e-m1-sub">Pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
         <div class="card-b">
           <div class="mapwrap" id="e-m1"></div>
           <div class="note" id="e-m1-note" style="margin-top:8px"></div>
@@ -1284,14 +1289,7 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       </div>
       <div class="card-b">
         <div class="grid g-bxm">
-          <div class="bx-mapcol" id="bx-mapcol"><div class="mapwrap" id="bx-m"></div>
-            <div class="bx-mtools" id="bx-mtools" hidden>
-              <div class="seg" id="bx-mbase" role="group" aria-label="Mapa base"></div>
-              <label class="bx-op" for="bx-mop">Relleno <input type="range" id="bx-mop" min="0" max="100" step="5" value="70"><b id="bx-mop-v">70%</b></label>
-              <span class="bx-mbtn"><button type="button" class="btn sm" id="bx-mhome">Vista regional</button><button type="button" class="btn sm" id="bx-mfull">Pantalla completa</button></span>
-            </div>
-            <p class="note" id="bx-mbase-note" hidden></p>
-          </div>
+          <div class="bx-mapcol" id="bx-mapcol"><div class="mapwrap" id="bx-m"></div></div>
           <div class="bx-side"><div class="bxs" id="bx-sel"></div><div class="lbl" style="margin:14px 0 6px">Ranking</div><div class="bars" id="bx-rank"></div></div>
         </div>
         <p class="note" id="bx-mnote" style="margin-top:10px"></p>

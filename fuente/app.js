@@ -895,6 +895,216 @@ function mapLegend(k) {
   const pal = h ? BADR : SEQ;
   lg.innerHTML = `<b>${esc(it.l)}${h ? ' · más rojo = peor' : ''}</b>` + [0, 0.25, 0.5, 0.75, 1].map(q => { const x = h && h.bad === 'low' ? mx - q * (mx - mn) : mn + q * (mx - mn); return `<span class="row"><span class="sw" style="background:${ramp(pal, q)}"></span>${fmt(x)}</span>`; }).join('');
 }
+// ================= mapas interactivos (Leaflet) =================
+// Los tres visores (Territorios, Empresas e Iniciativas BIP) usan createMapL. Si Leaflet no carga (por ejemplo, sin internet),
+// cada uno vuelve a su versión SVG fija.
+const HAS_LF = typeof window.L !== 'undefined' && typeof window.L.map === 'function';
+// coordenadas del mapa (UTM 18S escalado; mismos límites que prep_frpd.py) → latitud y longitud WGS84
+const UTM0 = { minx: 629128.7821792153, maxy: 5838267.49994959, s: 1000 / 234350.36251161912 };
+function svgLL(x, y) {
+  const E = x / UTM0.s + UTM0.minx - 500000, Nn = UTM0.maxy - y / UTM0.s - 10000000;
+  const a = 6378137, f = 1 / 298.257223563, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2);
+  const mu = Nn / k0 / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
+  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+  const p1 = mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu) + (151 * e1 ** 3 / 96) * Math.sin(6 * mu) + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+  const sn = Math.sin(p1), cs = Math.cos(p1), tn = Math.tan(p1);
+  const N1 = a / Math.sqrt(1 - e2 * sn * sn), T1 = tn * tn, C1 = ep2 * cs * cs, R1 = a * (1 - e2) / Math.pow(1 - e2 * sn * sn, 1.5), Dd = E / (N1 * k0);
+  const lat = p1 - (N1 * tn / R1) * (Dd * Dd / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ep2) * Dd ** 4 / 24 + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * ep2 - 3 * C1 * C1) * Dd ** 6 / 720);
+  const lon = (Dd - (1 + 2 * T1 + C1) * Dd ** 3 / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) * Dd ** 5 / 120) / cs;
+  return [lat * 180 / Math.PI, -75 + lon * 180 / Math.PI];
+}
+const ringsLL = d => (String(d).match(/M[^MZ]+/g) || []).map(r => r.slice(1).split('L').map(q => { const [x, y] = q.split(',').map(Number); return svgLL(x, y); }));
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LF_BASES = [
+  { k: 'topo', l: 'Topográfico', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', att: 'Mapa: © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) · Datos: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM', max: 17, op: 45 },
+  { k: 'sat', l: 'Satélite', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', att: 'Imágenes © <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · Fuente: Esri, Maxar, Earthstar Geographics y GIS User Community', max: 18, op: 40 },
+  { k: 'osm', l: 'Calles', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', max: 19, op: 45 },
+  { k: 'none', l: 'Sin fondo', ok: true },
+];
+const LF_BASE = Object.fromEntries(LF_BASES.map(b => [b.k, b]));
+// prueba de teselas en línea, una vez para todos los mapas (en Claude la política de seguridad las bloquea)
+const LF_TILE = {}, LF_WAIT = [], LF_PREF = { base: null };
+let LF_PROBED = false, LF_N = 0;
+function lfProbe(cb) {
+  LF_WAIT.push(cb);
+  if (LF_PROBED) { cb(); return; }
+  LF_PROBED = true;
+  LF_BASES.filter(b => b.url).forEach(b => {
+    const im = new Image(), done = ok => { LF_TILE[b.k] = ok; LF_WAIT.forEach(f => f()); };
+    im.onload = () => done(true); im.onerror = () => done(false);
+    im.src = b.url.replace('{s}', 'a').replace('{z}', '7').replace('{x}', '38').replace('{y}', '78');
+  });
+}
+function lfHatch() {
+  if (document.getElementById('lf-hatch')) return;
+  const s = svgEl('svg', { width: 0, height: 0, 'aria-hidden': 'true', style: 'position:absolute;width:0;height:0;overflow:hidden' });
+  s.innerHTML = '<defs><pattern id="lf-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="9" fill="#F2A541" fill-opacity=".55"/></pattern></defs>';
+  document.body.appendChild(s);
+}
+const lfTip = (ev, t) => (Array.isArray(t) ? showTip(ev, t[0], t[1], t[2]) : showTip(ev, t.title, t.rows, t.note));
+// opt: tip(ci), click(ci), selected() → comunas marcadas, terLabels(), hoverTer(), labelMode ('auto' | 'layers'),
+//      layerKeys + buildLayer(k, api) para capas adicionales, col (contenedor para pantalla completa), sub ([elemento, texto])
+function createMapL(host, opt = {}) {
+  const n = ++LF_N;
+  let col = opt.col;
+  if (!col) { col = document.createElement('div'); host.before(col); col.appendChild(host); }
+  col.classList.add('lf-col'); host.classList.add('lf');
+  const map = L.map(host, { zoomControl: false, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 100, maxBoundsViscosity: 0.9, maxZoom: 15, fadeAnimation: !REDUCED, zoomAnimation: !REDUCED, markerZoomAnimation: !REDUCED });
+  map.attributionControl.setPrefix(false);
+  L.control.zoom({ position: 'topleft', zoomInTitle: 'Acercar', zoomOutTitle: 'Alejar' }).addTo(map);
+  L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 110 }).addTo(map);
+  [['base', 200], ['over', 405], ['mask', 410], ['hl', 415], ['pts', 430], ['obras', 450], ['labs', 460]].forEach(([p, z]) => { const pn = map.createPane(p); pn.style.zIndex = z; if (p !== 'pts' && p !== 'obras') pn.style.pointerEvents = 'none'; });
+  const C = { sel: css('--sel'), ink: css('--ink'), ink2: css('--ink2'), mid: css('--mid'), bg: css('--mapbg'), line: css('--line2') };
+  // comunas (relleno interactivo), territorios y máscara fuera de la región
+  const outline = ringsLL(D.geo.outline), rb = L.latLngBounds(outline.flat());
+  const comLL = D.comunas.map(c => ringsLL(c.d)), terLL = TER.map(t => ringsLL(t.d));
+  let mop = 70, opTouched = false;
+  const comL = D.comunas.map((c, ci) => L.polygon(comLL[ci], { weight: 0.8, color: C.bg, opacity: 0.9, fillColor: NODATA, fillOpacity: mop / 100, smoothFactor: 0.6 }).addTo(map));
+  L.polygon([[[-85, -180], [-85, 180], [85, 180], [85, -180]], ...outline], { pane: 'mask', stroke: false, fillColor: C.bg, fillOpacity: 0.93, interactive: false }).addTo(map);
+  L.polygon(outline, { pane: 'hl', fill: false, color: C.ink2, weight: 1.3, opacity: 0.85, interactive: false }).addTo(map);
+  L.layerGroup(terLL.map(r => L.polygon(r, { pane: 'hl', fill: false, color: C.ink, weight: 1.7, opacity: 0.7, interactive: false }))).addTo(map);
+  const hov = L.polygon([], { pane: 'hl', fill: false, color: C.ink, weight: 2.2, interactive: false }).addTo(map);
+  const selG = L.layerGroup().addTo(map);
+  comL.forEach((pg, ci) => {
+    pg.on('mouseover', e => { hov.setLatLngs(opt.hoverTer && opt.hoverTer() ? terLL[TOF[ci]] : comLL[ci]); if (opt.tip) lfTip(e.originalEvent, opt.tip(ci)); });
+    pg.on('mousemove', e => placeTip(e.originalEvent));
+    pg.on('mouseout', () => { hov.setLatLngs([]); hideTip(); });
+    pg.on('click', () => { hideTip(); if (opt.click) opt.click(ci); });
+  });
+  // etiquetas
+  const lab = (ll, txt, cls) => L.marker(ll, { pane: 'labs', interactive: false, keyboard: false, icon: L.divIcon({ className: 'lf-lab' + (cls ? ' ' + cls : ''), html: `<span>${esc(txt)}</span>`, iconSize: [0, 0] }) });
+  const comLab = D.comunas.map(c => lab(svgLL(+c.lx, +c.ly), c.l)), terLab = TER.map(t => lab(svgLL(+t.lx, +t.ly), t.n, 't'));
+  const labG = L.layerGroup().addTo(map);
+  let layerSet = new Set(), terSel = [];
+  const z0 = () => map.getBoundsZoom(rb, false, L.point(12, 12));
+  function labels() {
+    labG.clearLayers();
+    const sel = new Set(opt.selected ? opt.selected() : []);
+    if (opt.labelMode === 'layers') {
+      if (layerSet.has('tl')) terLab.forEach(m => labG.addLayer(m));
+      if (layerSet.has('cl')) comLab.forEach(m => labG.addLayer(m));
+    } else {
+      const ter = !!(opt.terLabels && opt.terLabels()), near = map.getZoom() >= z0() + 0.9;
+      if (ter) terLab.forEach(m => labG.addLayer(m));
+      if (!ter || near) D.comunas.forEach((c, ci) => { if (near || LABEL_CORE.has(c.l) || sel.has(ci)) labG.addLayer(comLab[ci]); });
+    }
+    comLab.forEach((m, ci) => { const el = m.getElement(); if (el) el.classList.toggle('on', sel.has(ci)); });
+    terLab.forEach((m, j) => { const el = m.getElement(); if (el) el.classList.toggle('on', terSel.includes(j)); });
+  }
+  // capas adicionales (se construyen al activarlas)
+  const built = {};
+  function setLayers(set) {
+    layerSet = new Set(set);
+    for (const k of opt.layerKeys || []) {
+      if (layerSet.has(k)) { if (!built[k]) built[k] = opt.buildLayer(k, api); if (built[k] && !map.hasLayer(built[k])) built[k].addTo(map); }
+      else if (built[k] && map.hasLayer(built[k])) map.removeLayer(built[k]);
+    }
+    labels();
+  }
+  // controles bajo el mapa: fondo, relleno, vista regional y pantalla completa
+  const tools = document.createElement('div'); tools.className = 'lf-tools';
+  tools.innerHTML = `<div class="seg" role="group" aria-label="Mapa base"></div><label class="lf-op" for="lf-op-${n}">Relleno <input type="range" id="lf-op-${n}" min="0" max="100" step="5" value="70"><b>70%</b></label><span class="lf-btn"><button type="button" class="btn sm" data-a="home">Vista regional</button><button type="button" class="btn sm" data-a="full">Pantalla completa</button></span>`;
+  const note = document.createElement('p'); note.className = 'note lf-note'; note.hidden = true;
+  const legend = document.createElement('div'); legend.className = 'legend';
+  host.after(tools); tools.after(note); note.after(legend);
+  const segB = tools.querySelector('.seg'), opIn = tools.querySelector('input'), opV = tools.querySelector('.lf-op b'), fullB = tools.querySelector('[data-a="full"]');
+  const setOp = v => { mop = v; opIn.value = v; opV.textContent = v + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: mop / 100 })); };
+  let base = 'none', baseL = null, baseTouched = false;
+  function setBase(k) {
+    if (baseL) { map.removeLayer(baseL); baseL = null; }
+    const b = LF_BASE[k]; base = k;
+    map.setMaxZoom(b.max || 15);
+    if (!opTouched) setOp(b.op || 70);
+    if (b.url) {
+      baseL = L.tileLayer(b.url, { pane: 'base', attribution: b.att, maxZoom: b.max, subdomains: b.sub || 'abc' }).addTo(map);
+      let ok = 0, bad = 0;
+      baseL.on('tileload', () => { ok++; });
+      baseL.on('tileerror', () => { if (++bad >= 3 && !ok && base === k) { LF_TILE[k] = false; setBase('none'); drawTools(); } });
+    }
+  }
+  function drawTools() {
+    segB.innerHTML = LF_BASES.map(b => { const off = b.url ? LF_TILE[b.k] === false : !b.ok; return `<button type="button" data-k="${b.k}" aria-pressed="${base === b.k}"${off ? ' disabled title="No disponible en esta vista"' : ''}>${b.l}</button>`; }).join('');
+    const blocked = LF_BASES.filter(b => b.url && LF_TILE[b.k] === false).map(b => b.l.toLowerCase());
+    note.hidden = !blocked.length;
+    if (blocked.length) note.textContent = `Los fondos en línea (${blocked.length > 1 ? blocked.slice(0, -1).join(', ') + ' y ' + blocked[blocked.length - 1] : blocked[0]}) no cargan en esta vista; ábrelos en la versión web o local del radar. Aquí el mapa se muestra sin fondo.`;
+  }
+  // fondo inicial: el que se eligió en otro mapa o, si no, el primero disponible en el orden topográfico, satélite, calles
+  function autoPick() {
+    if (baseTouched) return;
+    if (LF_PREF.base && (LF_PREF.base === 'none' || LF_TILE[LF_PREF.base])) { if (base !== LF_PREF.base) setBase(LF_PREF.base); return; }
+    for (const b of LF_BASES.filter(x => x.url)) {
+      if (LF_TILE[b.k] === undefined) return;
+      if (LF_TILE[b.k]) { if (base !== b.k) setBase(b.k); return; }
+    }
+  }
+  segB.addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; baseTouched = true; LF_PREF.base = b.dataset.k; setBase(b.dataset.k); drawTools(); });
+  opIn.addEventListener('input', () => { opTouched = true; setOp(+opIn.value); });
+  // vista: región completa, sin salir de ella
+  function home(anim) { map.fitBounds(rb, { padding: [12, 12], animate: anim && !REDUCED }); }
+  tools.querySelector('[data-a="home"]').addEventListener('click', () => home(true));
+  const fsOk = !!(col.requestFullscreen && document.fullscreenEnabled);
+  fullB.hidden = !fsOk;
+  fullB.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else col.requestFullscreen().catch(() => { fullB.hidden = true; }); });
+  document.addEventListener('fullscreenchange', () => { fullB.textContent = document.fullscreenElement === col ? 'Salir de pantalla completa' : 'Pantalla completa'; setTimeout(() => map.invalidateSize(), 60); });
+  map.setMaxBounds(rb.pad(0.3));
+  home(false);
+  map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4);
+  let touched = false; ['pointerdown', 'wheel', 'keydown'].forEach(ev => host.addEventListener(ev, () => { touched = true; }, { passive: true }));
+  new ResizeObserver(() => { if (host.clientWidth < 50) return; map.invalidateSize(); map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4); if (!touched) home(false); }).observe(host);
+  map.on('zoomend', () => labels());
+  if (opt.sub && opt.sub[0]) opt.sub[0].textContent = opt.sub[1];
+  setBase('none'); drawTools(); lfProbe(() => { autoPick(); drawTools(); });
+  const api = {
+    map, legend, C, comLL, terLL, rb, z0, labels, setLayers, home,
+    paint(fills, selected = [], tsel = []) {
+      comL.forEach((pg, ci) => pg.setStyle({ fillColor: fills[ci], fillOpacity: mop / 100 }));
+      selG.clearLayers();
+      for (const ci of selected) selG.addLayer(L.polygon(comLL[ci], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false }));
+      terSel = [...tsel];
+      for (const j of terSel) selG.addLayer(L.polygon(terLL[j], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false }));
+      labels();
+    },
+    fly(lev, j) {
+      const b = lev === 'com' && j >= 0 ? L.latLngBounds(comLL[j].flat()) : lev === 'ter' && j >= 0 ? L.latLngBounds(terLL[j].flat()) : rb;
+      map.flyToBounds(b, { padding: [24, 24], maxZoom: 11, animate: !REDUCED, duration: 0.6 });
+    },
+  };
+  return api;
+}
+// un mapa Leaflet si está disponible; si no, o si falla, la versión SVG
+function mapAuto(host, opt, fallback) {
+  if (HAS_LF) {
+    try { return createMapL(host, opt); }
+    catch (e) { console.warn('Leaflet no pudo iniciar; se usa el mapa SVG:', e); const col = host.closest('.lf-col') || host.parentElement; col.querySelectorAll('.lf-tools,.lf-note,.legend').forEach(x => x.remove()); host.classList.remove('lf'); host.replaceChildren(); }
+  }
+  return fallback();
+}
+// capas de infraestructura del mapa de Territorios
+function lfInfra(k, api) {
+  const g = L.layerGroup(), C = api.C;
+  const line = (d, o) => ringsLL(d).forEach(r => { if (r.length > 1) g.addLayer(L.polyline(r, { pane: 'over', interactive: false, lineCap: 'round', lineJoin: 'round', ...o })); });
+  const dots = (arr, color, w, op) => arr.forEach(p => g.addLayer(L.circleMarker(svgLL(p[0], p[1]), { pane: 'pts', interactive: false, radius: w / 2, stroke: false, fillColor: color, fillOpacity: op || 0.9 })));
+  const hot = (arr, color, w, tipf, sq) => arr.forEach(p => {
+    const ll = svgLL(p[0], p[1]);
+    const m = sq ? L.marker(ll, { pane: 'pts', keyboard: false, icon: L.divIcon({ className: 'lf-sq', html: `<i style="background:${color}"></i>`, iconSize: [w, w] }) })
+      : L.circleMarker(ll, { pane: 'pts', radius: w / 2, weight: 1, color: C.bg, opacity: 0.9, fillColor: color, fillOpacity: 0.95, bubblingMouseEvents: false });
+    m.on('mouseover', e => { const t = tipf(p); showTip(e.originalEvent, t[0], t[1], t[2]); });
+    m.on('mousemove', e => placeTip(e.originalEvent));
+    m.on('mouseout', hideTip);
+    g.addLayer(m);
+  });
+  if (k === 'rez') { lfHatch(); ALLC.filter(c => IN.rez[c]).forEach(c => g.addLayer(L.polygon(api.comLL[c], { pane: 'over', stroke: false, fillColor: 'url(#lf-hatch)', fillOpacity: 1, interactive: false }))); }
+  if (k === 'rut') for (const r of D.geo.rutas) if (r.c !== 'pavimentada') line(r.d, { color: '#D3DCE0', weight: 1.6, opacity: 0.75 });
+  if (k === 'elec') { MP.elec.forEach(l => line(l.d, { color: css('--ln-elec'), weight: l.kv >= 200 ? 2.4 : 1.3, opacity: 0.85 })); hot(MP.sub, css('--ln-elec'), 9, p => [p[2], [[p[3], 'tensión']], 'Subestación eléctrica (CEN)'], true); }
+  if (k === 'erd') { line(MP.ferro, { color: css('--ln-erd'), weight: 2, dashArray: '7 5' }); line(MP.bioc, { color: css('--ln-erd'), weight: 3.2 }); }
+  if (k === 'pue') dots(MP.pue.filter(p => p[2]), css('--pt-pue'), 4, 0.8);
+  if (k === 'ant') dots(MP.ant, css('--pt-ant'), 4, 0.75);
+  if (k === 'ssr') hot(MP.ssr, css('--pt-ssr'), 7, p => [p[2], [[f0(p[3]), 'beneficiarios estimados'], [p[4] ? 'Sí' : 'No', 'grupo electrógeno']], 'Servicio sanitario rural (DOH)']);
+  if (k === 'ies') hot(MP.ies, css('--pt-ies'), 11, p => [p[2], [[p[3], 'tipo']], 'Sede de educación superior (Mineduc 2020)']);
+  if (k === 'port') hot(MP.port, css('--pt-port'), 8, p => [p[2], [[p[3] || '–', 'programa']], 'Obra portuaria (DOP)'], true);
+  if (k === 'aer') { hot(MP.aer, css('--pt-aer'), 8, p => [p[2], [], 'Red aeroportuaria'], true); hot(MP.front, css('--sel'), 11, p => [p[2], [], 'Paso fronterizo'], true); }
+  return g;
+}
 function createMap(host) {
   const svg = svgEl('svg', { viewBox: VB.join(' '), class: 'map-svg', role: 'img', 'aria-label': 'Mapa de comunas y territorios de La Araucanía' });
   const defs = svgEl('defs'); defs.innerHTML = '<pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="9" fill="#F2A541" fill-opacity=".55"/></pattern>';
@@ -1047,7 +1257,9 @@ function comTip(c) {
 }
 let MAP = null;
 function initMap() {
-  MAP = createMap($('#map'));
+  MAP = mapAuto($('#map'), { tip: comTip, click: ci => { UI.ter = TOF[ci]; renderTerritorios(); }, labelMode: 'layers', layerKeys: LAYERS.map(l => l.k).filter(k => k !== 'tl' && k !== 'cl'), buildLayer: lfInfra,
+    sub: [$('#m-sub'), 'Clic en una comuna para ver su territorio · rueda o botones para acercar, arrastra para moverte'] }, () => createMap($('#map')));
+  if (MAP.map) { const m = MAP; MAP = { legend: m.legend, setLayers: set => m.setLayers(set), paint: (fills, ti) => m.paint(fills, [], ti >= 0 ? [ti] : []) }; }
   const og = {}; MAPIND.forEach(m => { const g = m.grp || 'Territorio e infraestructura'; (og[g] = og[g] || []).push(m); });
   $('#m-ind').innerHTML = Object.entries(og).map(([g, ms]) => `<optgroup label="${esc(g)}">${ms.map(m => `<option value="${m.k}">${esc(m.l)}</option>`).join('')}</optgroup>`).join('');
   $('#m-lin').innerHTML = LIN.map((l, i) => `<option value="${i}">${l.k} · ${esc(LSHORT[l.k])}</option>`).join('');
@@ -1808,85 +2020,13 @@ function bxOvClick(k) {
   Object.assign(BXF, { q: String(BX.code[i]), page: 0 }); BXF.open = new Set([i]); hideTip(); renderBip();
   $('#bx-tbl').scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
-// ---- mapa interactivo con Leaflet (si la librería no carga, queda el mapa SVG) ----
-const HAS_LF = typeof window.L !== 'undefined' && typeof window.L.map === 'function';
-// coordenadas del mapa (UTM 18S escalado; mismos límites que prep_frpd.py) → latitud y longitud WGS84
-const UTM0 = { minx: 629128.7821792153, maxy: 5838267.49994959, s: 1000 / 234350.36251161912 };
-function svgLL(x, y) {
-  const E = x / UTM0.s + UTM0.minx - 500000, Nn = UTM0.maxy - y / UTM0.s - 10000000;
-  const a = 6378137, f = 1 / 298.257223563, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2);
-  const mu = Nn / k0 / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
-  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
-  const p1 = mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu) + (151 * e1 ** 3 / 96) * Math.sin(6 * mu) + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
-  const sn = Math.sin(p1), cs = Math.cos(p1), tn = Math.tan(p1);
-  const N1 = a / Math.sqrt(1 - e2 * sn * sn), T1 = tn * tn, C1 = ep2 * cs * cs, R1 = a * (1 - e2) / Math.pow(1 - e2 * sn * sn, 1.5), Dd = E / (N1 * k0);
-  const lat = p1 - (N1 * tn / R1) * (Dd * Dd / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ep2) * Dd ** 4 / 24 + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * ep2 - 3 * C1 * C1) * Dd ** 6 / 720);
-  const lon = (Dd - (1 + 2 * T1 + C1) * Dd ** 3 / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) * Dd ** 5 / 120) / cs;
-  return [lat * 180 / Math.PI, -75 + lon * 180 / Math.PI];
-}
-const ringsLL = d => (String(d).match(/M[^MZ]+/g) || []).map(r => r.slice(1).split('L').map(q => { const [x, y] = q.split(',').map(Number); return svgLL(x, y); }));
-const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-Object.assign(BXF, { mbase: 'none', mop: 70 });
-const BXBASES = [
-  { k: 'topo', l: 'Topográfico', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', att: 'Mapa: © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) · Datos: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM', max: 17, op: 45 },
-  { k: 'sat', l: 'Satélite', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', att: 'Imágenes © <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · Fuente: Esri, Maxar, Earthstar Geographics y GIS User Community', max: 18, op: 40 },
-  { k: 'osm', l: 'Calles', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', max: 19, op: 45 },
-  { k: 'none', l: 'Sin fondo', ok: true },
-];
-const BXBASE = Object.fromEntries(BXBASES.map(b => [b.k, b]));
+// ---- mapa de iniciativas BIP: mapa común (createMapL) más la capa de obras de Geo-CGR ----
 function bxLeafletInit() {
-  const host = $('#bx-m'), col = $('#bx-mapcol');
-  host.classList.add('lf');
-  const map = L.map(host, { zoomControl: false, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 100, maxBoundsViscosity: 0.9, maxZoom: 15, fadeAnimation: !REDUCED, zoomAnimation: !REDUCED, markerZoomAnimation: !REDUCED });
-  map.attributionControl.setPrefix(false);
-  L.control.zoom({ position: 'topleft', zoomInTitle: 'Acercar', zoomOutTitle: 'Alejar' }).addTo(map);
-  L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 110 }).addTo(map);
-  [['base', 200], ['mask', 390], ['hl', 415], ['obras', 450], ['labs', 460]].forEach(([n, z]) => { const pn = map.createPane(n); pn.style.zIndex = z; if (n !== 'obras') pn.style.pointerEvents = 'none'; });
-  const C = { sel: css('--sel'), ink: css('--ink'), ink2: css('--ink2'), mid: css('--mid'), bg: css('--mapbg'), line: css('--line2') };
-  // comunas (relleno interactivo), territorios y máscara fuera de la región
-  const outline = ringsLL(D.geo.outline);
-  const rb = L.latLngBounds(outline.flat());
-  const comLL = D.comunas.map(c => ringsLL(c.d)), terLL = TER.map(t => ringsLL(t.d));
-  const comL = D.comunas.map((c, ci) => L.polygon(comLL[ci], { weight: 0.8, color: C.bg, opacity: 0.9, fillOpacity: BXF.mop / 100, smoothFactor: 0.6 }).addTo(map));
-  L.polygon([[[-85, -180], [-85, 180], [85, 180], [85, -180]], ...outline], { pane: 'mask', stroke: false, fillColor: C.bg, fillOpacity: 0.93, interactive: false }).addTo(map);
-  L.polygon(outline, { pane: 'hl', fill: false, color: C.ink2, weight: 1.3, opacity: 0.85, interactive: false }).addTo(map);
-  const terLines = L.layerGroup(terLL.map(r => L.polygon(r, { pane: 'hl', fill: false, color: C.ink, weight: 1.7, opacity: 0.7, interactive: false }))).addTo(map);
-  const hov = L.polygon([], { pane: 'hl', fill: false, color: C.ink, weight: 2.2, interactive: false }).addTo(map);
-  const selG = L.layerGroup().addTo(map);
-  const curJ = ci => (BXF.mlev === 'ter' ? TOF[ci] : ci);
-  comL.forEach((pg, ci) => {
-    pg.on('mouseover', e => { hov.setLatLngs(BXF.mlev === 'ter' ? terLL[TOF[ci]] : comLL[ci]); const t = bxMapTip(ci); showTip(e.originalEvent, t.title, t.rows, t.note); });
-    pg.on('mousemove', e => placeTip(e.originalEvent));
-    pg.on('mouseout', () => { hov.setLatLngs([]); hideTip(); });
-    pg.on('click', () => bxPick(BXF.mlev, curJ(ci)));
-  });
-  // etiquetas: comunas principales a escala regional, todas al acercar; territorios en su modo
-  const lab = (ll, txt, cls) => L.marker(ll, { pane: 'labs', interactive: false, keyboard: false, icon: L.divIcon({ className: 'lf-lab' + (cls ? ' ' + cls : ''), html: `<span>${esc(txt)}</span>`, iconSize: [0, 0] }) });
-  const comLab = D.comunas.map(c => lab(svgLL(+c.lx, +c.ly), c.l));
-  const terLab = TER.map(t => lab(svgLL(+t.lx, +t.ly), t.n, 't'));
-  const labG = L.layerGroup().addTo(map);
-  // mapa base: teselas en línea (OpenTopoMap, Esri, OpenStreetMap) o sin fondo
-  let baseL = null, opTouched = false, baseTouched = false; const tileOk = {};
-  function setBase(k) {
-    if (baseL) { map.removeLayer(baseL); baseL = null; }
-    const b = BXBASE[k];
-    map.setMaxZoom(b.max || 15);
-    if (!opTouched) { BXF.mop = b.op || 70; $('#bx-mop').value = BXF.mop; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); }
-    if (b.url) {
-      baseL = L.tileLayer(b.url, { pane: 'base', attribution: b.att, maxZoom: b.max, subdomains: b.sub || 'abc' }).addTo(map);
-      let ok = 0, bad = 0;
-      baseL.on('tileload', () => { ok++; tileOk[k] = true; });
-      baseL.on('tileerror', () => { if (++bad >= 3 && !ok && BXF.mbase === k) { tileOk[k] = false; BXF.mbase = 'none'; setBase('none'); drawTools(); } });
-    }
-  }
-  function drawTools() {
-    $('#bx-mbase').innerHTML = BXBASES.map(b => { const off = b.url ? tileOk[b.k] === false : !b.ok; return `<button type="button" data-k="${b.k}" aria-pressed="${BXF.mbase === b.k}"${off ? ' disabled title="No disponible en esta vista"' : ''}>${b.l}</button>`; }).join('');
-    const blocked = BXBASES.filter(b => b.url && tileOk[b.k] === false).map(b => b.l.toLowerCase());
-    const lst = blocked.length > 1 ? blocked.slice(0, -1).join(', ') + ' y ' + blocked[blocked.length - 1] : blocked[0];
-    const nt = $('#bx-mbase-note'); nt.hidden = !blocked.length;
-    if (blocked.length) nt.textContent = `Los fondos en línea (${lst}) no cargan en esta vista; ábrelos en la versión web o local del radar. Aquí el mapa se muestra sin fondo.`;
-  }
-  // obras: puntos y líneas en su propia capa, sobre la referencia
+  const base = createMapL($('#bx-m'), { col: $('#bx-mapcol'), tip: bxMapTip, click: ci => bxPick(BXF.mlev, BXF.mlev === 'ter' ? TOF[ci] : ci),
+    selected: () => (BXF.c >= 0 ? [BXF.c] : []), terLabels: () => BXF.mlev === 'ter', hoverTer: () => BXF.mlev === 'ter',
+    sub: [$('#bx-msub'), 'Rueda o botones para acercar, arrastra para moverte · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla · clic en una obra para ver su ficha'] });
+  const { map, C } = base;
+  // obras: puntos y líneas en su propia capa
   const obR = L.svg({ pane: 'obras', padding: 0.4 });
   const OBL = OB ? Array.from({ length: NOB }, () => []) : [], OBS = new Uint8Array(NOB);
   if (OB) {
@@ -1899,8 +2039,7 @@ function bxLeafletInit() {
       l.on('click', e => { hideTip(); L.popup({ maxWidth: 300, autoPanPadding: [20, 20] }).setLatLng(e.latlng).setContent(bxObPopup(k)).openOn(map); });
     }));
   }
-  const z0 = () => map.getBoundsZoom(rb, false, L.point(12, 12));
-  const rOf = (lnk) => { const g = Math.max(0.7, Math.min(2.2, 1 + (map.getZoom() - z0()) * 0.28)); return (lnk ? 4 : 2.6) * g; };
+  const rOf = lnk => { const g = Math.max(0.7, Math.min(2.2, 1 + (map.getZoom() - base.z0()) * 0.28)); return (lnk ? 4 : 2.6) * g; };
   function obStyle(k, l) {
     const v = OBS[k], lnk = v === 2, ap = v === 3;
     if (l instanceof L.CircleMarker) l.setStyle(ap ? { radius: rOf(true) * 0.95, weight: 1.8, color: C.sel, opacity: 0.95, fillColor: C.sel, fillOpacity: 0.22 }
@@ -1909,70 +2048,19 @@ function bxLeafletInit() {
   }
   function obras(vis) {
     if (!OB) return;
-    let addU = false;
+    let added = false;
     for (let k = 0; k < NOB; k++) {
       const v = vis[k]; if (v === OBS[k]) continue;
       const was = OBS[k]; OBS[k] = v;
       for (const l of OBL[k]) { if (!v) { if (was) map.removeLayer(l); } else { if (!was) l.addTo(map); obStyle(k, l); } }
-      if (v && !was) addU = true;
+      if (v && !was) added = true;
     }
-    if (addU) { for (let k = 0; k < NOB; k++) if (OBS[k] === 3) OBL[k].forEach(l => l.bringToFront()); for (let k = 0; k < NOB; k++) if (OBS[k] === 2) OBL[k].forEach(l => l.bringToFront()); }
+    if (added) { for (let k = 0; k < NOB; k++) if (OBS[k] === 3) OBL[k].forEach(l => l.bringToFront()); for (let k = 0; k < NOB; k++) if (OBS[k] === 2) OBL[k].forEach(l => l.bringToFront()); }
   }
-  map.on('zoomend', () => { if (OB) for (let k = 0; k < NOB; k++) if (OBS[k]) for (const l of OBL[k]) if (l instanceof L.CircleMarker) l.setRadius(rOf(OBS[k] >= 2) * (OBS[k] === 3 ? 0.95 : 1)); labels(); });
-  function labels() {
-    labG.clearLayers();
-    const ter = BXF.mlev === 'ter', near = map.getZoom() >= z0() + 0.9;
-    if (ter) terLab.forEach((m, j) => { m.getElement && m.getElement() && m.getElement().classList.toggle('on', BXF.t === j); labG.addLayer(m); });
-    if (!ter || near) D.comunas.forEach((c, ci) => { if (near || LABEL_CORE.has(c.l) || BXF.c === ci) labG.addLayer(comLab[ci]); });
-    comLab.forEach((m, ci) => { const el = m.getElement(); if (el) el.classList.toggle('on', BXF.c === ci); });
-    terLab.forEach((m, j) => { const el = m.getElement(); if (el) el.classList.toggle('on', BXF.t === j); });
-  }
-  // vista: región completa, sin salir de ella
-  function home(anim) { map.fitBounds(rb, { padding: [12, 12], animate: anim && !REDUCED }); }
-  map.setMaxBounds(rb.pad(0.3));
-  home(false);
-  map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4);
-  let touched = false; ['pointerdown', 'wheel', 'keydown'].forEach(ev => host.addEventListener(ev, () => { touched = true; }, { passive: true }));
-  new ResizeObserver(() => { if (host.clientWidth < 50) return; map.invalidateSize(); map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4); if (!touched) home(false); }).observe(host);
-  // controles bajo el mapa
-  $('#bx-mtools').hidden = false;
-  $('#bx-msub').textContent = 'Rueda o botones para acercar, arrastra para moverte · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla · clic en una obra para ver su ficha';
-  $('#bx-mbase').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; baseTouched = true; BXF.mbase = b.dataset.k; setBase(BXF.mbase); drawTools(); });
-  const op = $('#bx-mop');
-  op.addEventListener('input', () => { opTouched = true; BXF.mop = +op.value; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); });
-  $('#bx-mhome').addEventListener('click', () => home(true));
-  const fsOk = !!(col.requestFullscreen && document.fullscreenEnabled);
-  $('#bx-mfull').hidden = !fsOk;
-  $('#bx-mfull').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else col.requestFullscreen().catch(() => { $('#bx-mfull').hidden = true; }); });
-  document.addEventListener('fullscreenchange', () => { $('#bx-mfull').textContent = document.fullscreenElement === col ? 'Salir de pantalla completa' : 'Pantalla completa'; setTimeout(() => { map.invalidateSize(); }, 60); });
-  // prueba de teselas en línea (en Claude la política de seguridad las bloquea)
-  // fondo inicial: el primero disponible en el orden topográfico, satélite, calles, mientras nadie elija otro
-  const autoPick = () => {
-    if (baseTouched) return;
-    for (const b of BXBASES.filter(x => x.url)) {
-      if (tileOk[b.k] === undefined) return;   // espera a que respondan los de mayor prioridad
-      if (tileOk[b.k]) { if (BXF.mbase !== b.k) { BXF.mbase = b.k; setBase(b.k); } return; }
-    }
-  };
-  BXBASES.filter(b => b.url).forEach(b => { const im = new Image();
-    im.onload = () => { tileOk[b.k] = true; autoPick(); drawTools(); };
-    im.onerror = () => { tileOk[b.k] = false; autoPick(); drawTools(); };
-    im.src = b.url.replace('{s}', 'a').replace('{z}', '7').replace('{x}', '38').replace('{y}', '78'); });
-  setBase(BXF.mbase); drawTools();
-  const legend = document.createElement('div'); legend.className = 'legend'; $('#bx-mtools').after(legend);
+  map.on('zoomend', () => { if (OB) for (let k = 0; k < NOB; k++) if (OBS[k]) for (const l of OBL[k]) if (l instanceof L.CircleMarker) l.setRadius(rOf(OBS[k] >= 2) * (OBS[k] === 3 ? 0.95 : 1)); });
   return {
-    legend, map,
-    paint(fills, selected, terSel, vis) {
-      comL.forEach((pg, ci) => pg.setStyle({ fillColor: fills[ci], fillOpacity: BXF.mop / 100 }));
-      selG.clearLayers();
-      selected.forEach(ci => selG.addLayer(L.polygon(comLL[ci], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false })));
-      terSel.forEach(j => selG.addLayer(L.polygon(terLL[j], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false })));
-      obras(vis); labels();
-    },
-    fly(lev, j) {
-      const b = lev === 'com' && j >= 0 ? L.latLngBounds(comLL[j].flat()) : lev === 'ter' && j >= 0 ? L.latLngBounds(terLL[j].flat()) : rb;
-      map.flyToBounds(b, { padding: [24, 24], maxZoom: 11, animate: !REDUCED, duration: 0.6 });
-    },
+    legend: base.legend, map, fly: base.fly,
+    paint(fills, selected, terSel, vis) { base.paint(fills, selected, terSel); obras(vis); },
   };
 }
 function bxObPopup(k) {
@@ -1988,7 +2076,7 @@ document.addEventListener('change', e => { if (e.target && e.target.id === 'bx-m
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-obk]'); if (b) { if (BXM && BXM.map) BXM.map.closePopup(); bxOvClick(+b.dataset.obk); } });
 function renderBxMap() {
   if (!BXM && HAS_LF) {
-    try { BXM = bxLeafletInit(); } catch (e) { console.warn('Leaflet no pudo iniciar; se usa el mapa SVG:', e); BXM = null; $('#bx-m').classList.remove('lf'); $('#bx-m').replaceChildren(); $('#bx-mtools').hidden = true; }
+    try { BXM = bxLeafletInit(); } catch (e) { console.warn('Leaflet no pudo iniciar; se usa el mapa SVG:', e); BXM = null; $('#bx-mapcol').querySelectorAll('.lf-tools,.lf-note,.legend').forEach(x => x.remove()); $('#bx-m').classList.remove('lf'); $('#bx-m').replaceChildren(); }
     if (BXM) {
       $('#bx-mlev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mlev = b.dataset.k; renderBxMap(); });
       $('#bx-mmet').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mmet = b.dataset.k; renderBxMap(); });

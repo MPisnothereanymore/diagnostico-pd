@@ -286,7 +286,13 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
   - *En el tablero.* Estas obras se muestran con símbolo hueco y su similitud. Se pueden ocultar con la casilla «Incluir vínculos por nombre», y el detalle de la iniciativa las lista aparte como «Posibles obras».
 - **Uso en el tablero.** El mapa de iniciativas BIP muestra por defecto las obras vinculadas a las iniciativas que pasan los filtros. La opción «Todas las obras» agrega en gris las que no tienen código BIP. Al hacer clic en una obra se abre su iniciativa en la tabla, y el detalle de cada iniciativa lista sus obras.
 
-## Mapa interactivo de iniciativas BIP (Leaflet, 6 de noviembre de 2026)
+## Mapas interactivos (Leaflet, 6 de noviembre de 2026)
+- **Un solo visor para los tres mapas.** Territorios, Empresas e Iniciativas BIP usan la misma función (`createMapL` en `app.js`). Comparten la máscara regional, los fondos en línea, el control de relleno, la vista regional, la pantalla completa, las etiquetas y la selección. El fondo que se elige en un mapa queda como inicial en los que se abren después.
+- **Territorios.** Las capas de infraestructura se dibujan sobre el relleno. Las zonas de rezago van con trama, y la red vial, la transmisión eléctrica, el corredor bioceánico y el ferrocarril como líneas. Puentes y antenas se muestran como puntos. Los SSR, las sedes de educación superior, los puertos, los aeródromos, los pasos fronterizos y las subestaciones tienen ficha al pasar el cursor. Los nombres de territorios y comunas se activan desde la lista de capas, y al hacer clic en una comuna se abre su territorio.
+- **Empresas.** Al hacer clic en una comuna se filtra por ella, como antes, y las comunas filtradas se marcan en ámbar.
+- **Respaldo.** Sin Leaflet, cada mapa usa su versión SVG anterior.
+
+### Mapa de iniciativas BIP
 - **Librería.** Leaflet 1.9.4 desde cdnjs, con su hoja de estilos incrustada. Si la librería no carga (por ejemplo, sin internet), el tablero usa el mapa SVG anterior con las mismas funciones de filtro.
 - **Geometría.** Las comunas, los territorios y el contorno regional son los mismos polígonos del paquete (UTM 18S simplificado a 180 m), convertidos a latitud y longitud en el navegador con la proyección inversa. La diferencia con pyproj es menor a 1e-7 grados.
 - **Máscara.** Un polígono mundial con el contorno regional como hueco oscurece todo lo que queda fuera de La Araucanía. La navegación se limita a la región ampliada en 30% y el alejamiento mínimo es la vista regional.
