@@ -17,13 +17,6 @@ pack = (H / 'pack_frpd6.b64').read_text(encoding='utf-8').strip()
 # capa opcional de obras georreferenciadas (procesamiento/prep_geocgr.py)
 obras = H / 'obras_geocgr.b64'
 extra = ('\n<script id="obras" type="application/octet-stream">' + obras.read_text(encoding='utf-8').strip() + '</script>') if obras.exists() else ''
-# mapa base del mapa interactivo (procesamiento/qgis_mapa_base.py): relieve y capa de referencia como imágenes incrustadas
-import base64, json
-mb = H / 'mapa_base'
-if (mb / 'mapa_base.json').exists():
-    cfg = json.loads((mb / 'mapa_base.json').read_text(encoding='utf-8'))
-    uri = lambda f, t: 'data:' + t + ';base64,' + base64.b64encode((mb / f).read_bytes()).decode()
-    extra += '\n<script id="basemap" type="application/json">' + json.dumps({'b': cfg['bounds'], 'rel': uri('relieve.jpg', 'image/jpeg'), 'ref': uri('referencia.webp', 'image/webp')}) + '</script>'
 scripts = '\n<script id="pack" type="application/octet-stream">' + pack + '</script>' + extra + '\n<script>\n' + app + '\n</script>\n'
 
 # versión local: documento HTML completo (codificación, viewport y margen)
