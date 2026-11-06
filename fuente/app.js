@@ -1817,8 +1817,9 @@ const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion:
 Object.assign(BXF, { mbase: BASEMAP ? 'rel' : 'none', mop: 70 });
 const BXBASES = [
   { k: 'rel', l: 'Relieve', ok: !!BASEMAP },
-  { k: 'osm', l: 'Calles', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', max: 19 },
-  { k: 'dark', l: 'Oscuro', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>', max: 19, sub: 'abcd' },
+  { k: 'topo', l: 'Topográfico', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', att: 'Mapa: © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) · Datos: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM', max: 17, op: 45 },
+  { k: 'sat', l: 'Satélite', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', att: 'Imágenes © <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a> · Fuente: Esri, Maxar, Earthstar Geographics y GIS User Community', max: 18, op: 40 },
+  { k: 'osm', l: 'Calles', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', max: 19, op: 45 },
   { k: 'none', l: 'Sin fondo', ok: true },
 ];
 const BXBASE = Object.fromEntries(BXBASES.map(b => [b.k, b]));
@@ -1854,15 +1855,16 @@ function bxLeafletInit() {
   const terLab = TER.map(t => lab(svgLL(+t.lx, +t.ly), t.n, 't'));
   const labG = L.layerGroup().addTo(map);
   // mapa base: relieve incrustado (siempre disponible) o teselas en línea
-  let baseL = null, refL = null; const tileOk = {};
+  let baseL = null, refL = null, opTouched = false, baseTouched = false; const tileOk = {};
   if (BASEMAP) refL = L.imageOverlay(BASEMAP.ref, BASEMAP.b, { pane: 'ref', interactive: false, attribution: 'Relieve y referencia: base regional GORE Araucanía' });
   function setBase(k) {
     if (baseL) { map.removeLayer(baseL); baseL = null; } if (refL && map.hasLayer(refL)) map.removeLayer(refL);
     const b = BXBASE[k];
-    map.setMaxZoom(k === 'rel' ? 13 : k === 'none' ? 15 : 17);   // el relieve incrustado tiene ~120 m por píxel
+    map.setMaxZoom(k === 'rel' ? 13 : k === 'none' ? 15 : b.max);   // el relieve incrustado tiene ~130 m por píxel
+    if (!opTouched) { BXF.mop = b.op || 70; $('#bx-mop').value = BXF.mop; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); }
     if (k === 'rel' && BASEMAP) { baseL = L.imageOverlay(BASEMAP.rel, BASEMAP.b, { pane: 'base', interactive: false }).addTo(map); refL.addTo(map); }
     else if (b.url) {
-      baseL = L.tileLayer(b.url, { pane: 'base', attribution: b.att, maxZoom: b.max, subdomains: b.sub || 'abc', crossOrigin: true }).addTo(map);
+      baseL = L.tileLayer(b.url, { pane: 'base', attribution: b.att, maxZoom: b.max, subdomains: b.sub || 'abc' }).addTo(map);
       let ok = 0, bad = 0;
       baseL.on('tileload', () => { ok++; tileOk[k] = true; });
       baseL.on('tileerror', () => { if (++bad >= 3 && !ok && BXF.mbase === k) { tileOk[k] = false; BXF.mbase = BASEMAP ? 'rel' : 'none'; setBase(BXF.mbase); drawTools(); } });
@@ -1871,8 +1873,9 @@ function bxLeafletInit() {
   function drawTools() {
     $('#bx-mbase').innerHTML = BXBASES.map(b => { const off = b.url ? tileOk[b.k] === false : !b.ok; return `<button type="button" data-k="${b.k}" aria-pressed="${BXF.mbase === b.k}"${off ? ' disabled title="No disponible en esta vista"' : ''}>${b.l}</button>`; }).join('');
     const blocked = BXBASES.filter(b => b.url && tileOk[b.k] === false).map(b => b.l.toLowerCase());
+    const lst = blocked.length > 1 ? blocked.slice(0, -1).join(', ') + ' y ' + blocked[blocked.length - 1] : blocked[0];
     const nt = $('#bx-mbase-note'); nt.hidden = !blocked.length;
-    if (blocked.length) nt.textContent = `Los fondos en línea (${blocked.join(' y ')}) no cargan en esta vista; ábrelos en la versión web o local del radar. El relieve viene incluido en el tablero.`;
+    if (blocked.length) nt.textContent = `Los fondos en línea (${lst}) no cargan en esta vista; ábrelos en la versión web o local del radar. El relieve viene incluido en el tablero.`;
   }
   // obras: puntos y líneas en su propia capa, sobre la referencia
   const obR = L.svg({ pane: 'obras', padding: 0.4 });
@@ -1924,16 +1927,20 @@ function bxLeafletInit() {
   // controles bajo el mapa
   $('#bx-mtools').hidden = false;
   $('#bx-msub').textContent = 'Rueda o botones para acercar, arrastra para moverte · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla · clic en una obra para ver su ficha';
-  $('#bx-mbase').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; BXF.mbase = b.dataset.k; setBase(BXF.mbase); drawTools(); });
+  $('#bx-mbase').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; baseTouched = true; BXF.mbase = b.dataset.k; setBase(BXF.mbase); drawTools(); });
   const op = $('#bx-mop');
-  op.addEventListener('input', () => { BXF.mop = +op.value; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); });
+  op.addEventListener('input', () => { opTouched = true; BXF.mop = +op.value; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); });
   $('#bx-mhome').addEventListener('click', () => home(true));
   const fsOk = !!(col.requestFullscreen && document.fullscreenEnabled);
   $('#bx-mfull').hidden = !fsOk;
   $('#bx-mfull').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else col.requestFullscreen().catch(() => { $('#bx-mfull').hidden = true; }); });
   document.addEventListener('fullscreenchange', () => { $('#bx-mfull').textContent = document.fullscreenElement === col ? 'Salir de pantalla completa' : 'Pantalla completa'; setTimeout(() => { map.invalidateSize(); }, 60); });
   // prueba de teselas en línea (en Claude la política de seguridad las bloquea)
-  BXBASES.filter(b => b.url).forEach(b => { const im = new Image(); im.onload = () => { tileOk[b.k] = true; drawTools(); }; im.onerror = () => { tileOk[b.k] = false; drawTools(); }; im.src = b.url.replace('{s}', 'a').replace('{z}', '7').replace('{x}', '35').replace('{y}', '77').replace('{r}', ''); });
+  // si el topográfico carga y nadie eligió otro fondo, queda como fondo inicial
+  BXBASES.filter(b => b.url).forEach(b => { const im = new Image();
+    im.onload = () => { tileOk[b.k] = true; if (b.k === 'topo' && !baseTouched && BXF.mbase === 'rel') { BXF.mbase = 'topo'; setBase('topo'); } drawTools(); };
+    im.onerror = () => { tileOk[b.k] = false; drawTools(); };
+    im.src = b.url.replace('{s}', 'a').replace('{z}', '7').replace('{x}', '38').replace('{y}', '78'); });
   setBase(BXF.mbase); drawTools();
   const legend = document.createElement('div'); legend.className = 'legend'; $('#bx-mtools').after(legend);
   return {
