@@ -291,12 +291,12 @@ const refStats = () => {
 const LABEL_CORE = new Set(['Temuco', 'Angol', 'Victoria', 'Villarrica', 'Pucón', 'Lautaro', 'Lonquimay', 'Carahue', 'Curacautín', 'Padre Las Casas', 'Nueva Imperial', 'Collipulli', 'Loncoche', 'Cunco', 'Traiguén', 'Purén', 'Toltén']);
 function createMapE(host, opt) {
   const svg = svgEl('svg', { viewBox: VB.join(' '), class: 'map-svg static', role: 'img', 'aria-label': 'Mapa de comunas de La Araucanía' });
-  const gCom = svgEl('g'), gTer = svgEl('g'), gSel = svgEl('g'), gLab = svgEl('g'), gTl = svgEl('g');
+  const gCom = svgEl('g'), gTer = svgEl('g'), gSel = svgEl('g'), gOv = svgEl('g', { class: 'ov' }), gLab = svgEl('g'), gTl = svgEl('g');
   const paths = D.comunas.map((c, ci) => { const p = svgEl('path', { d: c.d, class: 'com', 'data-ci': ci, 'vector-effect': 'non-scaling-stroke' }); gCom.appendChild(p); return p; });
   TER.forEach(t => gTer.appendChild(svgEl('path', { d: t.d, class: 'ter', 'vector-effect': 'non-scaling-stroke' })));
   D.comunas.forEach((c, ci) => { const t = svgEl('text', { x: c.lx, y: c.ly, class: 'cl', 'text-anchor': 'middle', 'data-ci': ci }); t.textContent = c.l; gLab.appendChild(t); });
   TER.forEach(t => { const tx = svgEl('text', { x: t.lx, y: t.ly, class: 'tl', 'text-anchor': 'middle' }); tx.textContent = t.n; gTl.appendChild(tx); });
-  svg.append(gCom, gTer, gSel, gLab, gTl); host.appendChild(svg);
+  svg.append(gCom, gTer, gSel, gOv, gLab, gTl); host.appendChild(svg);
   const hov = svgEl('path', { class: 'hovo', 'vector-effect': 'non-scaling-stroke' }); hov.style.display = 'none'; gSel.appendChild(hov);
   function scaleText() {
     const w = svg.getBoundingClientRect().width, k = w ? VB[2] / w : 1;
@@ -304,19 +304,22 @@ function createMapE(host, opt) {
     gLab.setAttribute('font-size', 11 * k); gLab.setAttribute('stroke-width', 3.2 * k);
     gTl.setAttribute('font-size', 13 * k); gTl.setAttribute('stroke-width', 3.8 * k); gTl.style.display = showT ? '' : 'none';
     for (const t of gLab.children) t.style.display = (!showT && LABEL_CORE.has(t.textContent)) || opt.selected().has(+t.dataset.ci) ? '' : 'none';
+    if (opt.onScale) opt.onScale(k);
   }
   let hoverCi = -1;
   svg.addEventListener('pointermove', e => {
+    const ov = opt.ovTip && e.target.closest && e.target.closest('.ov [data-k]');
+    if (ov) { hoverCi = -1; hov.style.display = 'none'; const t = opt.ovTip(+ov.dataset.k); showTip(e, t.title, t.rows, t.note); return; }
     const ci = e.target.dataset && e.target.dataset.ci != null && e.target.classList.contains('com') ? +e.target.dataset.ci : -1;
     if (ci !== hoverCi) { hoverCi = ci; if (ci >= 0) { hov.setAttribute('d', opt.hoverTer && opt.hoverTer() ? TER[TOF[ci]].d : paths[ci].getAttribute('d')); hov.style.display = ''; } else hov.style.display = 'none'; }
     if (ci >= 0) { const t = opt.tip(ci); showTip(e, t.title, t.rows, t.note); } else hideTip();
   });
   svg.addEventListener('pointerleave', () => { hoverCi = -1; hov.style.display = 'none'; hideTip(); });
-  svg.addEventListener('click', e => { const ci = e.target.dataset && e.target.dataset.ci != null ? +e.target.dataset.ci : -1; if (ci >= 0) opt.click(ci); });
+  svg.addEventListener('click', e => { const ov = opt.ovClick && e.target.closest && e.target.closest('.ov [data-k]'); if (ov) { opt.ovClick(+ov.dataset.k); return; } const ci = e.target.dataset && e.target.dataset.ci != null ? +e.target.dataset.ci : -1; if (ci >= 0) opt.click(ci); });
   const legend = document.createElement('div'); legend.className = 'legend'; host.after(legend);
   new ResizeObserver(() => scaleText()).observe(svg);
   return {
-    legend,
+    legend, ov: gOv, k: () => { const w = svg.getBoundingClientRect().width; return w ? VB[2] / w : 1; },
     paint(fills, selected, terSel = []) {
       for (let ci = 0; ci < NC; ci++) paths[ci].style.fill = fills[ci];
       [...gSel.querySelectorAll('.selo')].forEach(p => p.remove());

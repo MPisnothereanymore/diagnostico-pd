@@ -1,4 +1,5 @@
-"""Arma el Radar FRPD Araucanía a partir de head.html, app.js, emp.js y el paquete de datos pack_frpd6.b64.
+"""Arma el Radar FRPD Araucanía a partir de head.html, app.js, emp.js, el paquete de datos pack_frpd6.b64
+y, si existe, la capa de obras georreferenciadas obras_geocgr.b64.
 
 Uso (solo necesita Python 3, sin librerías adicionales):
     python build.py
@@ -13,7 +14,10 @@ H = Path(__file__).resolve().parent
 head = (H / 'head.html').read_text(encoding='utf-8')
 app = (H / 'app.js').read_text(encoding='utf-8').replace('// @@EMPRESAS@@', (H / 'emp.js').read_text(encoding='utf-8'))
 pack = (H / 'pack_frpd6.b64').read_text(encoding='utf-8').strip()
-scripts = '\n<script id="pack" type="application/octet-stream">' + pack + '</script>\n<script>\n' + app + '\n</script>\n'
+# capa opcional de obras georreferenciadas (procesamiento/prep_geocgr.py)
+obras = H / 'obras_geocgr.b64'
+extra = ('\n<script id="obras" type="application/octet-stream">' + obras.read_text(encoding='utf-8').strip() + '</script>') if obras.exists() else ''
+scripts = '\n<script id="pack" type="application/octet-stream">' + pack + '</script>' + extra + '\n<script>\n' + app + '\n</script>\n'
 
 # versión local: documento HTML completo (codificación, viewport y margen)
 cut = head.index('</style>') + len('</style>')

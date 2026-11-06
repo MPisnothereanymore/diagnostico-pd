@@ -270,6 +270,14 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 | Viviendas sin energía | por 1.000 hab. | Ocho comunas registran exactamente 50 (posible piso de la fuente) |
 | Antenas | por 100 km² | Decretos 1997–2020; no reflejan la cobertura actual |
 
+## Obras georreferenciadas (Geo-CGR, 6 de noviembre de 2026)
+- **Fuente.** Contraloría, Geo-CGR, consulta pública por comuna (`api/comunas/{CUT}/newobras`) para las 32 comunas, con obras adjudicadas entre el 01/01/2019 y el 06/11/2026. Descargada con QGIS desde el computador de DIFOI, porque el espacio de trabajo de Claude no tiene acceso al sitio.
+- **Cifras.** 3.232 registros, que corresponden a 3.019 obras distintas por expediente. 2.982 traen coordenadas, de las cuales 2.933 caen en la comuna declarada y 49 en otra (revisión en QGIS contra Comunal.shp: 3.003 en la comuna declarada, 17 a menos de 1 km y 27 en otra, ninguna fuera de la región). La capa tiene 5.245 puntos y 787 líneas.
+- **Vínculo con el BIP.** 709 obras traen código BIP, que corresponden a 419 códigos distintos. 385 de esos códigos están en la base BIP del radar (7% de las 5.199 iniciativas) y suman 637 obras. Geo-CGR solo registra contratos de obra, no estudios, diseños ni programas, y la mayoría de los servicios no informa el código BIP.
+- **Coordenadas del BIP.** La base BIDAT marca 4.395 de las 5.199 iniciativas con georreferenciación (`EBI_TIENE_GEO = 1`), pero no publica las coordenadas; solo trae un texto de localización (`EBI_LOCALIZACION_GEOGRAFICA`). La plataforma BIP Data del MDSF las muestra en su mapa, pero el 06/11/2026 no cargó ni desde Claude ni desde el navegador de DIFOI.
+- **Montos atípicos.** 2 obras declaran montos contratados superiores a 50.000 MM$ y se marcan con ⚠.
+- **Uso en el tablero.** El mapa de iniciativas BIP muestra por defecto las obras vinculadas a las iniciativas que pasan los filtros. La opción «Todas las obras» agrega en gris las que no tienen código BIP. Al hacer clic en una obra se abre su iniciativa en la tabla, y el detalle de cada iniciativa lista sus obras.
+
 ## Supuestos provisionales (a validar por DIFOI)
 - Correspondencia entre subrubros SII y lineamientos L1–L6.
 - Clasificación de proyectos por palabras clave.

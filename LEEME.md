@@ -29,6 +29,7 @@ Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edg
 | `app.js` | Lógica principal: Cartera, Territorios, Evidencia territorial, Marco normativo, Iniciativas BIP, Simulador y borrador con Claude |
 | `emp.js` | Barra lateral de filtros de empresas y pestaña Empresas, adaptadas del tablero Tejido Empresarial |
 | `pack_frpd6.b64` | Paquete de datos (JSON comprimido con gzip y codificado en base64) |
+| `obras_geocgr.b64` | Capa opcional de obras georreferenciadas de Geo-CGR para el mapa de iniciativas BIP (paso 7). Si no está, el tablero funciona sin ella |
 | `build.py` | Une todo y genera el HTML |
 
 Después de editar, ejecuta en una terminal, dentro de la carpeta `fuente`:
@@ -51,6 +52,7 @@ Los scripts arman el paquete de datos en seis pasos encadenados. Cada uno lee el
 | 4 | `prep_exe.py` | Ejecutores habilitados (Res. 1/2026 y Res. 33/2024) | `entradas/res1_2026.json`, `DB Araucania/FRPD_fase3/q.txt` | `pack_frpd4.b64` |
 | 5 | `prep_bip.py` | Explorador de iniciativas BIP | `DB Araucania/FRPD_fase2/bip_araucania_2019_2027.csv` | `pack_frpd5.b64` |
 | 6 | `prep_ctx.py` | Evidencia territorial (SAE 2022, Censo 2024, CONADI, ARClim, CONAF, PROT, CAF 2021, SINIM, Banco Central) | `DB Araucania/FRPD_datos2/`, `DB Araucania/Incendios/`, capas demográficas | `../fuente/pack_frpd6.b64` |
+| 7 | `prep_geocgr.py` | Obras con coordenadas de Geo-CGR (Contraloría), vinculadas a las iniciativas BIP por código. Independiente de los pasos 1 a 6 | `DB Araucania/GeoCGR/geocgr_araucania_2019_2026.json`, o una descarga nueva con `--descargar` | `../fuente/obras_geocgr.b64` |
 
 **Cómo ejecutarlos.** Abre una terminal dentro de la carpeta `procesamiento` y usa el modo UTF-8 de Python para que los acentos se lean bien en Windows:
 
@@ -60,6 +62,8 @@ python -X utf8 prep_ctx.py
 cd ..\fuente
 python build.py
 ```
+
+**Obras de Geo-CGR (paso 7).** Para traer obras nuevas, ejecuta `python -X utf8 prep_geocgr.py --descargar` desde un computador con acceso a www.contraloria.cl. El script consulta las 32 comunas desde el 01/01/2019 hasta la fecha, reemplaza el JSON de `DB Araucania/GeoCGR/` y regenera la capa; luego vuelve a ejecutar `build.py`. Requiere `pyproj` y `shapely`, que se instalan con geopandas. La carpeta `GeoCGR` también tiene un GeoPackage (`geocgr_araucania_2019_2026.gpkg`, capas de puntos y líneas) para revisar las obras en QGIS.
 
 **Rutas.** Los scripts leen los datos originales desde `C:/Users/mpooley/Documents/DB Araucania/`. Si esa carpeta cambia de lugar, reemplaza esa ruta al inicio de cada script.
 
