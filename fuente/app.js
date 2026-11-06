@@ -1625,10 +1625,20 @@ const BX_IDX = new Map(BX.code.map((c, i) => [c, i]));
 const OB_I = OB ? OB.b.map(c => (c ? BX_IDX.get(c) ?? -1 : -1)) : [];
 const BX_OB = Array.from({ length: NBX }, () => []); OB_I.forEach((i, k) => { if (i >= 0) BX_OB[i].push(k); });
 const NBX_OB = BX_OB.filter(a => a.length).length, NOB_L = OB_I.filter(i => i >= 0).length;
+// vínculo aproximado por nombre (prep_geocgr.py): solo para obras sin código BIP
+const OB_IA = OB && OB.ba ? OB.ba.map((c, k) => (c && OB_I[k] < 0 ? BX_IDX.get(c) ?? -1 : -1)) : OB_I.map(() => -1);
+const OB_J = OB_I.map((i, k) => (i >= 0 ? i : OB_IA[k]));
+const BX_OBA = Array.from({ length: NBX }, () => []); OB_IA.forEach((i, k) => { if (i >= 0) BX_OBA[i].push(k); });
+const NOB_A = OB_IA.filter(i => i >= 0).length, NBX_OBA = BX_OBA.filter(a => a.length).length;
+const obSim = k => (OB && OB.bs ? f0(OB.bs[k]) + '%' : '');
 const obM = k => (OB.x[k] ? 'monto atípico ⚠' : mmK(OB.m[k]) + ' MM$');
 const obYm = v => (v ? String(v % 100).padStart(2, '0') + '/' + Math.floor(v / 100) : '–');
 const obServ = k => insFix(OB.sv[OB.s[k]]);
 const obCom = k => (OB.c[k] >= 0 ? CN(OB.c[k]) : 'sin comuna');
+function bxObList(ks, tit, ap) {
+  if (!ks || !ks.length) return '';
+  return `<div class="lbl" style="margin:12px 0 4px">${esc(tit)} (${f0(ks.length)})</div><ul class="oblist${ap ? ' ap' : ''}">${ks.map(kk => `<li><b>${esc(OB_T[kk])}</b><span class="sm">${esc(obServ(kk))} · ${esc(obCom(kk))} · adjudicada ${obYm(OB.y[kk])} · ${esc(obM(kk))} contratados · avance físico ${f0(OB.a[kk])}%${OB.p[kk] ? ' · <span class="pill bad">Paralizada</span>' : ''}${OB_MP[kk] ? ` · <span class="m">${esc(OB_MP[kk])}</span>` : ''}${ap ? ` · similitud ${obSim(kk)}` : ''}</span></li>`).join('')}</ul>`;
+}
 const mmK = v => (v == null ? '–' : v / 1000 >= 100 ? f0(v / 1000) : f1(v / 1000)); // M$ -> MM$
 function bxRef(i) {
   let rows = BX_ROWS[i];
@@ -1709,7 +1719,7 @@ function renderBip() {
         <td class="m r">${mmK(ref.s)}${warn(ref.x)}</td><td class="m r">${mmK(ref.t)}${warn(ref.x)}</td></tr>`;
       if (open) {
         const hr = BX_ROWS[i];
-        row += `<tr class="det"><td colspan="9"><div class="bpdet"><div><p>${esc(BX_D[i] || 'Sin descripción.')}</p><p class="note" style="margin-top:8px">${c >= 0 ? `${esc(CN(c))} · ${esc(TER[TOF[c]].n)}` : 'Alcance regional o sin comuna'} · ${esc(catLab(bxCat(i)))} (clasificación aproximada) · Lineamientos inferidos: ${LIN.filter((l, j) => (BX.L[i] >> j) & 1).map(l => l.k).join(', ') || 'ninguno'} · Fuente: ${esc(BX.finv[BX.fin[i]] || 'sin dato')}</p>${BX_OB[i].length ? `<div class="lbl" style="margin:12px 0 4px">Obras en Geo-CGR (${f0(BX_OB[i].length)})</div><ul class="oblist">${BX_OB[i].map(kk => `<li><b>${esc(OB_T[kk])}</b><span class="sm">${esc(obServ(kk))} · ${esc(obCom(kk))} · adjudicada ${obYm(OB.y[kk])} · ${esc(obM(kk))} contratados · avance físico ${f0(OB.a[kk])}%${OB.p[kk] ? ' · <span class="pill bad">Paralizada</span>' : ''}${OB_MP[kk] ? ` · <span class="m">${esc(OB_MP[kk])}</span>` : ''}</span></li>`).join('')}</ul>` : ''}</div>
+        row += `<tr class="det"><td colspan="9"><div class="bpdet"><div><p>${esc(BX_D[i] || 'Sin descripción.')}</p><p class="note" style="margin-top:8px">${c >= 0 ? `${esc(CN(c))} · ${esc(TER[TOF[c]].n)}` : 'Alcance regional o sin comuna'} · ${esc(catLab(bxCat(i)))} (clasificación aproximada) · Lineamientos inferidos: ${LIN.filter((l, j) => (BX.L[i] >> j) & 1).map(l => l.k).join(', ') || 'ninguno'} · Fuente: ${esc(BX.finv[BX.fin[i]] || 'sin dato')}</p>${bxObList(BX_OB[i], 'Obras en Geo-CGR')}${bxObList(BX_OBA[i], 'Posibles obras en Geo-CGR, vínculo aproximado por nombre', true)}</div>
           <div class="tbl-wrap"><table><thead><tr><th>Año</th><th>Etapa</th><th>RATE</th><th class="r">Solicitado</th><th class="r">Costo total</th><th class="r">Asignado</th><th class="r">Gastado</th></tr></thead><tbody>${hr.map(kk => `<tr><td class="m">${BXH.y[kk]}</td><td>${esc(etLab(BX.etv[BXH.e[kk]]))}</td><td class="m">${esc(BX.ratev[BXH.r[kk]] || '–')}</td><td class="m r">${mmK(BXH.s[kk])}${warn(BXH.x[kk])}</td><td class="m r">${mmK(BXH.t[kk])}</td><td class="m r">${mmK(BXH.a[kk])}</td><td class="m r">${mmK(BXH.g[kk])}</td></tr>`).join('')}</tbody></table><p class="note" style="margin-top:6px">Montos en MM$. Asignado y gastado: vigentes en el año de la postulación.</p></div></div></td></tr>`;
       }
       return row;
@@ -1724,7 +1734,7 @@ function renderBip() {
 }
 
 // ---- mapa de iniciativas por comuna y territorio (aplica todos los filtros salvo territorio y comuna) ----
-Object.assign(BXF, { mlev: 'com', mmet: 'n', mpts: 'bip' });
+Object.assign(BXF, { mlev: 'com', mmet: 'n', mpts: 'bip', mapx: true });
 const BXMET = [
   { k: 'n', short: 'N° de iniciativas', l: 'Iniciativas', f: v => f0(v) },
   { k: 's', short: 'Solicitado', l: 'Monto solicitado (MM$)', f: v => mmK(v) },
@@ -1759,8 +1769,9 @@ function bxMapTip(ci) {
 let BXOV = null, BXOV_K = 0;
 function bxOvBuild() {
   const gl = svgEl('g', { class: 'obl' }), gp = svgEl('g', { class: 'obp' });
-  const ordL = OB.ln.map((x, j) => j).sort((a, b) => (OB_I[OB.ln[a][0]] >= 0) - (OB_I[OB.ln[b][0]] >= 0));
-  const ordP = OB.pi.map((x, j) => j).sort((a, b) => (OB_I[OB.pi[a]] >= 0) - (OB_I[OB.pi[b]] >= 0));
+  const rk = k => (OB_I[k] >= 0 ? 2 : OB_IA[k] >= 0 ? 1 : 0);
+  const ordL = OB.ln.map((x, j) => j).sort((a, b) => rk(OB.ln[a][0]) - rk(OB.ln[b][0]));
+  const ordP = OB.pi.map((x, j) => j).sort((a, b) => rk(OB.pi[a]) - rk(OB.pi[b]));
   const lines = ordL.map(j => { const e = svgEl('path', { d: OB.ln[j][1], 'data-k': OB.ln[j][0], 'vector-effect': 'non-scaling-stroke' }); gl.appendChild(e); return e; });
   const pts = ordP.map(j => { const e = svgEl('circle', { cx: OB.px[j] / 10, cy: OB.py[j] / 10, r: 2, 'data-k': OB.pi[j] }); gp.appendChild(e); return e; });
   BXM.ov.append(gl, gp);
@@ -1768,18 +1779,21 @@ function bxOvBuild() {
 }
 function bxOvScale(k) {
   if (!BXOV || Math.abs(k - BXOV_K) < 1e-6) return; BXOV_K = k;
-  for (const e of BXOV.pts) e.setAttribute('r', (e.classList.contains('l') ? 3.1 : 2.1) * k);
+  for (const e of BXOV.pts) e.setAttribute('r', (e.classList.contains('l') ? 3.1 : e.classList.contains('a') ? 3 : 2.1) * k);
 }
 function bxOvVis(L) {
   const vis = new Uint8Array(NOB);
   if (!OB || BXF.mpts === 'off') return vis;
   const ok = new Uint8Array(NBX); for (const o of L) ok[o.i] = 1;
-  for (let k = 0; k < NOB; k++) { const i = OB_I[k]; if (i >= 0) { if (ok[i]) vis[k] = 2; } else if (BXF.mpts === 'all') vis[k] = 1; }
+  for (let k = 0; k < NOB; k++) {
+    const i = OB_I[k], ia = BXF.mapx ? OB_IA[k] : -1;
+    if (i >= 0) { if (ok[i]) vis[k] = 2; } else if (ia >= 0 && ok[ia]) vis[k] = 3; else if (BXF.mpts === 'all' && !(ia >= 0)) vis[k] = 1;
+  }
   return vis;
 }
 function bxOvPaint(vis) {
   if (!BXOV) return;
-  const cls = k => (vis[k] === 2 ? 'l' : vis[k] === 1 ? 'u' : 'h');
+  const cls = k => (vis[k] === 2 ? 'l' : vis[k] === 3 ? 'a' : vis[k] === 1 ? 'u' : 'h');
   for (const e of BXOV.lines) e.setAttribute('class', cls(+e.dataset.k));
   for (const e of BXOV.pts) e.setAttribute('class', cls(+e.dataset.k));
   BXOV_K = 0; bxOvScale(BXM.k());
@@ -1787,10 +1801,10 @@ function bxOvPaint(vis) {
 function bxOvTip(k) {
   const i = OB_I[k];
   return { title: OB_T[k], rows: [[OB.x[k] ? '⚠' : mmK(OB.m[k]), OB.x[k] ? 'monto contratado atípico, probablemente mal registrado' : 'MM$ contratados'], [f0(OB.a[k]) + '%', 'avance físico' + (OB.p[k] ? ' · paralizada' : '')], [obYm(OB.y[k]), 'adjudicación']],
-    note: `${obServ(k)} · ${obCom(k)} · ${OB.kv[OB.k[k]]}. ` + (i >= 0 ? `BIP ${BX.code[i]}: ${BX_N[i]}. Clic para verla en la tabla.` : 'Sin código BIP en la base del radar.') };
+    note: `${obServ(k)} · ${obCom(k)} · ${OB.kv[OB.k[k]]}. ` + (i >= 0 ? `BIP ${BX.code[i]}: ${BX_N[i]}. Clic para verla en la tabla.` : OB_IA[k] >= 0 ? `Posible iniciativa por nombre (similitud ${obSim(k)}): BIP ${BX.code[OB_IA[k]]}, ${BX_N[OB_IA[k]]}. Clic para verla en la tabla.` : 'Sin código BIP en la base del radar.') };
 }
 function bxOvClick(k) {
-  const i = OB_I[k]; if (i < 0) return;
+  const i = OB_J[k]; if (i < 0) return;
   Object.assign(BXF, { q: String(BX.code[i]), page: 0 }); BXF.open = new Set([i]); hideTip(); renderBip();
   $('#bx-tbl').scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
@@ -1888,9 +1902,10 @@ function bxLeafletInit() {
   const z0 = () => map.getBoundsZoom(rb, false, L.point(12, 12));
   const rOf = (lnk) => { const g = Math.max(0.7, Math.min(2.2, 1 + (map.getZoom() - z0()) * 0.28)); return (lnk ? 4 : 2.6) * g; };
   function obStyle(k, l) {
-    const lnk = OBS[k] === 2;
-    if (l instanceof L.CircleMarker) l.setStyle({ radius: rOf(lnk), weight: lnk ? 1 : 0.5, color: C.bg, opacity: 0.9, fillColor: lnk ? C.sel : C.mid, fillOpacity: lnk ? 0.95 : 0.75 });
-    else l.setStyle({ weight: lnk ? 3 : 1.8, color: lnk ? C.sel : C.mid, opacity: lnk ? 0.95 : 0.65 });
+    const v = OBS[k], lnk = v === 2, ap = v === 3;
+    if (l instanceof L.CircleMarker) l.setStyle(ap ? { radius: rOf(true) * 0.95, weight: 1.8, color: C.sel, opacity: 0.95, fillColor: C.sel, fillOpacity: 0.22 }
+      : { radius: rOf(lnk), weight: lnk ? 1 : 0.5, color: C.bg, opacity: 0.9, fillColor: lnk ? C.sel : C.mid, fillOpacity: lnk ? 0.95 : 0.75 });
+    else l.setStyle({ weight: lnk ? 3 : ap ? 2.6 : 1.8, color: lnk || ap ? C.sel : C.mid, opacity: lnk || ap ? 0.95 : 0.65, dashArray: ap ? '5 4' : null });
   }
   function obras(vis) {
     if (!OB) return;
@@ -1899,11 +1914,11 @@ function bxLeafletInit() {
       const v = vis[k]; if (v === OBS[k]) continue;
       const was = OBS[k]; OBS[k] = v;
       for (const l of OBL[k]) { if (!v) { if (was) map.removeLayer(l); } else { if (!was) l.addTo(map); obStyle(k, l); } }
-      if (v === 1 && !was) addU = true;
+      if (v && !was) addU = true;
     }
-    if (addU) for (let k = 0; k < NOB; k++) if (OBS[k] === 2) OBL[k].forEach(l => l.bringToFront());
+    if (addU) { for (let k = 0; k < NOB; k++) if (OBS[k] === 3) OBL[k].forEach(l => l.bringToFront()); for (let k = 0; k < NOB; k++) if (OBS[k] === 2) OBL[k].forEach(l => l.bringToFront()); }
   }
-  map.on('zoomend', () => { if (OB) for (let k = 0; k < NOB; k++) if (OBS[k]) for (const l of OBL[k]) if (l instanceof L.CircleMarker) l.setRadius(rOf(OBS[k] === 2)); labels(); });
+  map.on('zoomend', () => { if (OB) for (let k = 0; k < NOB; k++) if (OBS[k]) for (const l of OBL[k]) if (l instanceof L.CircleMarker) l.setRadius(rOf(OBS[k] >= 2) * (OBS[k] === 3 ? 0.95 : 1)); labels(); });
   function labels() {
     labG.clearLayers();
     const ter = BXF.mlev === 'ter', near = map.getZoom() >= z0() + 0.9;
@@ -1961,14 +1976,15 @@ function bxLeafletInit() {
   };
 }
 function bxObPopup(k) {
-  const i = OB_I[k];
+  const i = OB_J[k], ap = OB_I[k] < 0 && i >= 0;
   const row = (l, v) => `<div class="r"><span>${l}</span><b>${v}</b></div>`;
   return `<div class="obp"><h4>${esc(OB_T[k])}</h4>
     ${row('Contrato', OB.x[k] ? '⚠ monto atípico' : esc(mmK(OB.m[k])) + ' MM$')}${row('Adjudicación', obYm(OB.y[k]))}${row('Avance físico', f0(OB.a[k]) + '%' + (OB.p[k] ? ' · paralizada' : ''))}<div class="av"><i style="width:${Math.max(0, Math.min(100, OB.a[k]))}%"></i></div>
     ${row('Comuna', esc(obCom(k)))}${row('Tipo de obra', esc(OB.kv[OB.k[k]]))}
     <div class="sm" style="margin-top:4px">${esc(obServ(k))}${OB_MP[k] ? ` · Mercado Público <span class="m">${esc(OB_MP[k])}</span>` : ''}</div>
-    ${i >= 0 ? `<div class="bip">BIP <b>${BX.code[i]}</b> · ${esc(BX_N[i])}<div class="sm">${esc(catLab(bxCat(i)))} · ${BX.c[i] >= 0 ? esc(CN(BX.c[i])) : 'Regional o sin comuna'}</div></div><button type="button" class="btn sm pri" data-obk="${k}">Ver iniciativa en la tabla</button>` : '<p class="sm" style="margin:8px 0 0">Sin código BIP en la base del radar.</p>'}</div>`;
+    ${i >= 0 ? `<div class="bip${ap ? ' ap' : ''}">${ap ? `<div class="sm" style="margin-bottom:3px">Posible iniciativa · vínculo aproximado por nombre, similitud ${obSim(k)}</div>` : ''}BIP <b>${BX.code[i]}</b> · ${esc(BX_N[i])}<div class="sm">${esc(catLab(bxCat(i)))} · ${BX.c[i] >= 0 ? esc(CN(BX.c[i])) : 'Regional o sin comuna'}</div></div><button type="button" class="btn sm pri" data-obk="${k}">Ver iniciativa en la tabla</button>` : '<p class="sm" style="margin:8px 0 0">Sin código BIP en la base del radar.</p>'}</div>`;
 }
+document.addEventListener('change', e => { if (e.target && e.target.id === 'bx-mapx') { BXF.mapx = e.target.checked; renderBxMap(); } });
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-obk]'); if (b) { if (BXM && BXM.map) BXM.map.closePopup(); bxOvClick(+b.dataset.obk); } });
 function renderBxMap() {
   if (!BXM && HAS_LF) {
@@ -2006,10 +2022,11 @@ function renderBxMap() {
   else { BXM.paint(fills, BXF.c >= 0 ? [BXF.c] : [], BXF.t >= 0 ? [BXF.t] : []); bxOvPaint(vis); }
   const rows = SEQ.map((col, i) => [col, M.f(br[i]) + ' – ' + M.f(br[i + 1])]).reverse();
   if (uv.some(v => !(v > 0))) rows.push([NODATA, 'Sin iniciativas con estos filtros']);
-  let nL = 0, nU = 0; for (let k = 0; k < NOB; k++) { if (vis[k] === 2) nL++; else if (vis[k] === 1) nU++; }
-  const ptRow = (c, l) => `<span class="row"><svg class="obsw" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="${c === 'l' ? 4.5 : 3.4}" class="${c}"/></svg>${esc(l)}</span>`;
+  let nL = 0, nU = 0, nA = 0; for (let k = 0; k < NOB; k++) { if (vis[k] === 2) nL++; else if (vis[k] === 3) nA++; else if (vis[k] === 1) nU++; }
+  const ptRow = (c, l) => `<span class="row"><svg class="obsw" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="${c === 'u' ? 3.4 : 4.3}" class="${c}"/></svg>${esc(l)}</span>`;
   BXM.legend.innerHTML = `<b>${esc(M.l)} por ${ter ? 'territorio' : 'comuna'}</b>` + rows.map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${esc(l)}</span>`).join('') +
-    (OB && BXF.mpts !== 'off' ? `<b style="margin-top:4px">Obras con coordenadas (Geo-CGR)</b>` + ptRow('l', `${pl(nL, 'obra vinculada', 'obras vinculadas')} a las iniciativas filtradas`) + (BXF.mpts === 'all' ? ptRow('u', `${pl(nU, 'obra', 'obras')} sin código BIP en el radar`) : '') : '');
+    (OB && BXF.mpts !== 'off' ? `<b style="margin-top:4px">Obras con coordenadas (Geo-CGR)</b>` + ptRow('l', `${pl(nL, 'obra vinculada', 'obras vinculadas')} por código BIP`) + (BXF.mapx ? ptRow('a', `${pl(nA, 'obra vinculada', 'obras vinculadas')} por nombre (aproximado)`) : '') + (BXF.mpts === 'all' ? ptRow('u', `${pl(nU, 'obra', 'obras')} sin vínculo con la base del radar`) : '')
+      + (NOB_A ? `<label class="row obchk" for="bx-mapx"><input type="checkbox" id="bx-mapx"${BXF.mapx ? ' checked' : ''}> Incluir vínculos por nombre</label>` : '') : '');
   // ranking
   const ord = units.map((j, r) => [j, uv[r]]).sort((a, b) => (b[1] || 0) - (a[1] || 0));
   const mx = Math.max(1e-9, ...ord.map(x => x[1] || 0), m === 'pc' ? 0 : bxVal(BXA.reg, POPREG, m));
@@ -2023,22 +2040,22 @@ function renderBxMap() {
   const cats = bxTopCats(selA, 6), cmx = Math.max(1, ...cats.map(x => x[1].n));
   $('#bx-sel').innerHTML = `<div class="bxs-h"><b>${esc(selN)}</b>${BXF.c >= 0 || BXF.t !== -1 ? '<button type="button" class="btn sm" id="bx-msel-x">Quitar</button>' : ''}</div>
     <div class="bxs-k"><span><b>${f0(selA.n)}</b> ${selA.n === 1 ? 'iniciativa' : 'iniciativas'}</span><span><b>${mmK(selA.s)}</b> MM$ solicitados</span><span><b>${mmK(selA.t)}</b> MM$ costo total</span>${OB ? (() => {
-      const inSel = k => (BXF.c >= 0 ? OB.c[k] === BXF.c : BXF.t >= 0 ? OB.c[k] >= 0 && TOF[OB.c[k]] === BXF.t : BXF.t === -2 ? BX.c[OB_I[k]] < 0 : true);
-      let n = 0; const ini = new Set(); for (let k = 0; k < NOB; k++) if (vis[k] === 2 && inSel(k)) { n++; ini.add(OB_I[k]); }
-      return BXF.mpts === 'off' ? '' : `<span><b>${f0(n)}</b> ${n === 1 ? 'obra georreferenciada' : 'obras georreferenciadas'} de ${pl(ini.size, 'iniciativa', 'iniciativas')}</span>`;
+      const inSel = k => (BXF.c >= 0 ? OB.c[k] === BXF.c : BXF.t >= 0 ? OB.c[k] >= 0 && TOF[OB.c[k]] === BXF.t : BXF.t === -2 ? BX.c[OB_J[k]] < 0 : true);
+      let n = 0, na = 0; const ini = new Set(); for (let k = 0; k < NOB; k++) if (vis[k] >= 2 && inSel(k)) { n++; if (vis[k] === 3) na++; ini.add(OB_J[k]); }
+      return BXF.mpts === 'off' ? '' : `<span><b>${f0(n)}</b> ${n === 1 ? 'obra georreferenciada' : 'obras georreferenciadas'} de ${pl(ini.size, 'iniciativa', 'iniciativas')}${na ? ` (${f0(na)} por nombre)` : ''}</span>`;
     })() : ''}</div>
     ${cats.length ? `<div class="lbl" style="margin:8px 0 4px">Tipos de inversión más frecuentes</div>${cats.map(([k, r]) => `<div class="bxs-c"><span title="${esc(catLab(k))}">${esc(catLab(k))}</span><span class="bt"><i style="width:${(r.n / cmx * 100).toFixed(1)}%"></i></span><span class="m">${f0(r.n)} · ${mmK(r.t)} MM$</span></div>`).join('')}` : '<p class="note">Sin iniciativas con estos filtros.</p>'}`;
   const xb = $('#bx-msel-x'); if (xb) xb.addEventListener('click', () => { BXF.t = -1; BXF.c = -1; BXF.page = 0; renderBip(); if (BXM && BXM.map) BXM.fly('reg', -1); });
   const nx = BXL.filter(o => o.ref.x).length;
-  $('#bx-mnote').textContent = `Cada iniciativa se ubica en la comuna registrada en el BIP; los territorios suman sus comunas. ${f0(BXA.reg.n)} iniciativas de alcance regional o sin comuna (${mmK(BXA.reg.t)} MM$ de costo total) no se pueden ubicar en el mapa y se muestran aparte en el ranking. El mapa aplica todos los filtros de arriba salvo territorio y comuna, y usa la ${BXF.y ? `postulación de ${BXF.y}` : 'última postulación de cada iniciativa'}.${nx ? ` ${pl(nx, 'iniciativa con monto atípico queda', 'iniciativas con montos atípicos quedan')} fuera de los montos.` : ''} Colores por quintiles.${OB ? ` Puntos y líneas: obras de Geo-CGR (Contraloría) adjudicadas desde 2019, ubicadas con las coordenadas que registra cada servicio (descarga del ${OB.meta.descargado.split('-').reverse().join('/')}). ${f0(NBX_OB)} de las ${f0(NBX)} iniciativas tienen al menos una obra vinculada por código BIP; la mayoría de las obras de Geo-CGR no informa código BIP. Las obras sin código BIP no responden a los filtros. Clic en una obra vinculada para ver su iniciativa en la tabla.` : ''}`;
+  $('#bx-mnote').textContent = `Cada iniciativa se ubica en la comuna registrada en el BIP; los territorios suman sus comunas. ${f0(BXA.reg.n)} iniciativas de alcance regional o sin comuna (${mmK(BXA.reg.t)} MM$ de costo total) no se pueden ubicar en el mapa y se muestran aparte en el ranking. El mapa aplica todos los filtros de arriba salvo territorio y comuna, y usa la ${BXF.y ? `postulación de ${BXF.y}` : 'última postulación de cada iniciativa'}.${nx ? ` ${pl(nx, 'iniciativa con monto atípico queda', 'iniciativas con montos atípicos quedan')} fuera de los montos.` : ''} Colores por quintiles.${OB ? ` Puntos y líneas: obras de Geo-CGR (Contraloría) adjudicadas desde 2019, ubicadas con las coordenadas que registra cada servicio (descarga del ${OB.meta.descargado.split('-').reverse().join('/')}). ${f0(NBX_OB)} de las ${f0(NBX)} iniciativas tienen al menos una obra vinculada por código BIP; la mayoría de las obras de Geo-CGR no informa código BIP.${NOB_A ? (() => { const v = OB.meta.vinculo_nombre || {}; return ` Otras ${f0(NOB_A)} obras sin código (o con un código que no está en la base) se vincularon por nombre a ${f0(NBX_OBA)} iniciativas de su comuna, con símbolo hueco: vínculo aproximado, a revisar. Probado con las obras que sí traen código, el método acierta ${pc(v.precision, 0)} de las veces que propone una iniciativa.`; })() : ''} Las obras sin vínculo no responden a los filtros. Clic en una obra vinculada para ver su iniciativa en la tabla.` : ''}`;
 }
 function exportBip() {
-  const lines = [['Código BIP', 'Nombre', 'Institución responsable', 'Comuna', 'Territorio ERD', 'Categoría (aprox.)', 'Lineamientos (aprox.)', 'Fuente de financiamiento', 'Año postulación', 'Etapa', 'RATE', 'Solicitado (M$)', 'Costo total etapa (M$)', 'Asignado vigente (M$)', 'Gasto vigente (M$)', 'Monto atípico', 'Obras en Geo-CGR', 'Descripción (extracto)']];
+  const lines = [['Código BIP', 'Nombre', 'Institución responsable', 'Comuna', 'Territorio ERD', 'Categoría (aprox.)', 'Lineamientos (aprox.)', 'Fuente de financiamiento', 'Año postulación', 'Etapa', 'RATE', 'Solicitado (M$)', 'Costo total etapa (M$)', 'Asignado vigente (M$)', 'Gasto vigente (M$)', 'Monto atípico', 'Obras en Geo-CGR (por código)', 'Obras en Geo-CGR (por nombre, aproximado)', 'Descripción (extracto)']];
   for (const { i } of BX_LAST) {
     const c = BX.c[i];
     for (const kk of BX_ROWS[i]) {
       if (BXF.y && BXH.y[kk] !== BXF.y) continue;
-      lines.push([BX.code[i], BX_N[i], BX_INS(i), c >= 0 ? CN(c) : '', c >= 0 ? TER[TOF[c]].n : 'Regional', catLab(bxCat(i)), LIN.filter((l, j) => (BX.L[i] >> j) & 1).map(l => l.k).join(' '), BX.finv[BX.fin[i]], BXH.y[kk], BX.etv[BXH.e[kk]], BX.ratev[BXH.r[kk]], BXH.s[kk] ?? '', BXH.t[kk] ?? '', BXH.a[kk] ?? '', BXH.g[kk] ?? '', BXH.x[kk] ? 'Sí' : '', BX_OB[i].length || '', BX_D[i]]);
+      lines.push([BX.code[i], BX_N[i], BX_INS(i), c >= 0 ? CN(c) : '', c >= 0 ? TER[TOF[c]].n : 'Regional', catLab(bxCat(i)), LIN.filter((l, j) => (BX.L[i] >> j) & 1).map(l => l.k).join(' '), BX.finv[BX.fin[i]], BXH.y[kk], BX.etv[BXH.e[kk]], BX.ratev[BXH.r[kk]], BXH.s[kk] ?? '', BXH.t[kk] ?? '', BXH.a[kk] ?? '', BXH.g[kk] ?? '', BXH.x[kk] ? 'Sí' : '', BX_OB[i].length || '', BX_OBA[i].length || '', BX_D[i]]);
     }
   }
   saveCSV(lines, 'iniciativas_bip_araucania.csv');

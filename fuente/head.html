@@ -594,10 +594,15 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .ov path{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .ov path.l{stroke:var(--sel);stroke-width:2.6px;cursor:pointer}
 .ov path.u{stroke:var(--mid);stroke-opacity:.6;stroke-width:1.6px}
+.ov circle.a{fill:var(--sel);fill-opacity:.22;stroke:var(--sel);stroke-width:1.4px;vector-effect:non-scaling-stroke;cursor:pointer}
+.ov path.a{stroke:var(--sel);stroke-width:2.2px;stroke-dasharray:5 4;cursor:pointer}
 .ov .l:hover{fill-opacity:1;stroke:var(--ink);stroke-width:1.4px}
 .ov path.l:hover{stroke:var(--ink);stroke-width:3.4px}
 .obsw{width:12px;height:12px;flex:none}
-.obsw .l{fill:var(--sel)}.obsw .u{fill:var(--mid);fill-opacity:.7}
+.obsw .l{fill:var(--sel)}.obsw .u{fill:var(--mid);fill-opacity:.7}.obsw .a{fill:var(--sel);fill-opacity:.22;stroke:var(--sel);stroke-width:1.6}
+.obchk{gap:6px!important;cursor:pointer;flex-basis:100%}.obchk input{accent-color:var(--acc);margin:0}
+.oblist.ap li{border-left-style:dashed}
+.obp .bip.ap{border:1px dashed var(--sel)}
 .oblist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .oblist li{font-size:12.5px;line-height:1.4;border-left:2px solid var(--sel);padding-left:8px}
 .oblist b{font-weight:500;display:block}

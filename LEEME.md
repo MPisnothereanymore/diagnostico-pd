@@ -53,7 +53,7 @@ Los scripts arman el paquete de datos en seis pasos encadenados. Cada uno lee el
 | 4 | `prep_exe.py` | Ejecutores habilitados (Res. 1/2026 y Res. 33/2024) | `entradas/res1_2026.json`, `DB Araucania/FRPD_fase3/q.txt` | `pack_frpd4.b64` |
 | 5 | `prep_bip.py` | Explorador de iniciativas BIP | `DB Araucania/FRPD_fase2/bip_araucania_2019_2027.csv` | `pack_frpd5.b64` |
 | 6 | `prep_ctx.py` | Evidencia territorial (SAE 2022, Censo 2024, CONADI, ARClim, CONAF, PROT, CAF 2021, SINIM, Banco Central) | `DB Araucania/FRPD_datos2/`, `DB Araucania/Incendios/`, capas demográficas | `../fuente/pack_frpd6.b64` |
-| 7 | `prep_geocgr.py` | Obras con coordenadas de Geo-CGR (Contraloría), vinculadas a las iniciativas BIP por código. Independiente de los pasos 1 a 6 | `DB Araucania/GeoCGR/geocgr_araucania_2019_2026.json`, o una descarga nueva con `--descargar` | `../fuente/obras_geocgr.b64` |
+| 7 | `prep_geocgr.py` | Obras con coordenadas de Geo-CGR (Contraloría), vinculadas a las iniciativas BIP por código y, para las obras sin código, por similitud de nombre dentro de la comuna (vínculo aproximado). Independiente de los pasos 1 a 6 | `DB Araucania/GeoCGR/geocgr_araucania_2019_2026.json`, o una descarga nueva con `--descargar` | `../fuente/obras_geocgr.b64` |
 
 **Cómo ejecutarlos.** Abre una terminal dentro de la carpeta `procesamiento` y usa el modo UTF-8 de Python para que los acentos se lean bien en Windows:
 

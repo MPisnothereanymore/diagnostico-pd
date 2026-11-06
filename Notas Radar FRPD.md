@@ -276,6 +276,14 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Vínculo con el BIP.** 709 obras traen código BIP, que corresponden a 419 códigos distintos. 385 de esos códigos están en la base BIP del radar (7% de las 5.199 iniciativas) y suman 637 obras. Geo-CGR solo registra contratos de obra, no estudios, diseños ni programas, y la mayoría de los servicios no informa el código BIP.
 - **Coordenadas del BIP.** La base BIDAT marca 4.395 de las 5.199 iniciativas con georreferenciación (`EBI_TIENE_GEO = 1`), pero no publica las coordenadas; solo trae un texto de localización (`EBI_LOCALIZACION_GEOGRAFICA`). La plataforma BIP Data del MDSF las muestra en su mapa, pero el 06/11/2026 no cargó ni desde Claude ni desde el navegador de DIFOI.
 - **Montos atípicos.** 2 obras declaran montos contratados superiores a 50.000 MM$ y se marcan con ⚠.
+- **Vínculo aproximado por nombre.** Se usa para las obras sin código BIP y para las que traen un código que no está en la base del radar.
+  - *Método.* Similitud coseno TF-IDF entre el título de la obra y el nombre de cada iniciativa, con palabras y pares de palabras, sin tildes, conectores ni nombres de comuna, y con abreviaturas normalizadas (MEJ., CONST., APR y otras).
+  - *Candidatas.* Iniciativas de la misma comuna, o regionales con un castigo de 0,08, que tengan alguna postulación a ejecución y cuyo período de postulación cubra el año de la obra, desde un año antes hasta dos después.
+  - *Criterio.* Se acepta la mejor candidata si su similitud es de al menos 0,50 y supera a la segunda por 0,10.
+  - *Calibración.* Se probó con las 637 obras que sí traen código. El método propone iniciativa para 274 de ellas y acierta en 254, una precisión de 92,7%. Si se quita la iniciativa verdadera de las candidatas, propone una equivocada en 7,1% de los casos.
+  - *Resultado.* 416 obras quedan vinculadas por nombre a 379 iniciativas, de las cuales 351 no tenían obras vinculadas por código. Con eso, las iniciativas con al menos una obra pasan de 385 a 736.
+  - *Códigos con error.* De las 72 obras con un código que no está en la base, 12 coinciden por nombre con una iniciativa de código casi igual (por ejemplo, 40008587 por 40008585), lo que sugiere errores de digitación en Geo-CGR.
+  - *En el tablero.* Estas obras se muestran con símbolo hueco y su similitud. Se pueden ocultar con la casilla «Incluir vínculos por nombre», y el detalle de la iniciativa las lista aparte como «Posibles obras».
 - **Uso en el tablero.** El mapa de iniciativas BIP muestra por defecto las obras vinculadas a las iniciativas que pasan los filtros. La opción «Todas las obras» agrega en gris las que no tienen código BIP. Al hacer clic en una obra se abre su iniciativa en la tabla, y el detalle de cada iniciativa lista sus obras.
 
 ## Mapa interactivo de iniciativas BIP (Leaflet, 6 de noviembre de 2026)
