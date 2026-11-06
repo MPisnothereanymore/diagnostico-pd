@@ -534,7 +534,25 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
   .work:not(.norail):not(.collapsed) .ficha{position:static;max-height:none}
 }
 @media (max-width:1440px){.kpis.k6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ---------- mapa de iniciativas BIP ---------- */
+.g-bxm{grid-template-columns:minmax(0,1.05fr) minmax(300px,1fr);gap:20px}
+.bxs{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.bxs-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bxs-h b{font-size:15px;font-weight:600}
+.bxs-k{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--ink2);margin-top:6px}
+.bxs-k b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.bxs-c{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) 150px;gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);padding:2px 0}
+.bxs-c span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bxs-c .bt{height:8px;position:relative;background:var(--surf3);border-radius:2px}
+.bxs-c .bt i{position:absolute;left:0;top:0;bottom:0;background:var(--data);border-radius:2px}
+.bxs-c .m{font-family:var(--f-mono);font-size:11.5px;text-align:right}
+#bx-rank{max-height:440px}
+#bx-rank .brow{grid-template-columns:minmax(0,44%) minmax(0,1fr) 84px}
+.brow .bl small{color:var(--muted);font-weight:400}
+.rk-sep{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:10px 2px 4px;border-top:1px solid var(--line);margin-top:6px}
+
 @media (max-width:1060px){
+  .g-bxm{grid-template-columns:minmax(0,1fr)}
   .work{grid-template-columns:minmax(0,1fr)}
   .rail{position:fixed;inset:0 auto 0 0;top:0;width:min(330px,88vw);z-index:40;max-height:none;height:100%;border-radius:0;transform:translateX(-102%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.6)}
   .rail.open{transform:none}
@@ -1201,6 +1219,19 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       <label class="ctrl">RATE<select class="sel" id="bx-r"></select></label>
       <button class="btn clear" id="bx-clear" type="button">Quitar filtros</button>
     </div>
+    <section class="card" id="bx-mapc">
+      <div class="card-h">
+        <div><h2>Mapa de iniciativas por comuna y territorio</h2><div class="sub">Pasa el cursor para ver cifras · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla</div></div>
+        <div class="ctrls"><div class="seg" id="bx-mlev" role="group" aria-label="Nivel del mapa"></div><div class="seg" id="bx-mmet" role="group" aria-label="Medida del mapa"></div></div>
+      </div>
+      <div class="card-b">
+        <div class="grid g-bxm">
+          <div><div class="mapwrap" id="bx-m"></div></div>
+          <div class="bx-side"><div class="bxs" id="bx-sel"></div><div class="lbl" style="margin:14px 0 6px">Ranking</div><div class="bars" id="bx-rank"></div></div>
+        </div>
+        <p class="note" id="bx-mnote" style="margin-top:10px"></p>
+      </div>
+    </section>
     <section class="card">
       <div class="card-h"><div><h2 id="bx-title">Iniciativas de inversión en el BIP</h2><div class="sub" id="bx-sub"></div></div><div class="ctrls"><button class="btn pri" id="bx-csv" type="button" hidden>Exportar CSV</button></div></div>
       <div class="tbl-wrap" id="bx-tbl"></div>

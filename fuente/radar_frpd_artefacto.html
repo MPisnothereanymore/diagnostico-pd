@@ -534,7 +534,25 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
   .work:not(.norail):not(.collapsed) .ficha{position:static;max-height:none}
 }
 @media (max-width:1440px){.kpis.k6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ---------- mapa de iniciativas BIP ---------- */
+.g-bxm{grid-template-columns:minmax(0,1.05fr) minmax(300px,1fr);gap:20px}
+.bxs{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.bxs-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bxs-h b{font-size:15px;font-weight:600}
+.bxs-k{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--ink2);margin-top:6px}
+.bxs-k b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.bxs-c{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) 150px;gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);padding:2px 0}
+.bxs-c span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bxs-c .bt{height:8px;position:relative;background:var(--surf3);border-radius:2px}
+.bxs-c .bt i{position:absolute;left:0;top:0;bottom:0;background:var(--data);border-radius:2px}
+.bxs-c .m{font-family:var(--f-mono);font-size:11.5px;text-align:right}
+#bx-rank{max-height:440px}
+#bx-rank .brow{grid-template-columns:minmax(0,44%) minmax(0,1fr) 84px}
+.brow .bl small{color:var(--muted);font-weight:400}
+.rk-sep{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:10px 2px 4px;border-top:1px solid var(--line);margin-top:6px}
+
 @media (max-width:1060px){
+  .g-bxm{grid-template-columns:minmax(0,1fr)}
   .work{grid-template-columns:minmax(0,1fr)}
   .rail{position:fixed;inset:0 auto 0 0;top:0;width:min(330px,88vw);z-index:40;max-height:none;height:100%;border-radius:0;transform:translateX(-102%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.6)}
   .rail.open{transform:none}
@@ -1201,6 +1219,19 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       <label class="ctrl">RATE<select class="sel" id="bx-r"></select></label>
       <button class="btn clear" id="bx-clear" type="button">Quitar filtros</button>
     </div>
+    <section class="card" id="bx-mapc">
+      <div class="card-h">
+        <div><h2>Mapa de iniciativas por comuna y territorio</h2><div class="sub">Pasa el cursor para ver cifras · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla</div></div>
+        <div class="ctrls"><div class="seg" id="bx-mlev" role="group" aria-label="Nivel del mapa"></div><div class="seg" id="bx-mmet" role="group" aria-label="Medida del mapa"></div></div>
+      </div>
+      <div class="card-b">
+        <div class="grid g-bxm">
+          <div><div class="mapwrap" id="bx-m"></div></div>
+          <div class="bx-side"><div class="bxs" id="bx-sel"></div><div class="lbl" style="margin:14px 0 6px">Ranking</div><div class="bars" id="bx-rank"></div></div>
+        </div>
+        <p class="note" id="bx-mnote" style="margin-top:10px"></p>
+      </div>
+    </section>
     <section class="card">
       <div class="card-h"><div><h2 id="bx-title">Iniciativas de inversión en el BIP</h2><div class="sub" id="bx-sub"></div></div><div class="ctrls"><button class="btn pri" id="bx-csv" type="button" hidden>Exportar CSV</button></div></div>
       <div class="tbl-wrap" id="bx-tbl"></div>
@@ -2951,12 +2982,14 @@ function bxRef(i) {
   for (const k of rows) { if (BXH.s[k] != null) sS = (sS || 0) + BXH.s[k]; if (BXH.t[k] != null) tT = Math.max(tT || 0, BXH.t[k]); x = x || BXH.x[k]; }
   return { rows, y: BXH.y[lastk], s: sS, t: tT, e: BXH.e[lastk], r: BXH.r[lastk], x };
 }
-function bxList() {
+function bxList(noGeo) {
   const q = normTxt(BXF.q.trim()), out = [];
   for (let i = 0; i < NBX; i++) {
     const c = BX.c[i];
-    if (BXF.t === -2 ? c >= 0 : BXF.t >= 0 && (c < 0 || TOF[c] !== BXF.t)) continue;
-    if (BXF.c >= 0 && c !== BXF.c) continue;
+    if (!noGeo) {
+      if (BXF.t === -2 ? c >= 0 : BXF.t >= 0 && (c < 0 || TOF[c] !== BXF.t)) continue;
+      if (BXF.c >= 0 && c !== BXF.c) continue;
+    }
     const cat = bxCat(i);
     if (BXF.cat === 'frpd' ? !BX_FRPD.has(cat) : BXF.cat === 'soc' ? !cat.startsWith('soc:') : BXF.cat && cat !== BXF.cat) continue;
     if (BXF.L >= 0 && !((BX.L[i] >> BXF.L) & 1)) continue;
@@ -2967,6 +3000,7 @@ function bxList() {
     if (BXF.r >= 0 && ref.r !== BXF.r) continue;
     out.push({ i, ref });
   }
+  if (noGeo) return out;
   const k = BXF.sort, d = BXF.dir;
   const val = o => (k === 's' ? (o.ref.x ? -1 : o.ref.s ?? -1) : k === 't' ? (o.ref.x ? -1 : o.ref.t ?? -1) : k === 'y' ? o.ref.y : k === 'code' ? BX.code[o.i] : BX_N[o.i]);
   out.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === 'string' ? x.localeCompare(y, 'es') : x - y) * d; });
@@ -3028,6 +3062,78 @@ function renderBip() {
   $('#bx-prev').onclick = () => { BXF.page--; renderBip(); $('#bx-tbl').scrollIntoView({ block: 'start' }); };
   $('#bx-next').onclick = () => { BXF.page++; renderBip(); $('#bx-tbl').scrollIntoView({ block: 'start' }); };
   $('#bx-csv').hidden = !DL;
+  renderBxMap();
+}
+
+// ---- mapa de iniciativas por comuna y territorio (aplica todos los filtros salvo territorio y comuna) ----
+Object.assign(BXF, { mlev: 'com', mmet: 'n' });
+const BXMET = [
+  { k: 'n', short: 'N° de iniciativas', l: 'Iniciativas', f: v => f0(v) },
+  { k: 's', short: 'Solicitado', l: 'Monto solicitado (MM$)', f: v => mmK(v) },
+  { k: 't', short: 'Costo total', l: 'Costo total de las etapas (MM$)', f: v => mmK(v) },
+  { k: 'pc', short: 'Por habitante', l: 'Costo total por habitante (miles de $)', f: v => (isFinite(v) ? f0(v) : '–') },
+];
+const BXMK = Object.fromEntries(BXMET.map(m => [m.k, m]));
+let BXM = null, BXA = null;
+function bxAgg() {
+  const z = () => ({ n: 0, s: 0, t: 0, cat: {} });
+  const cm = Array.from({ length: NC }, z), tm = TER.map(z), reg = z(), all = z();
+  const add = (a, o) => { a.n++; if (!o.ref.x) { a.s += o.ref.s || 0; a.t += o.ref.t || 0; } const k = bxCat(o.i), r = a.cat[k] || (a.cat[k] = { n: 0, t: 0 }); r.n++; if (!o.ref.x) r.t += o.ref.t || 0; };
+  for (const o of bxList(true)) { const c = BX.c[o.i]; add(all, o); if (c >= 0) { add(cm[c], o); add(tm[TOF[c]], o); } else add(reg, o); }
+  return { cm, tm, reg, all };
+}
+const bxVal = (a, pop, m) => (m === 'pc' ? (pop ? a.t / pop : NaN) : a[m]);
+const bxUnitVal = (lev, j, m) => (lev === 'ter' ? bxVal(BXA.tm[j], TER[j].pop, m) : bxVal(BXA.cm[j], POP[j], m));
+const bxTopCats = (a, n) => Object.entries(a.cat).sort((x, y) => y[1].n - x[1].n).slice(0, n);
+function bxPick(lev, j) {
+  if (lev === 'reg') { BXF.t = BXF.t === -2 ? -1 : -2; BXF.c = -1; }
+  else if (lev === 'ter') { BXF.t = BXF.t === j ? -1 : j; BXF.c = -1; }
+  else { BXF.c = BXF.c === j ? -1 : j; BXF.t = -1; }
+  BXF.page = 0; BXF.open.clear(); hideTip(); renderBip();
+}
+function bxMapTip(ci) {
+  const ter = BXF.mlev === 'ter', j = ter ? TOF[ci] : ci, a = ter ? BXA.tm[j] : BXA.cm[j], pop = ter ? TER[j].pop : POP[ci];
+  const cats = bxTopCats(a, 2).map(([k, r]) => `${catLab(k)} (${f0(r.n)})`).join(' · ');
+  const on = ter ? BXF.t === j : BXF.c === ci;
+  return { title: ter ? TER[j].n : `${CN(ci)} · ${TER[TOF[ci]].n}`, rows: [[f0(a.n), 'iniciativas'], [mmK(a.s), 'MM$ solicitados'], [mmK(a.t), 'MM$ costo total de las etapas'], [isFinite(a.t / pop) ? f0(a.t / pop) : '–', 'mil $ de costo por habitante']], note: (cats ? 'Más frecuentes: ' + cats + '. ' : '') + (on ? 'Clic para quitar el filtro' : 'Clic para filtrar la tabla') };
+}
+function renderBxMap() {
+  if (!BXM) {
+    BXM = createMapE($('#bx-m'), { click: ci => bxPick(BXF.mlev, BXF.mlev === 'ter' ? TOF[ci] : ci), tip: bxMapTip, selected: () => (BXF.c >= 0 ? new Set([BXF.c]) : new Set()), terLabels: () => BXF.mlev === 'ter', hoverTer: () => BXF.mlev === 'ter' });
+    $('#bx-mlev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mlev = b.dataset.k; renderBxMap(); });
+    $('#bx-mmet').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mmet = b.dataset.k; renderBxMap(); });
+    $('#bx-rank').addEventListener('click', e => { const b = e.target.closest('[data-lev]'); if (b) bxPick(b.dataset.lev, +b.dataset.j); });
+  }
+  BXA = bxAgg();
+  const lev = BXF.mlev, m = BXF.mmet, M = BXMK[m], ter = lev === 'ter';
+  $('#bx-mlev').innerHTML = [['com', 'Comunas'], ['ter', 'Territorios ERD']].map(([k, l]) => `<button type="button" data-k="${k}" aria-pressed="${lev === k}">${l}</button>`).join('');
+  $('#bx-mmet').innerHTML = BXMET.map(x => `<button type="button" data-k="${x.k}" aria-pressed="${m === x.k}">${x.short}</button>`).join('');
+  // colores por quintiles de las unidades con iniciativas
+  const units = ter ? TER.map((t, j) => j) : ALLC, uv = units.map(j => bxUnitVal(lev, j, m));
+  const br = quantBreaks(uv.filter(v => v > 0));
+  const colOf = v => (v > 0 && isFinite(v) ? SEQ[clsOf(v, br)] : NODATA);
+  const fills = ALLC.map(c => colOf(ter ? uv[TOF[c]] : uv[c]));
+  BXM.paint(fills, BXF.c >= 0 ? [BXF.c] : [], BXF.t >= 0 ? [BXF.t] : []);
+  const rows = SEQ.map((col, i) => [col, M.f(br[i]) + ' – ' + M.f(br[i + 1])]).reverse();
+  if (uv.some(v => !(v > 0))) rows.push([NODATA, 'Sin iniciativas con estos filtros']);
+  BXM.legend.innerHTML = `<b>${esc(M.l)} por ${ter ? 'territorio' : 'comuna'}</b>` + rows.map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${esc(l)}</span>`).join('');
+  // ranking
+  const ord = units.map((j, r) => [j, uv[r]]).sort((a, b) => (b[1] || 0) - (a[1] || 0));
+  const mx = Math.max(1e-9, ...ord.map(x => x[1] || 0), m === 'pc' ? 0 : bxVal(BXA.reg, POPREG, m));
+  const bar = (lev2, j, lab, sub, v, on) => `<button type="button" class="brow${on ? ' on' : ''}" data-lev="${lev2}" data-j="${j}"><span class="bl" title="${esc(lab)}">${esc(lab)}${sub ? `<small> · ${esc(sub)}</small>` : ''}</span><span class="bt"><i style="width:${Math.max(0, (v || 0) / mx * 100).toFixed(1)}%"></i></span><span class="bv">${M.f(v)}</span></button>`;
+  let rk = ord.map(([j, v]) => bar(lev, j, ter ? TER[j].n : CN(j), ter ? '' : TER[TOF[j]].k, v, ter ? BXF.t === j : BXF.c === j)).join('');
+  if (m !== 'pc') rk += `<div class="rk-sep">Sin comuna asignada (no aparecen en el mapa)</div>` + bar('reg', -2, 'Regionales o sin comuna', '', bxVal(BXA.reg, 0, m), BXF.t === -2);
+  $('#bx-rank').innerHTML = rk;
+  // resumen de la selección: qué tipo de inversión concentra
+  const selA = BXF.c >= 0 ? BXA.cm[BXF.c] : BXF.t >= 0 ? BXA.tm[BXF.t] : BXF.t === -2 ? BXA.reg : BXA.all;
+  const selN = BXF.c >= 0 ? `${CN(BXF.c)} · ${TER[TOF[BXF.c]].n}` : BXF.t >= 0 ? TER[BXF.t].n : BXF.t === -2 ? 'Iniciativas regionales o sin comuna' : 'Toda la región';
+  const cats = bxTopCats(selA, 6), cmx = Math.max(1, ...cats.map(x => x[1].n));
+  $('#bx-sel').innerHTML = `<div class="bxs-h"><b>${esc(selN)}</b>${BXF.c >= 0 || BXF.t !== -1 ? '<button type="button" class="btn sm" id="bx-msel-x">Quitar</button>' : ''}</div>
+    <div class="bxs-k"><span><b>${f0(selA.n)}</b> iniciativas</span><span><b>${mmK(selA.s)}</b> MM$ solicitados</span><span><b>${mmK(selA.t)}</b> MM$ costo total</span></div>
+    ${cats.length ? `<div class="lbl" style="margin:8px 0 4px">Tipos de inversión más frecuentes</div>${cats.map(([k, r]) => `<div class="bxs-c"><span title="${esc(catLab(k))}">${esc(catLab(k))}</span><span class="bt"><i style="width:${(r.n / cmx * 100).toFixed(1)}%"></i></span><span class="m">${f0(r.n)} · ${mmK(r.t)} MM$</span></div>`).join('')}` : '<p class="note">Sin iniciativas con estos filtros.</p>'}`;
+  const xb = $('#bx-msel-x'); if (xb) xb.addEventListener('click', () => { BXF.t = -1; BXF.c = -1; BXF.page = 0; renderBip(); });
+  const nx = bxList(true).filter(o => o.ref.x).length;
+  $('#bx-mnote').textContent = `Cada iniciativa se ubica en la comuna registrada en el BIP; los territorios suman sus comunas. ${f0(BXA.reg.n)} iniciativas de alcance regional o sin comuna (${mmK(BXA.reg.t)} MM$ de costo total) no se pueden ubicar en el mapa y se muestran aparte en el ranking. El mapa aplica todos los filtros de arriba salvo territorio y comuna, y usa la ${BXF.y ? `postulación de ${BXF.y}` : 'última postulación de cada iniciativa'}.${nx ? ` ${pl(nx, 'iniciativa con monto atípico queda', 'iniciativas con montos atípicos quedan')} fuera de los montos.` : ''} Colores por quintiles.`;
 }
 function exportBip() {
   const lines = [['Código BIP', 'Nombre', 'Institución responsable', 'Comuna', 'Territorio ERD', 'Categoría (aprox.)', 'Lineamientos (aprox.)', 'Fuente de financiamiento', 'Año postulación', 'Etapa', 'RATE', 'Solicitado (M$)', 'Costo total etapa (M$)', 'Asignado vigente (M$)', 'Gasto vigente (M$)', 'Monto atípico', 'Descripción (extracto)']];
@@ -3503,21 +3609,24 @@ const refStats = () => {
 const LABEL_CORE = new Set(['Temuco', 'Angol', 'Victoria', 'Villarrica', 'Pucón', 'Lautaro', 'Lonquimay', 'Carahue', 'Curacautín', 'Padre Las Casas', 'Nueva Imperial', 'Collipulli', 'Loncoche', 'Cunco', 'Traiguén', 'Purén', 'Toltén']);
 function createMapE(host, opt) {
   const svg = svgEl('svg', { viewBox: VB.join(' '), class: 'map-svg static', role: 'img', 'aria-label': 'Mapa de comunas de La Araucanía' });
-  const gCom = svgEl('g'), gTer = svgEl('g'), gSel = svgEl('g'), gLab = svgEl('g');
+  const gCom = svgEl('g'), gTer = svgEl('g'), gSel = svgEl('g'), gLab = svgEl('g'), gTl = svgEl('g');
   const paths = D.comunas.map((c, ci) => { const p = svgEl('path', { d: c.d, class: 'com', 'data-ci': ci, 'vector-effect': 'non-scaling-stroke' }); gCom.appendChild(p); return p; });
   TER.forEach(t => gTer.appendChild(svgEl('path', { d: t.d, class: 'ter', 'vector-effect': 'non-scaling-stroke' })));
   D.comunas.forEach((c, ci) => { const t = svgEl('text', { x: c.lx, y: c.ly, class: 'cl', 'text-anchor': 'middle', 'data-ci': ci }); t.textContent = c.l; gLab.appendChild(t); });
-  svg.append(gCom, gTer, gSel, gLab); host.appendChild(svg);
+  TER.forEach(t => { const tx = svgEl('text', { x: t.lx, y: t.ly, class: 'tl', 'text-anchor': 'middle' }); tx.textContent = t.n; gTl.appendChild(tx); });
+  svg.append(gCom, gTer, gSel, gLab, gTl); host.appendChild(svg);
   const hov = svgEl('path', { class: 'hovo', 'vector-effect': 'non-scaling-stroke' }); hov.style.display = 'none'; gSel.appendChild(hov);
   function scaleText() {
     const w = svg.getBoundingClientRect().width, k = w ? VB[2] / w : 1;
+    const showT = !!(opt.terLabels && opt.terLabels());
     gLab.setAttribute('font-size', 11 * k); gLab.setAttribute('stroke-width', 3.2 * k);
-    for (const t of gLab.children) t.style.display = (LABEL_CORE.has(t.textContent) || opt.selected().has(+t.dataset.ci)) ? '' : 'none';
+    gTl.setAttribute('font-size', 13 * k); gTl.setAttribute('stroke-width', 3.8 * k); gTl.style.display = showT ? '' : 'none';
+    for (const t of gLab.children) t.style.display = (!showT && LABEL_CORE.has(t.textContent)) || opt.selected().has(+t.dataset.ci) ? '' : 'none';
   }
   let hoverCi = -1;
   svg.addEventListener('pointermove', e => {
     const ci = e.target.dataset && e.target.dataset.ci != null && e.target.classList.contains('com') ? +e.target.dataset.ci : -1;
-    if (ci !== hoverCi) { hoverCi = ci; if (ci >= 0) { hov.setAttribute('d', paths[ci].getAttribute('d')); hov.style.display = ''; } else hov.style.display = 'none'; }
+    if (ci !== hoverCi) { hoverCi = ci; if (ci >= 0) { hov.setAttribute('d', opt.hoverTer && opt.hoverTer() ? TER[TOF[ci]].d : paths[ci].getAttribute('d')); hov.style.display = ''; } else hov.style.display = 'none'; }
     if (ci >= 0) { const t = opt.tip(ci); showTip(e, t.title, t.rows, t.note); } else hideTip();
   });
   svg.addEventListener('pointerleave', () => { hoverCi = -1; hov.style.display = 'none'; hideTip(); });
@@ -3526,10 +3635,11 @@ function createMapE(host, opt) {
   new ResizeObserver(() => scaleText()).observe(svg);
   return {
     legend,
-    paint(fills, selected) {
+    paint(fills, selected, terSel = []) {
       for (let ci = 0; ci < NC; ci++) paths[ci].style.fill = fills[ci];
       [...gSel.querySelectorAll('.selo')].forEach(p => p.remove());
       selected.forEach(ci => gSel.appendChild(svgEl('path', { d: paths[ci].getAttribute('d'), class: 'selo', 'vector-effect': 'non-scaling-stroke' })));
+      terSel.forEach(t => gSel.appendChild(svgEl('path', { d: TER[t].d, class: 'selo', 'vector-effect': 'non-scaling-stroke' })));
       scaleText();
     },
   };
