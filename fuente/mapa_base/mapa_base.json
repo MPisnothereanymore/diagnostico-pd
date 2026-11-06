@@ -1,0 +1,23 @@
+{
+ "bounds": [
+  [
+   -39.699319,
+   -73.60033
+  ],
+  [
+   -37.517681,
+   -70.746003
+  ]
+ ],
+ "epsg3857": [
+  -8193151.269276115,
+  -4822343.921982544,
+  -7875408.984764323,
+  -4511512.593257467
+ ],
+ "px": [
+  2400,
+  2348
+ ],
+ "fuente": "Relieve (hillshade), humedales 2020, límites urbanos y red vial de la base regional DB Araucania; renderizado en QGIS (procesamiento/qgis_mapa_base.py)"
+}

@@ -1794,7 +1794,184 @@ function bxOvClick(k) {
   Object.assign(BXF, { q: String(BX.code[i]), page: 0 }); BXF.open = new Set([i]); hideTip(); renderBip();
   $('#bx-tbl').scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
+// ---- mapa interactivo con Leaflet (si la librería no carga, queda el mapa SVG) ----
+const HAS_LF = typeof window.L !== 'undefined' && typeof window.L.map === 'function';
+let BASEMAP = null;
+try { const el = document.getElementById('basemap'); if (el) BASEMAP = JSON.parse(el.textContent); } catch (e) { console.warn('Mapa base no disponible:', e); }
+// coordenadas del mapa (UTM 18S escalado; mismos límites que prep_frpd.py) → latitud y longitud WGS84
+const UTM0 = { minx: 629128.7821792153, maxy: 5838267.49994959, s: 1000 / 234350.36251161912 };
+function svgLL(x, y) {
+  const E = x / UTM0.s + UTM0.minx - 500000, Nn = UTM0.maxy - y / UTM0.s - 10000000;
+  const a = 6378137, f = 1 / 298.257223563, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2);
+  const mu = Nn / k0 / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
+  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+  const p1 = mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu) + (151 * e1 ** 3 / 96) * Math.sin(6 * mu) + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+  const sn = Math.sin(p1), cs = Math.cos(p1), tn = Math.tan(p1);
+  const N1 = a / Math.sqrt(1 - e2 * sn * sn), T1 = tn * tn, C1 = ep2 * cs * cs, R1 = a * (1 - e2) / Math.pow(1 - e2 * sn * sn, 1.5), Dd = E / (N1 * k0);
+  const lat = p1 - (N1 * tn / R1) * (Dd * Dd / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ep2) * Dd ** 4 / 24 + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * ep2 - 3 * C1 * C1) * Dd ** 6 / 720);
+  const lon = (Dd - (1 + 2 * T1 + C1) * Dd ** 3 / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) * Dd ** 5 / 120) / cs;
+  return [lat * 180 / Math.PI, -75 + lon * 180 / Math.PI];
+}
+const ringsLL = d => (String(d).match(/M[^MZ]+/g) || []).map(r => r.slice(1).split('L').map(q => { const [x, y] = q.split(',').map(Number); return svgLL(x, y); }));
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+Object.assign(BXF, { mbase: BASEMAP ? 'rel' : 'none', mop: 70 });
+const BXBASES = [
+  { k: 'rel', l: 'Relieve', ok: !!BASEMAP },
+  { k: 'osm', l: 'Calles', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', max: 19 },
+  { k: 'dark', l: 'Oscuro', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', att: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>', max: 19, sub: 'abcd' },
+  { k: 'none', l: 'Sin fondo', ok: true },
+];
+const BXBASE = Object.fromEntries(BXBASES.map(b => [b.k, b]));
+function bxLeafletInit() {
+  const host = $('#bx-m'), col = $('#bx-mapcol');
+  host.classList.add('lf');
+  const map = L.map(host, { zoomControl: false, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 100, maxBoundsViscosity: 0.9, maxZoom: 15, fadeAnimation: !REDUCED, zoomAnimation: !REDUCED, markerZoomAnimation: !REDUCED });
+  map.attributionControl.setPrefix(false);
+  L.control.zoom({ position: 'topleft', zoomInTitle: 'Acercar', zoomOutTitle: 'Alejar' }).addTo(map);
+  L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 110 }).addTo(map);
+  [['base', 200], ['mask', 390], ['ref', 405], ['hl', 415], ['obras', 450], ['labs', 460]].forEach(([n, z]) => { const pn = map.createPane(n); pn.style.zIndex = z; if (n !== 'obras') pn.style.pointerEvents = 'none'; });
+  const C = { sel: css('--sel'), ink: css('--ink'), ink2: css('--ink2'), mid: css('--mid'), bg: css('--mapbg'), line: css('--line2') };
+  // comunas (relleno interactivo), territorios y máscara fuera de la región
+  const outline = ringsLL(D.geo.outline);
+  const rb = L.latLngBounds(outline.flat());
+  const comLL = D.comunas.map(c => ringsLL(c.d)), terLL = TER.map(t => ringsLL(t.d));
+  const comL = D.comunas.map((c, ci) => L.polygon(comLL[ci], { weight: 0.8, color: C.bg, opacity: 0.9, fillOpacity: BXF.mop / 100, smoothFactor: 0.6 }).addTo(map));
+  L.polygon([[[-85, -180], [-85, 180], [85, 180], [85, -180]], ...outline], { pane: 'mask', stroke: false, fillColor: C.bg, fillOpacity: 0.93, interactive: false }).addTo(map);
+  L.polygon(outline, { pane: 'hl', fill: false, color: C.ink2, weight: 1.3, opacity: 0.85, interactive: false }).addTo(map);
+  const terLines = L.layerGroup(terLL.map(r => L.polygon(r, { pane: 'hl', fill: false, color: C.ink, weight: 1.7, opacity: 0.7, interactive: false }))).addTo(map);
+  const hov = L.polygon([], { pane: 'hl', fill: false, color: C.ink, weight: 2.2, interactive: false }).addTo(map);
+  const selG = L.layerGroup().addTo(map);
+  const curJ = ci => (BXF.mlev === 'ter' ? TOF[ci] : ci);
+  comL.forEach((pg, ci) => {
+    pg.on('mouseover', e => { hov.setLatLngs(BXF.mlev === 'ter' ? terLL[TOF[ci]] : comLL[ci]); const t = bxMapTip(ci); showTip(e.originalEvent, t.title, t.rows, t.note); });
+    pg.on('mousemove', e => placeTip(e.originalEvent));
+    pg.on('mouseout', () => { hov.setLatLngs([]); hideTip(); });
+    pg.on('click', () => bxPick(BXF.mlev, curJ(ci)));
+  });
+  // etiquetas: comunas principales a escala regional, todas al acercar; territorios en su modo
+  const lab = (ll, txt, cls) => L.marker(ll, { pane: 'labs', interactive: false, keyboard: false, icon: L.divIcon({ className: 'lf-lab' + (cls ? ' ' + cls : ''), html: `<span>${esc(txt)}</span>`, iconSize: [0, 0] }) });
+  const comLab = D.comunas.map(c => lab(svgLL(+c.lx, +c.ly), c.l));
+  const terLab = TER.map(t => lab(svgLL(+t.lx, +t.ly), t.n, 't'));
+  const labG = L.layerGroup().addTo(map);
+  // mapa base: relieve incrustado (siempre disponible) o teselas en línea
+  let baseL = null, refL = null; const tileOk = {};
+  if (BASEMAP) refL = L.imageOverlay(BASEMAP.ref, BASEMAP.b, { pane: 'ref', interactive: false, attribution: 'Relieve y referencia: base regional GORE Araucanía' });
+  function setBase(k) {
+    if (baseL) { map.removeLayer(baseL); baseL = null; } if (refL && map.hasLayer(refL)) map.removeLayer(refL);
+    const b = BXBASE[k];
+    map.setMaxZoom(k === 'rel' ? 13 : k === 'none' ? 15 : 17);   // el relieve incrustado tiene ~120 m por píxel
+    if (k === 'rel' && BASEMAP) { baseL = L.imageOverlay(BASEMAP.rel, BASEMAP.b, { pane: 'base', interactive: false }).addTo(map); refL.addTo(map); }
+    else if (b.url) {
+      baseL = L.tileLayer(b.url, { pane: 'base', attribution: b.att, maxZoom: b.max, subdomains: b.sub || 'abc', crossOrigin: true }).addTo(map);
+      let ok = 0, bad = 0;
+      baseL.on('tileload', () => { ok++; tileOk[k] = true; });
+      baseL.on('tileerror', () => { if (++bad >= 3 && !ok && BXF.mbase === k) { tileOk[k] = false; BXF.mbase = BASEMAP ? 'rel' : 'none'; setBase(BXF.mbase); drawTools(); } });
+    }
+  }
+  function drawTools() {
+    $('#bx-mbase').innerHTML = BXBASES.map(b => { const off = b.url ? tileOk[b.k] === false : !b.ok; return `<button type="button" data-k="${b.k}" aria-pressed="${BXF.mbase === b.k}"${off ? ' disabled title="No disponible en esta vista"' : ''}>${b.l}</button>`; }).join('');
+    const blocked = BXBASES.filter(b => b.url && tileOk[b.k] === false).map(b => b.l.toLowerCase());
+    const nt = $('#bx-mbase-note'); nt.hidden = !blocked.length;
+    if (blocked.length) nt.textContent = `Los fondos en línea (${blocked.join(' y ')}) no cargan en esta vista; ábrelos en la versión web o local del radar. El relieve viene incluido en el tablero.`;
+  }
+  // obras: puntos y líneas en su propia capa, sobre la referencia
+  const obR = L.svg({ pane: 'obras', padding: 0.4 });
+  const OBL = OB ? Array.from({ length: NOB }, () => []) : [], OBS = new Uint8Array(NOB);
+  if (OB) {
+    OB.ln.forEach(([k, d]) => { const ll = ringsLL(d)[0]; if (ll && ll.length > 1) OBL[k].push(L.polyline(ll, { renderer: obR, pane: 'obras', interactive: true, bubblingMouseEvents: false })); });
+    OB.pi.forEach((k, j) => OBL[k].push(L.circleMarker(svgLL(OB.px[j] / 10, OB.py[j] / 10), { renderer: obR, pane: 'obras', bubblingMouseEvents: false })));
+    OBL.forEach((ls, k) => ls.forEach(l => {
+      l.on('mouseover', e => { const t = bxOvTip(k); showTip(e.originalEvent, t.title, t.rows, t.note); l.setStyle({ weight: l instanceof L.CircleMarker ? 2 : 4.5, color: C.ink }); });
+      l.on('mousemove', e => placeTip(e.originalEvent));
+      l.on('mouseout', () => { hideTip(); obStyle(k, l); });
+      l.on('click', e => { hideTip(); L.popup({ maxWidth: 300, autoPanPadding: [20, 20] }).setLatLng(e.latlng).setContent(bxObPopup(k)).openOn(map); });
+    }));
+  }
+  const z0 = () => map.getBoundsZoom(rb, false, L.point(12, 12));
+  const rOf = (lnk) => { const g = Math.max(0.7, Math.min(2.2, 1 + (map.getZoom() - z0()) * 0.28)); return (lnk ? 4 : 2.6) * g; };
+  function obStyle(k, l) {
+    const lnk = OBS[k] === 2;
+    if (l instanceof L.CircleMarker) l.setStyle({ radius: rOf(lnk), weight: lnk ? 1 : 0.5, color: C.bg, opacity: 0.9, fillColor: lnk ? C.sel : C.mid, fillOpacity: lnk ? 0.95 : 0.75 });
+    else l.setStyle({ weight: lnk ? 3 : 1.8, color: lnk ? C.sel : C.mid, opacity: lnk ? 0.95 : 0.65 });
+  }
+  function obras(vis) {
+    if (!OB) return;
+    let addU = false;
+    for (let k = 0; k < NOB; k++) {
+      const v = vis[k]; if (v === OBS[k]) continue;
+      const was = OBS[k]; OBS[k] = v;
+      for (const l of OBL[k]) { if (!v) { if (was) map.removeLayer(l); } else { if (!was) l.addTo(map); obStyle(k, l); } }
+      if (v === 1 && !was) addU = true;
+    }
+    if (addU) for (let k = 0; k < NOB; k++) if (OBS[k] === 2) OBL[k].forEach(l => l.bringToFront());
+  }
+  map.on('zoomend', () => { if (OB) for (let k = 0; k < NOB; k++) if (OBS[k]) for (const l of OBL[k]) if (l instanceof L.CircleMarker) l.setRadius(rOf(OBS[k] === 2)); labels(); });
+  function labels() {
+    labG.clearLayers();
+    const ter = BXF.mlev === 'ter', near = map.getZoom() >= z0() + 0.9;
+    if (ter) terLab.forEach((m, j) => { m.getElement && m.getElement() && m.getElement().classList.toggle('on', BXF.t === j); labG.addLayer(m); });
+    if (!ter || near) D.comunas.forEach((c, ci) => { if (near || LABEL_CORE.has(c.l) || BXF.c === ci) labG.addLayer(comLab[ci]); });
+    comLab.forEach((m, ci) => { const el = m.getElement(); if (el) el.classList.toggle('on', BXF.c === ci); });
+    terLab.forEach((m, j) => { const el = m.getElement(); if (el) el.classList.toggle('on', BXF.t === j); });
+  }
+  // vista: región completa, sin salir de ella
+  function home(anim) { map.fitBounds(rb, { padding: [12, 12], animate: anim && !REDUCED }); }
+  map.setMaxBounds(rb.pad(0.3));
+  home(false);
+  map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4);
+  let touched = false; ['pointerdown', 'wheel', 'keydown'].forEach(ev => host.addEventListener(ev, () => { touched = true; }, { passive: true }));
+  new ResizeObserver(() => { if (host.clientWidth < 50) return; map.invalidateSize(); map.setMinZoom(Math.floor((z0() - 0.75) * 4) / 4); if (!touched) home(false); }).observe(host);
+  // controles bajo el mapa
+  $('#bx-mtools').hidden = false;
+  $('#bx-msub').textContent = 'Rueda o botones para acercar, arrastra para moverte · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla · clic en una obra para ver su ficha';
+  $('#bx-mbase').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; BXF.mbase = b.dataset.k; setBase(BXF.mbase); drawTools(); });
+  const op = $('#bx-mop');
+  op.addEventListener('input', () => { BXF.mop = +op.value; $('#bx-mop-v').textContent = BXF.mop + '%'; comL.forEach(pg => pg.setStyle({ fillOpacity: BXF.mop / 100 })); });
+  $('#bx-mhome').addEventListener('click', () => home(true));
+  const fsOk = !!(col.requestFullscreen && document.fullscreenEnabled);
+  $('#bx-mfull').hidden = !fsOk;
+  $('#bx-mfull').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else col.requestFullscreen().catch(() => { $('#bx-mfull').hidden = true; }); });
+  document.addEventListener('fullscreenchange', () => { $('#bx-mfull').textContent = document.fullscreenElement === col ? 'Salir de pantalla completa' : 'Pantalla completa'; setTimeout(() => { map.invalidateSize(); }, 60); });
+  // prueba de teselas en línea (en Claude la política de seguridad las bloquea)
+  BXBASES.filter(b => b.url).forEach(b => { const im = new Image(); im.onload = () => { tileOk[b.k] = true; drawTools(); }; im.onerror = () => { tileOk[b.k] = false; drawTools(); }; im.src = b.url.replace('{s}', 'a').replace('{z}', '7').replace('{x}', '35').replace('{y}', '77').replace('{r}', ''); });
+  setBase(BXF.mbase); drawTools();
+  const legend = document.createElement('div'); legend.className = 'legend'; $('#bx-mtools').after(legend);
+  return {
+    legend, map,
+    paint(fills, selected, terSel, vis) {
+      comL.forEach((pg, ci) => pg.setStyle({ fillColor: fills[ci], fillOpacity: BXF.mop / 100 }));
+      selG.clearLayers();
+      selected.forEach(ci => selG.addLayer(L.polygon(comLL[ci], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false })));
+      terSel.forEach(j => selG.addLayer(L.polygon(terLL[j], { pane: 'hl', fill: false, color: C.sel, weight: 3, interactive: false })));
+      obras(vis); labels();
+    },
+    fly(lev, j) {
+      const b = lev === 'com' && j >= 0 ? L.latLngBounds(comLL[j].flat()) : lev === 'ter' && j >= 0 ? L.latLngBounds(terLL[j].flat()) : rb;
+      map.flyToBounds(b, { padding: [24, 24], maxZoom: 11, animate: !REDUCED, duration: 0.6 });
+    },
+  };
+}
+function bxObPopup(k) {
+  const i = OB_I[k];
+  const row = (l, v) => `<div class="r"><span>${l}</span><b>${v}</b></div>`;
+  return `<div class="obp"><h4>${esc(OB_T[k])}</h4>
+    ${row('Contrato', OB.x[k] ? '⚠ monto atípico' : esc(mmK(OB.m[k])) + ' MM$')}${row('Adjudicación', obYm(OB.y[k]))}${row('Avance físico', f0(OB.a[k]) + '%' + (OB.p[k] ? ' · paralizada' : ''))}<div class="av"><i style="width:${Math.max(0, Math.min(100, OB.a[k]))}%"></i></div>
+    ${row('Comuna', esc(obCom(k)))}${row('Tipo de obra', esc(OB.kv[OB.k[k]]))}
+    <div class="sm" style="margin-top:4px">${esc(obServ(k))}${OB_MP[k] ? ` · Mercado Público <span class="m">${esc(OB_MP[k])}</span>` : ''}</div>
+    ${i >= 0 ? `<div class="bip">BIP <b>${BX.code[i]}</b> · ${esc(BX_N[i])}<div class="sm">${esc(catLab(bxCat(i)))} · ${BX.c[i] >= 0 ? esc(CN(BX.c[i])) : 'Regional o sin comuna'}</div></div><button type="button" class="btn sm pri" data-obk="${k}">Ver iniciativa en la tabla</button>` : '<p class="sm" style="margin:8px 0 0">Sin código BIP en la base del radar.</p>'}</div>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-obk]'); if (b) { if (BXM && BXM.map) BXM.map.closePopup(); bxOvClick(+b.dataset.obk); } });
 function renderBxMap() {
+  if (!BXM && HAS_LF) {
+    try { BXM = bxLeafletInit(); } catch (e) { console.warn('Leaflet no pudo iniciar; se usa el mapa SVG:', e); BXM = null; $('#bx-m').classList.remove('lf'); $('#bx-m').replaceChildren(); $('#bx-mtools').hidden = true; }
+    if (BXM) {
+      $('#bx-mlev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mlev = b.dataset.k; renderBxMap(); });
+      $('#bx-mmet').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mmet = b.dataset.k; renderBxMap(); });
+      $('#bx-rank').addEventListener('click', e => { const b = e.target.closest('[data-lev]'); if (b) { bxPick(b.dataset.lev, +b.dataset.j); const on = b.dataset.lev === 'com' ? BXF.c === +b.dataset.j : b.dataset.lev === 'ter' ? BXF.t === +b.dataset.j : false; BXM.fly(on ? b.dataset.lev : 'reg', +b.dataset.j); } });
+      if (OB) $('#bx-mpts').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; BXF.mpts = b.dataset.k; renderBxMap(); });
+      else $('#bx-mpts').hidden = true;
+    }
+  }
   if (!BXM) {
     BXM = createMapE($('#bx-m'), { click: ci => bxPick(BXF.mlev, BXF.mlev === 'ter' ? TOF[ci] : ci), tip: bxMapTip, selected: () => (BXF.c >= 0 ? new Set([BXF.c]) : new Set()), terLabels: () => BXF.mlev === 'ter', hoverTer: () => BXF.mlev === 'ter',
       ovTip: OB ? bxOvTip : null, ovClick: OB ? bxOvClick : null, onScale: k => bxOvScale(k) });
@@ -1816,8 +1993,8 @@ function renderBxMap() {
   const br = quantBreaks(uv.filter(v => v > 0));
   const colOf = v => (v > 0 && isFinite(v) ? SEQ[clsOf(v, br)] : NODATA);
   const fills = ALLC.map(c => colOf(ter ? uv[TOF[c]] : uv[c]));
-  BXM.paint(fills, BXF.c >= 0 ? [BXF.c] : [], BXF.t >= 0 ? [BXF.t] : []);
-  bxOvPaint(vis);
+  if (BXM.map) BXM.paint(fills, BXF.c >= 0 ? [BXF.c] : [], BXF.t >= 0 ? [BXF.t] : [], vis);
+  else { BXM.paint(fills, BXF.c >= 0 ? [BXF.c] : [], BXF.t >= 0 ? [BXF.t] : []); bxOvPaint(vis); }
   const rows = SEQ.map((col, i) => [col, M.f(br[i]) + ' – ' + M.f(br[i + 1])]).reverse();
   if (uv.some(v => !(v > 0))) rows.push([NODATA, 'Sin iniciativas con estos filtros']);
   let nL = 0, nU = 0; for (let k = 0; k < NOB; k++) { if (vis[k] === 2) nL++; else if (vis[k] === 1) nU++; }
@@ -1842,7 +2019,7 @@ function renderBxMap() {
       return BXF.mpts === 'off' ? '' : `<span><b>${f0(n)}</b> ${n === 1 ? 'obra georreferenciada' : 'obras georreferenciadas'} de ${pl(ini.size, 'iniciativa', 'iniciativas')}</span>`;
     })() : ''}</div>
     ${cats.length ? `<div class="lbl" style="margin:8px 0 4px">Tipos de inversión más frecuentes</div>${cats.map(([k, r]) => `<div class="bxs-c"><span title="${esc(catLab(k))}">${esc(catLab(k))}</span><span class="bt"><i style="width:${(r.n / cmx * 100).toFixed(1)}%"></i></span><span class="m">${f0(r.n)} · ${mmK(r.t)} MM$</span></div>`).join('')}` : '<p class="note">Sin iniciativas con estos filtros.</p>'}`;
-  const xb = $('#bx-msel-x'); if (xb) xb.addEventListener('click', () => { BXF.t = -1; BXF.c = -1; BXF.page = 0; renderBip(); });
+  const xb = $('#bx-msel-x'); if (xb) xb.addEventListener('click', () => { BXF.t = -1; BXF.c = -1; BXF.page = 0; renderBip(); if (BXM && BXM.map) BXM.fly('reg', -1); });
   const nx = BXL.filter(o => o.ref.x).length;
   $('#bx-mnote').textContent = `Cada iniciativa se ubica en la comuna registrada en el BIP; los territorios suman sus comunas. ${f0(BXA.reg.n)} iniciativas de alcance regional o sin comuna (${mmK(BXA.reg.t)} MM$ de costo total) no se pueden ubicar en el mapa y se muestran aparte en el ranking. El mapa aplica todos los filtros de arriba salvo territorio y comuna, y usa la ${BXF.y ? `postulación de ${BXF.y}` : 'última postulación de cada iniciativa'}.${nx ? ` ${pl(nx, 'iniciativa con monto atípico queda', 'iniciativas con montos atípicos quedan')} fuera de los montos.` : ''} Colores por quintiles.${OB ? ` Puntos y líneas: obras de Geo-CGR (Contraloría) adjudicadas desde 2019, ubicadas con las coordenadas que registra cada servicio (descarga del ${OB.meta.descargado.split('-').reverse().join('/')}). ${f0(NBX_OB)} de las ${f0(NBX)} iniciativas tienen al menos una obra vinculada por código BIP; la mayoría de las obras de Geo-CGR no informa código BIP. Las obras sin código BIP no responden a los filtros. Clic en una obra vinculada para ver su iniciativa en la tabla.` : ''}`;
 }

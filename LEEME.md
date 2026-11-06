@@ -6,7 +6,8 @@ Tablero de diagnóstico regional para formular iniciativas financiables por el F
 
 Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edge actualizado. El archivo es autosuficiente: trae dentro todos los datos (unos 3 MB comprimidos) y no necesita internet ni instalar nada.
 
-- **Sin internet:** funciona igual. Solo cambia la tipografía, que se reemplaza por la del sistema.
+- **Sin internet:** funciona igual. La tipografía se reemplaza por la del sistema y el mapa de iniciativas BIP vuelve a la versión fija (sin acercar ni mover), porque el mapa interactivo usa la librería Leaflet, que se descarga al abrir el tablero.
+- **Mapa interactivo de iniciativas BIP:** se acerca con la rueda o los botones y se mueve arrastrando, sin salir de la región. El relieve viene incluido. Los fondos «Calles» (OpenStreetMap) y «Oscuro» (CARTO) se descargan en línea, por lo que funcionan en la versión web y en la local con internet, pero no en Claude, que bloquea imágenes externas.
 - **Exportaciones CSV:** los botones «Exportar CSV» descargan el archivo a la carpeta de Descargas del navegador. Los CSV usan punto y coma y se abren directamente en Excel.
 - **«Redactar borrador» con Claude:** solo funciona en la versión publicada en Claude (el artefacto «Radar FRPD Araucanía» en claude.ai). En el archivo local el botón aparece desactivado.
 - **Para compartirlo:** basta enviar el archivo HTML. Quien lo reciba no necesita nada más.
@@ -29,6 +30,7 @@ Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edg
 | `app.js` | Lógica principal: Cartera, Territorios, Evidencia territorial, Marco normativo, Iniciativas BIP, Simulador y borrador con Claude |
 | `emp.js` | Barra lateral de filtros de empresas y pestaña Empresas, adaptadas del tablero Tejido Empresarial |
 | `pack_frpd6.b64` | Paquete de datos (JSON comprimido con gzip y codificado en base64) |
+| `mapa_base/` | Relieve (`relieve.jpg`) y capa de referencia con agua, áreas urbanas y red vial (`referencia.webp`) del mapa interactivo de iniciativas BIP, generados en QGIS con `procesamiento/qgis_mapa_base.py`. `mapa_base.json` guarda sus límites |
 | `obras_geocgr.b64` | Capa opcional de obras georreferenciadas de Geo-CGR para el mapa de iniciativas BIP (paso 7). Si no está, el tablero funciona sin ella |
 | `build.py` | Une todo y genera el HTML |
 
@@ -64,6 +66,8 @@ python build.py
 ```
 
 **Obras de Geo-CGR (paso 7).** Para traer obras nuevas, ejecuta `python -X utf8 prep_geocgr.py --descargar` desde un computador con acceso a www.contraloria.cl. El script consulta las 32 comunas desde el 01/01/2019 hasta la fecha, reemplaza el JSON de `DB Araucania/GeoCGR/` y regenera la capa; luego vuelve a ejecutar `build.py`. Requiere `pyproj` y `shapely`, que se instalan con geopandas. La carpeta `GeoCGR` también tiene un GeoPackage (`geocgr_araucania_2019_2026.gpkg`, capas de puntos y líneas) para revisar las obras en QGIS.
+
+**Mapa base (QGIS).** `qgis_mapa_base.py` se ejecuta en la consola de Python de QGIS y renderiza el relieve y la capa de referencia en EPSG:3857 desde las capas de `DB Araucania`. Las instrucciones para comprimirlas y copiarlas a `fuente/mapa_base/` están al inicio del script.
 
 **Rutas.** Los scripts leen los datos originales desde `C:/Users/mpooley/Documents/DB Araucania/`. Si esa carpeta cambia de lugar, reemplaza esa ruta al inicio de cada script.
 

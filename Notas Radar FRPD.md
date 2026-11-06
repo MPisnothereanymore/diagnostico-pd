@@ -278,6 +278,14 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Montos atípicos.** 2 obras declaran montos contratados superiores a 50.000 MM$ y se marcan con ⚠.
 - **Uso en el tablero.** El mapa de iniciativas BIP muestra por defecto las obras vinculadas a las iniciativas que pasan los filtros. La opción «Todas las obras» agrega en gris las que no tienen código BIP. Al hacer clic en una obra se abre su iniciativa en la tabla, y el detalle de cada iniciativa lista sus obras.
 
+## Mapa interactivo de iniciativas BIP (Leaflet, 6 de noviembre de 2026)
+- **Librería.** Leaflet 1.9.4 desde cdnjs, con su hoja de estilos incrustada. Si la librería no carga (por ejemplo, sin internet), el tablero usa el mapa SVG anterior con las mismas funciones de filtro.
+- **Geometría.** Las comunas, los territorios y el contorno regional son los mismos polígonos del paquete (UTM 18S simplificado a 180 m), convertidos a latitud y longitud en el navegador con la proyección inversa. La diferencia con pyproj es menor a 1e-7 grados.
+- **Máscara.** Un polígono mundial con el contorno regional como hueco oscurece todo lo que queda fuera de La Araucanía. La navegación se limita a la región ampliada en 30% y el alejamiento mínimo es la vista regional.
+- **Mapa base.** El relieve (hillshade 18S) y la capa de referencia (lagos, ríos y estuarios del Inventario de Humedales 2020, límites urbanos y red vial) se renderizaron en QGIS en EPSG:3857, a 2.400 píxeles, unos 130 m por píxel. Pesan 547 KB (JPEG en grises) y 429 KB (WebP con transparencia). Por esa resolución, con el relieve el acercamiento máximo es el nivel 13.
+- **Fondos en línea.** OpenStreetMap y CARTO Oscuro. Al abrir, el mapa prueba una tesela; si no carga, desactiva esos botones y lo avisa.
+- **Interacción.** Al hacer clic en una barra del ranking, el mapa vuela a la comuna o el territorio, y «Quitar» vuelve a la región. Las obras abren una ficha con el botón «Ver iniciativa en la tabla». El control de relleno ajusta la opacidad de las comunas. Hay pantalla completa donde el navegador lo permite.
+
 ## Supuestos provisionales (a validar por DIFOI)
 - Correspondencia entre subrubros SII y lineamientos L1–L6.
 - Clasificación de proyectos por palabras clave.
