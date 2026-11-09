@@ -887,9 +887,9 @@
   ],
   "totalIniciativas": 42,
   "comprasPublicas": {
-    "totalRegistros": 9657,
-    "montoTotalCLP": 39363985799.18,
-    "montoRetenidoAraucania": 23016949885.28,
+    "totalRegistros": 9658,
+    "montoTotalCLP": 39368443785.18,
+    "montoRetenidoAraucania": 23021407871.28,
     "porcentajeRetencionLocal": "58.5%",
     "porcentajeFugaSantiago": "41.5%",
     "ultimasCompras": [
@@ -126433,8 +126433,21 @@
         "regionProveedor": "Región de la Araucanía",
         "esLocal": true,
         "montoCLP": 2288000.0
+      },
+      {
+        "fecha": "08/11/2026",
+        "codigoOC": "1658-3359-AG26",
+        "nombre": "Orden de Compra generada por invitación a compra ágil: 1658-1625-COT26",
+        "organismo": "I. Municipalidad de Temuco",
+        "comuna": "Temuco",
+        "codTerritorio": "TPLC",
+        "territorio": "Temuco – Padre Las Casas",
+        "proveedor": "Leonardo Ariel",
+        "regionProveedor": "Región de la Araucanía",
+        "esLocal": true,
+        "montoCLP": 4457986.0
       }
     ]
   },
-  "fechaActualizacion": "08/11/2026 15:40:07"
+  "fechaActualizacion": "09/11/2026 19:17:43"
 }
