@@ -6,7 +6,7 @@ const FM_SRC = { pav: 'red vial comunal, base regional GORE', pmad: 'catastro de
 const FM_A8 = { '2a': 'N°2 a', '2b': 'N°2 b', '2g': 'N°2 g', '1d': 'N°1 d', 'N°3': 'N°3 d' };
 const FM_INST = ['Por definir', 'Convocatoria del GORE', 'Convenio con un servicio de competitividad (N°1 a)', 'Transferencia por glosa 13 a concursos CORFO o ANID', 'Programa con un ejecutor habilitado', 'Cofinanciamiento de un instrumento existente'];
 const FM_RUB = [['eleg', 'Elegibilidad FRPD', 25, 15], ['pert', 'Pertinencia al diagnóstico', 20, 30], ['evid', 'Evidencia de impacto', 15, 15], ['alin', 'Alineamiento ERD, PRFP y cartera', 15, 15], ['fact', 'Factibilidad de ejecución', 15, 15], ['equi', 'Equidad territorial', 10, 10]];
-const FMU = { t: 5, ch: 0, item: -1, acts: new Set(), aq: '', all: false, mipyme: true, gapCom: false, ben: '', probEd: false, propEd: false, inst: 0, sc: {}, idea: '', exp: new Set(), expAll: new Set(), exeAll: false };
+const FMU = { t: 5, ch: 0, item: -1, acts: new Set(), aq: '', all: false, mipyme: true, gapCom: false, ben: '', probEd: false, propEd: false, inst: 0, sc: {}, idea: '', exp: new Set(), expAll: new Set(), exeAll: false, from: null };
 // empresas por cadena: máscara por subrubro
 const FM_MASK = new Uint8Array(NS); STRAT_CHAINS.forEach((ch, j) => ch.subs.forEach(s => { if (s < NS) FM_MASK[s] |= 1 << j; }));
 function fmStats(cs, ci, opt = {}) {
@@ -55,11 +55,17 @@ function renderFormular() {
   if (!rendered.formular) { fmInit(); rendered.formular = true; }
   $('#fm-t').value = FMU.t; $('#fm-ch').value = FMU.ch;
   const x = fmCtx(), st = IF_ST[x.cell.st];
+  const fr = FMU.from, fb = $('#fm-from');
+  fb.hidden = !fr;
+  if (fr) fb.innerHTML = `<p><b>Vienes de Cartera:</b> ${fr.line ? `${esc(fr.line)} ${esc(LINE[fr.line].n)} · ` : ''}${esc(TER[fr.t].n)}${fr.L != null ? ` · ${LIN[fr.L].k} ${esc(LSHORT[LIN[fr.L].k])}` : ''}.</p>
+    <p class="note">Cartera se organiza por lineamiento CTCI y Formular por cadena productiva, así que las cifras de empresas de esta pestaña son de la cadena, no del lineamiento. ${fr.ch ? 'Quedó elegida la cadena más cercana: cámbiala si no corresponde.' : 'Este lineamiento no tiene una cadena equivalente: elige abajo la que corresponda.'}${fr.line && fmLineItems(fr.line).length ? ' El ítem del art. 8 quedó en el primero que la minuta asigna a la línea.' : ''}</p>
+    <div class="ct-ob"><button type="button" class="btn sm" id="fm-back">Volver a Cartera</button><button type="button" class="btn sm" id="fm-fromx">Quitar este aviso</button></div>`;
   $('#fm-st').innerHTML = `<span class="ifc ${x.cell.st}">${st.l}</span><span>${esc(st.d)} ${f0(x.st.n)} empresas · cociente de localización ${f2(x.cell.lq)}.</span>`;
   // 1 · cuadre
   const sug = [...new Set([...x.cell.gaps.map(g => FM_A8[g.d.a8]).filter(Boolean), 'N°1 b', 'N°1 g'])];
   const opt = (it, i) => `<option value="${i}">${esc(it.k)} · ${esc(it.q.length > 78 ? it.q.slice(0, 76) + '…' : it.q)}</option>`;
-  $('#fm-item').innerHTML = '<option value="-1">Elige un ítem del art. 8…</option>' + `<optgroup label="Sugeridos por las brechas y la cadena [S]">${sug.map(k => MX.items.findIndex(it => it.k === k)).filter(i => i >= 0).map(i => opt(MX.items[i], i)).join('')}</optgroup>`
+  const lineIt = FMU.from && FMU.from.line ? fmLineItems(FMU.from.line) : [];
+  $('#fm-item').innerHTML = '<option value="-1">Elige un ítem del art. 8…</option>' + (lineIt.length ? `<optgroup label="De la línea ${FMU.from.line} en la minuta">${lineIt.map(i => opt(MX.items[i], i)).join('')}</optgroup>` : '') + `<optgroup label="Sugeridos por las brechas y la cadena [S]">${sug.map(k => MX.items.findIndex(it => it.k === k)).filter(i => i >= 0).map(i => opt(MX.items[i], i)).join('')}</optgroup>`
     + ['N°1', 'N°2', 'N°3'].map(g => `<optgroup label="${g} · ${esc(MX.items.find(it => it.k === g).q)}">${MX.items.map((it, i) => (!it.g && it.k.startsWith(g) ? opt(it, i) : '')).join('')}</optgroup>`).join('');
   $('#fm-item').value = FMU.item;
   const it = fmItem();
@@ -180,7 +186,7 @@ function fmInit() {
   $('#fm-t').innerHTML = TER.map((t, i) => `<option value="${i}">${esc(t.n)}</option>`).join('');
   $('#fm-ch').innerHTML = STRAT_CHAINS.map((c, i) => `<option value="${i}">${esc(c.n)}</option>`).join('');
   const reset = () => { FMU.probEd = false; FMU.propEd = false; FMU.exp.clear(); FMU.expAll.clear(); };
-  $('#fm-t').addEventListener('change', e => { FMU.t = +e.target.value; reset(); renderFormular(); });
+  $('#fm-t').addEventListener('change', e => { FMU.t = +e.target.value; FMU.from = null; reset(); renderFormular(); });
   $('#fm-ch').addEventListener('change', e => { FMU.ch = +e.target.value; reset(); renderFormular(); });
   $('#fm-item').addEventListener('change', e => { FMU.item = +e.target.value; FMU.acts = new Set(); FMU.all = false; renderFormular(); });
   let qt; $('#fm-aq').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { FMU.aq = e.target.value; fmActs(); }, 160); });
@@ -196,6 +202,8 @@ function fmInit() {
   $('#fm-rub').addEventListener('change', e => { const k = e.target.dataset.k; if (!k) return; FMU.sc[k] = +e.target.value || 0; fmRub(); fmFicha(); });
   $('#v-formular').addEventListener('click', e => {
     const b = e.target.closest('button[data-bip]'), xb = e.target.closest('button[data-x]'), xa = e.target.closest('button[data-xall]');
+    if (e.target.closest('#fm-back')) { const fr = FMU.from; setView('cartera'); window.scrollTo({ top: 0 }); if (fr && fr.L != null) openFicha(fr.t, fr.L); return; }
+    if (e.target.closest('#fm-fromx')) { FMU.from = null; renderFormular(); $('#fm-t').focus(); return; }
     const tog = (s, k) => { if (s.has(k)) s.delete(k); else s.add(k); };
     if (b) openBip({ t: FMU.t, cat: b.dataset.bip, ti: new Set(b.dataset.ti ? b.dataset.ti.split(',').map(Number) : []) });
     else if (xb) { tog(FMU.exp, xb.dataset.x); fmHace(fmCtx()); const n = $(`#fm-hace button[data-x="${xb.dataset.x}"]`); if (n) n.focus(); }
@@ -213,4 +221,11 @@ function fmInit() {
     try { await DL.save({ filename: name, data: new Blob([fmFichaText()], { type: 'text/markdown' }) }); toast('Archivo listo: ' + name); } catch (e) { if (!(e && e.code === 'declined')) toast('No se pudo descargar; usa «Copiar».'); }
   });
 }
-function fmOpen(t, ch) { FMU.t = t; FMU.ch = ch; FMU.probEd = false; FMU.propEd = false; setView('formular'); window.scrollTo({ top: 0 }); }
+// from: de dónde se llega (Cartera): { t, L, line, ch }. Con una línea, se preselecciona su primer ítem del art. 8 según la minuta.
+const fmLineItems = k => { const ln = LINE[k]; return [...ln.a8.map(a => 'N°' + a[0] + ' ' + a.slice(1).replace('.', ' ')), ...ln.g.map(g => 'N°3 gasto ' + g)].map(key => MX.items.findIndex(it => it.k === key)).filter(i => i >= 0); };
+function fmOpen(t, ch, from) {
+  FMU.t = t; if (ch != null) FMU.ch = ch; FMU.probEd = false; FMU.propEd = false; FMU.from = from || null;
+  if (MX && from && from.line) { const its = fmLineItems(from.line); if (its.length) { FMU.item = its[0]; FMU.acts = new Set(); FMU.all = false; } }
+  setView('formular'); window.scrollTo({ top: 0 });
+  const tgt = FMU.from ? $('#fm-from') : $('#fm-t'); if (tgt) tgt.focus({ preventScroll: true });
+}

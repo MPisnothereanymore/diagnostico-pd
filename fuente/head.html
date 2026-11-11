@@ -405,56 +405,60 @@ details.ler ol li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);f
 
 .inp{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--ink);font-family:var(--f-mono)}
 
-/* Cartera: resumen, tablero de avance, mapa de huecos y ficha lateral */
-.ct-sum{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px 32px;padding:18px 20px;align-items:center}
+/* Cartera: resumen, líneas agrupadas por evidencia, mapa de faltas y ficha lateral */
+.ct-sum{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px 32px;padding:18px 20px;align-items:center}
 .ct-lead{margin:0 0 10px;font-size:15px;color:var(--ink2)}.ct-lead b{font-size:22px;font-weight:700;color:var(--ink);font-family:var(--f-mono);letter-spacing:-.01em}
 .ct-bar{display:flex;gap:3px;height:34px;border-radius:6px;overflow:hidden;margin-bottom:8px}
-.ct-bar span{display:flex;align-items:center;gap:5px;padding:0 10px;font-size:12.5px;white-space:nowrap;overflow:hidden;min-width:0;color:#0E1317}
-.ct-bar b{font-family:var(--f-mono);font-size:14px}
-.ct-bar .m3{background:var(--m3)}.ct-bar .m2{background:var(--m2)}.ct-bar .m1{background:var(--m1);color:#E6ECEE}
+.ct-bar span{display:flex;align-items:center;gap:6px;padding:0 10px;font-size:13px;white-space:nowrap;overflow:hidden;min-width:0;color:#0E1317}
+.ct-bar b{font-family:var(--f-mono);font-size:14px}.ct-bar em{font-style:normal}
+.ct-bar .m3,.ct-barleg .m3 i{background:var(--m3)}.ct-bar .m2,.ct-barleg .m2 i{background:var(--m2)}.ct-bar .m1,.ct-barleg .m1 i{background:var(--m1)}.ct-bar .m1{color:#E6ECEE}
+.ct-barleg{display:none;flex-wrap:wrap;gap:4px 14px;margin:0 0 8px;font-size:13px;color:var(--ink2)}
+.ct-barleg span{display:inline-flex;align-items:center;gap:6px}.ct-barleg i{width:10px;height:10px;border-radius:2px}
 .ct-facts{margin:0;padding:0;list-style:none;display:grid;gap:9px;font-size:13.5px;line-height:1.5;color:var(--ink2)}
 .ct-facts li{padding-left:12px;border-left:2px solid var(--line2)}.ct-facts b{color:var(--ink)}
-.ct-leg{padding:0}.ct-leg .k,.ct-mxleg .k{display:inline-flex;align-items:center;gap:6px}.ct-leg .dots,.ct-t .dots{display:inline-flex;gap:3px}
-.ct-leg .dots i,.ct-t .dots i{width:7px;height:7px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--muted)}
-.ct-leg .dots i.on,.ct-t .dots i.on{background:var(--acc);box-shadow:none}
-.ct-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
-.ct-col{display:flex;flex-direction:column;gap:10px;min-width:0}
-.ct-colh{padding:0 2px 8px;border-bottom:2px solid var(--line2)}
-.ct-col.c0 .ct-colh{border-color:var(--m3)}.ct-col.c1 .ct-colh{border-color:var(--m2)}.ct-col.c2 .ct-colh{border-color:var(--m1)}
-.ct-colh h3{font-size:14px;font-weight:600;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.ct-colh h3 span{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500}
-.ct-colh p{margin:3px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
-.ct-card{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:12px 13px;display:flex;flex-direction:column;gap:7px;min-width:0}
-.ct-card.on{border-color:var(--sel)}
-.ct-ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.ct-ch .code{font-family:var(--f-mono);font-size:12px;color:var(--acc)}
-.ct-card h3{font-size:14px;font-weight:600;line-height:1.3}
-.ct-meta{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
-.ct-ter{display:flex;flex-wrap:wrap;gap:5px}
-.ct-t{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--surf);color:var(--ink2);font-size:12px;line-height:1.3}
-.ct-t:hover{border-color:var(--acc);color:var(--ink)}.ct-t.on{border-color:var(--sel);color:var(--ink);box-shadow:0 0 0 1px var(--sel)}
-.ct-more{font-size:12.5px;line-height:1.5;color:var(--ink2)}
-.ct-more summary{cursor:pointer;color:var(--acc);font-size:12px;width:fit-content}
-.ct-more p{margin:6px 0 0}.ct-more b{color:var(--ink);font-weight:600}
-.ct-gapw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px 28px;align-items:start}
-.ct-mx{grid-template-columns:minmax(120px,1.2fr) repeat(6,minmax(58px,1fr));min-width:520px}
-.ct-mx .rh{padding:2px 8px 2px 0;justify-content:center}.ct-mx .rh b{font-size:12.5px;font-weight:500}
-.ct-mx .cell{min-height:38px;align-items:center;justify-content:center;flex-direction:row;gap:6px;padding:4px;background:var(--surf2);color:var(--ink2);border:1px solid transparent}
-.ct-mx .cell.has{background:var(--acc-soft);color:var(--acc)}
-.ct-mx .cell.has .code{background:transparent;color:inherit;padding:0;font-family:var(--f-mono);font-size:11.5px}
-.ct-mx .cell.gap{background:var(--sel-soft);color:var(--sel);flex-direction:column;gap:0}
-.ct-mx .cell.gap .g{font-size:10.5px;font-weight:600}.ct-mx .cell.gap .v{align-self:center;opacity:1;font-family:var(--f-mono);font-size:11px}
-.ct-mx .cell.empty{color:var(--muted)}
-.ct-mx .cell:hover{border-color:var(--line2)}
-.ct-mxleg{padding-top:12px}.ct-mxleg i{display:inline-block;width:14px;height:12px;border-radius:3px;background:var(--surf2);border:1px solid var(--line2)}
-.ct-mxleg i.has{background:var(--acc-soft);border-color:var(--acc)}.ct-mxleg i.gap{background:var(--sel-soft);border:1.5px dashed var(--sel)}
-.ct-ol{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:10px}
-.ct-ol li{border-left:2px dashed var(--sel);padding:2px 0 2px 12px;display:grid;gap:5px;font-size:13.5px}
-.ct-ol b{font-weight:600}.ct-ob{display:flex;flex-wrap:wrap;gap:8px}
+.ct-leg{padding:0}.ct-leg .k,.ct-mxleg .k{display:inline-flex;align-items:center;gap:6px}
+.ct-leg .dots,.ct-t .dots,.ct-mx .dots,.ct-mxleg .dots{display:inline-flex;gap:3px}
+.ct-leg .dots i,.ct-t .dots i,.ct-mx .dots i,.ct-mxleg .dots i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.ct-leg .dots i.on,.ct-t .dots i.on,.ct-mx .dots i.on,.ct-mxleg .dots i.on{background:var(--acc);box-shadow:none}
+.ct-board{display:flex;flex-direction:column;gap:22px}
+.ct-gh{padding:0 2px 8px;border-bottom:1px solid var(--line2)}
+.ct-gh h3{font-size:14.5px;font-weight:600;display:flex;align-items:baseline;gap:10px}
+.ct-gh h3 span{font-size:12.5px;color:var(--muted);font-weight:400}
+.ct-gh p{margin:3px 0 0;font-size:13px;line-height:1.45;color:var(--muted)}
+.ct-row{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1.7fr) 190px;gap:6px 16px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line);border-left:2px solid transparent}
+.ct-row.on{border-left-color:var(--ink);background:var(--surf2)}
+.ct-row>.code{font-family:var(--f-mono);font-size:12px;color:var(--acc)}
+.ct-rn{min-width:0}.ct-rn h4{font-size:14px;font-weight:600;line-height:1.3}
+.ct-meta{margin:2px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.ct-ter{display:flex;flex-wrap:wrap;gap:5px;min-width:0}.ct-ter .ct-meta{margin:0}
+.ct-t{display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--surf2);color:var(--ink);font-size:12.5px;line-height:1.3}
+.ct-t>span:last-child{color:var(--muted)}
+.ct-t:hover{border-color:var(--acc)}.ct-t.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.ct-ra{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.ct-ra .linkbtn{font-size:12.5px;font-weight:500}.ct-ra .tagx{font-size:11.5px;color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:1px 6px;font-style:normal}
+.ct-rm{grid-column:2/-1;font-size:13px;line-height:1.55;color:var(--ink2);padding:2px 0 4px;max-width:90ch}.ct-rm p{margin:0 0 6px}.ct-rm b{color:var(--ink);font-weight:600}
+.ct-gapw{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+.ct-swipe{display:none;margin:0 0 6px}
+.ct-mx{grid-template-columns:minmax(112px,1.2fr) repeat(6,minmax(56px,1fr));min-width:480px}
+.ct-mx .rh{padding:2px 8px 2px 0;justify-content:center;position:sticky;left:0;z-index:1;background:var(--surf)}.ct-mx .rh b{font-size:12.5px;font-weight:500}
+.ct-mx .cell{min-height:36px;align-items:center;justify-content:center;flex-direction:row;padding:4px;background:var(--surf2);color:var(--muted);border:1px solid transparent}
+.ct-mx .cell .v{align-self:center;opacity:1;font-family:var(--f-mono);font-size:12px}
+.ct-mx .cell.empty,.ct-mx .cell.gap{background:transparent;border-color:var(--line)}
+.ct-mx .cell.gap{border:1.5px dashed var(--sel);color:var(--sel)}.ct-mx .cell.gap::after{content:none}
+.ct-mx .cell:hover{border-color:var(--acc)}
+.ct-mx .cell.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
+.ct-mxleg{padding-top:12px}
+.ct-mxleg .k>i{display:inline-block;font-style:normal;font-family:var(--f-mono);font-size:11px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+.ct-mxleg .k>i.gap{border:1.5px dashed var(--sel);color:var(--sel)}
+.ct-ol{list-style:none;margin:8px 0 12px;padding:0;display:grid}
+.ct-ol li{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;padding:8px 0 8px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:13.5px}
+.ct-ol li.gap{border-left:2px dashed var(--sel)}
+.ct-ol b{font-weight:600;display:block}.ct-ob{display:flex;flex-wrap:wrap;gap:8px}
 #v-cartera .ficha{position:fixed;top:0;right:0;bottom:0;width:min(470px,100vw);max-height:none;z-index:60;background:var(--surf);border-left:1px solid var(--line2);box-shadow:-18px 0 40px rgba(0,0,0,.45);overflow-y:auto;scrollbar-width:thin}
 #v-cartera .ficha:focus{outline:none}
 #v-cartera .fi-h{position:sticky;top:0;z-index:2;background:var(--surf)}
 #v-cartera .fi-h .loc{width:60px}
+@media (min-width:1280px){#v-cartera.fopen{padding-right:486px}#v-cartera .ficha{box-shadow:none}#v-cartera.fopen .ct-sum,#v-cartera.fopen .ct-gapw{grid-template-columns:minmax(0,1fr)}}
 details.fi-sec{display:block}
 details.fi-sec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
 details.fi-sec>summary::-webkit-details-marker{display:none}
@@ -463,7 +467,11 @@ details.fi-sec[open]>summary::after{content:"–"}
 details.fi-sec>summary h3{color:var(--ink2)}details.fi-sec>summary:hover h3{color:var(--ink)}
 details.fi-sec>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
 details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
-@media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-board{grid-template-columns:minmax(0,1fr)}}
+.fi-sub{margin-top:10px;padding-top:12px;border-top:1px solid var(--line)}
+.fm-from{border:1px solid var(--line2);border-left:3px solid var(--acc);border-radius:6px;padding:10px 14px;background:var(--surf);display:grid;gap:6px;font-size:13.5px}.fm-from p{margin:0}.fm-from:focus{outline:none}
+details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-content}details.foot>div{margin-top:8px}
+@media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
+@media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
 
 /* BIP */
 .srch{flex:1 1 260px;min-width:0;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink)}
@@ -852,18 +860,18 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <section class="view" id="v-cartera" role="tabpanel" aria-labelledby="tab-cartera">
     <section class="card ct-sum" id="ct-sum" aria-label="Resumen de la cartera"></section>
     <section class="card">
-      <div class="card-h"><div><h2>Qué tenemos y qué tan listo está</h2><div class="sub">Las líneas de la minuta DIFOI, ordenadas según la evidencia de sus entradas territoriales. Clic en un territorio para abrir su ficha.</div></div>
+      <div class="card-h"><div><h2>Qué tenemos y qué tan listo está</h2><div class="sub">Las líneas de la minuta DIFOI, agrupadas según la evidencia de sus entradas. Cada territorio es un botón que abre su ficha.</div></div>
         <div class="legend ct-leg" aria-label="Evidencia de cada entrada"><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>levantada</span><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span>parcial</span><span class="k"><span class="dots"><i class="on"></i><i></i><i></i></span>por levantar</span></div></div>
       <div class="card-b"><div class="ct-board" id="ct-board"></div></div>
     </section>
     <section class="card" id="ct-gap">
-      <div class="card-h"><div><h2>Dónde falta</h2><div class="sub">Territorio × lineamiento CTCI: qué combinaciones tienen entrada en la cartera y cuáles no. Clic en una celda para abrir su ficha.</div></div></div>
+      <div class="card-h"><div><h2 id="ct-gap-h" tabindex="-1">Dónde falta</h2><div class="sub">Territorio × lineamiento CTCI. Los puntos muestran la evidencia de cada entrada; las celdas con un número no tienen entrada. Clic en una celda para abrir su ficha.</div></div></div>
       <div class="card-b ct-gapw">
-        <div><div class="mx-wrap"><div class="mx ct-mx" id="mx"></div></div><div class="legend ct-mxleg" id="mx-leg"></div></div>
+        <div><p class="note ct-swipe">Desliza la tabla hacia el lado para ver los seis lineamientos.</p><div class="mx-wrap"><div class="mx ct-mx" id="mx"></div></div><div class="legend ct-mxleg" id="mx-leg"></div></div>
         <div id="ct-opp"></div>
       </div>
     </section>
-    <aside class="ficha" id="ficha" tabindex="-1" aria-label="Ficha de territorio y lineamiento" hidden></aside>
+    <aside class="ficha" id="ficha" role="dialog" aria-labelledby="fi-title" tabindex="-1" hidden></aside>
   </section>
 
   <!-- ===== Territorios ===== -->
@@ -1396,6 +1404,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <section class="view" id="v-formular" role="tabpanel" aria-labelledby="tab-formular" hidden>
     <p class="note" id="fm-none" hidden>La matriz estratégica no está incluida en esta copia del tablero. Se genera con procesamiento/prep_matriz.py.</p>
     <div id="fm-body" style="display:flex;flex-direction:column;gap:16px">
+      <div class="fm-from" id="fm-from" tabindex="-1" hidden></div>
       <div class="fbar" role="group" aria-label="Selección">
         <label class="ctrl">Territorio<select class="sel" id="fm-t"></select></label>
         <label class="ctrl">Cadena productiva<select class="sel" id="fm-ch"></select></label>
@@ -1486,9 +1495,9 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   </div>
   </div>
-  <footer class="foot" id="foot">
+  <footer id="foot"><details class="foot"><summary>Contenido, fuentes y supuestos</summary><div>
     <b>Contenido.</b> Cartera DIFOI (14 líneas, 42 entradas), territorios ERD, empresas SII 2024, condiciones habilitantes, financiamiento existente (ANID, CORFO, BIP), ejecutores habilitados, evidencia territorial y explorador de empresas con filtros. <b>Fuentes.</b> D.S. N° 1.699 de 2024 (Hacienda), reglamento del FRPD, Ley N° 21.591. Estrategia Regional de Desarrollo La Araucanía 2040. Cartera y líneas: Minuta DIFOI de líneas de inversión FRPD (sept. 2026, documento de trabajo). Empresas: SII, nómina de personas jurídicas, año comercial 2024 y serie 2005–2024 (casa matriz en la región; trabajadores dependientes asignados a la casa matriz). Población: INE, Censo 2024. Infraestructura y territorio (base regional GORE): territorios ERD 2040, red vial comunal, puentes, SAIDI 2022, viviendas sin energía, antenas autorizadas (decretos 1997–2020), subestaciones y líneas de transmisión (CEN), servicios sanitarios rurales (DOH, act. dic-2025), bocatomas (CNR), embalses (DOH), sedes de educación superior (Mineduc 2020), obras portuarias (DOP), aeródromos, pasos fronterizos, inversión pública 2010–2022 y zonas de rezago. <b>Financiamiento existente:</b> ANID, Base de Datos Histórica de Proyectos Adjudicados (corte 31-12-2025, fallos 2019–2026, región de ejecución La Araucanía); CORFO, portafolio InnovaChile vía API DataInnovación (adjudicados 2019–2026); MDSF, Banco Integrado de Proyectos vía BIDAT (iniciativas postuladas 2019–2027, montos en MM$ = millones de pesos). <b>Obras georreferenciadas:</b> Contraloría General de la República, Geo-CGR (contratos de obra adjudicados desde 2019 en las 32 comunas, con las coordenadas que registra cada servicio; descarga del 06-11-2026), vinculadas a las iniciativas por código BIP. <b>Ejecutores:</b> nómina de instituciones privadas sin fines de lucro, Res. N° 1 de 23-feb-2026 (Subsecretaría de Economía y EMT, primer llamado 2026; transcripción del anexo de las bases FRPD 2026 del GORE Antofagasta) y Res. Ex. N° 33 de 2024; presencia regional según nómina SII de empresas y sucursales; acreditación por verificar en la CNA. <b>Evidencia territorial:</b> MDSF, estimaciones comunales SAE 2022 de pobreza por ingresos, pobreza multidimensional e inseguridad alimentaria; INE, Censo 2024 (manzanas y entidades rurales: población perteneciente a pueblos indígenas y origen del agua de la vivienda); CONADI, comunidades indígenas registradas; MMA, ARClim (indicadores climáticos comunales, presente y cambio proyectado bajo SSP2-4.5); CONAF, incendios forestales temporada 2024-25; GORE, estudio PROT de amenaza de inundación (cobertura parcial); INE, VIII Censo Agropecuario y Forestal 2021 (resultados comunales del visor geográfico); Subdere, SINIM 2024; Banco Central de Chile, PIB regional por actividad y PIB por habitante (referencia 2018). <b>Empresas y filtros:</b> la pestaña Empresas y la barra de filtros reproducen el explorador del tablero Tejido Empresarial sobre la misma base SII; los filtros recalculan la matriz, los cocientes, las fichas, los perfiles territoriales y las exportaciones (la evidencia territorial no cambia). Sector según la clasificación del SII; nómina Res. 1/2026 cruzada por RUT con las empresas con casa matriz en la región. <b>Supuestos provisionales:</b> la correspondencia entre subrubros SII y lineamientos L1–L6 y la clasificación de proyectos por palabras clave son aproximaciones del equipo, a validar por DIFOI.
-  </footer>
+  </div></details></footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" hidden></div>
