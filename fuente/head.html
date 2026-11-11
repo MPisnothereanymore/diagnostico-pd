@@ -472,31 +472,40 @@ details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 .fm-from{border:1px solid var(--line2);border-left:3px solid var(--acc);border-radius:6px;padding:10px 14px;background:var(--surf);display:grid;gap:6px;font-size:13.5px}.fm-from p{margin:0}.fm-from:focus{outline:none}
 details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-content}details.foot>div{margin-top:8px}
 /* Territorios: selector, lectura en tres preguntas, mapa de apoyo y tablas por comuna plegadas */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .tr-pick{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
 .tr-p{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:9px 10px 9px 11px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:7px;background:var(--surf2);color:var(--ink2);font-size:12px;line-height:1.35;min-width:0}
 .tr-p b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25}
-.tr-p .g{color:var(--bad)}.tr-p .g.z{color:var(--ok)}
+.tr-p .g{color:var(--bad)}.tr-p .g.z{color:var(--ink2)}
 .tr-p:hover{border-color:var(--acc);border-left-color:var(--tc)}
 .tr-p[aria-pressed="true"]{background:var(--surf3);border-color:var(--ink);border-left-color:var(--tc);box-shadow:0 0 0 1px var(--ink)}
 .g-terr{grid-template-columns:minmax(0,1.5fr) minmax(380px,1fr)}
 .tr-side{display:flex;flex-direction:column;gap:16px;min-width:0}.tr-xh{font-size:15px!important;margin:0!important}
 .tr-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px 18px;flex-wrap:wrap}
-#tp-title:focus{outline:none}
+#tp-title:focus,.tr-q>h3:focus{outline:none}
+.tr-lead{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tr-lead li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:2px 14px;align-items:baseline;padding-left:12px;border-left:2px solid var(--line2)}
+.tr-lead .linkbtn{font-size:13.5px}.tr-lead p{margin:0;font-size:14px;line-height:1.5;color:var(--ink2);max-width:86ch}.tr-lead p b{color:var(--ink);font-weight:600}
 .tr-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
-.tr-q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
-.tr-q>h3{font-size:16px;font-weight:600}
-.tr-q>.c{margin:0;font-size:14px;line-height:1.5;color:var(--ink2);max-width:82ch}.tr-q>.c b{color:var(--ink);font-weight:600}
-.tr-q .note{margin:0}
+.tr-q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;scroll-margin-top:10px}
+.tr-q>h3{font-size:16px;font-weight:600;scroll-margin-top:14px}
+.tr-q .note{margin:0;max-width:100ch}
 .tr-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 28px;align-items:start}
 .tr-2>div{display:flex;flex-direction:column;gap:7px;min-width:0}
-.tr-ch{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--line)}
-.tr-ch .n b{display:block;font-weight:600;font-size:13px}.tr-ch small{color:var(--muted);font-size:11.5px}
-.tr-ch .ifc{width:auto;min-height:24px;padding:2px 10px}
-.tr-dim{display:grid;grid-template-columns:minmax(0,1.25fr) 132px minmax(0,1fr);gap:4px 16px;align-items:start;padding:9px 0 9px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:12.5px}
+#tprof .lqrow .tr i{background:var(--muted)}#tprof .lqrow.hi .tr i{background:var(--acc)}#tprof .lqrow.hi>span:first-child,#tprof .lqrow.hi .x{color:var(--ink);font-weight:600}#tprof .lqrow>span:first-child{color:var(--ink2)}
+.tr-ch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.tr-ch .n b{display:block;font-weight:600;font-size:13px}.tr-ch small{display:block;color:var(--muted);font-size:11.5px;line-height:1.4}.tr-ch small.w{color:var(--sel)}
+.tr-dim{display:grid;grid-template-columns:minmax(0,1.25fr) 150px minmax(0,1fr);gap:4px 16px;align-items:start;padding:9px 0 9px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:12.5px}
 .tr-dim.gap{border-left-color:var(--bad)}
 .tr-dim .a>b{display:block;font-size:13.5px;font-weight:600}.tr-dim:not(.gap) .a>b{font-weight:500;color:var(--ink2)}
 .tr-dim small{display:block;color:var(--ink2);font-size:11.5px;line-height:1.45;margin-top:2px}.tr-dim small b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.tr-dim small.g,.tr-dim small.g b{color:var(--bad)}
 .tr-dim .c{display:flex;flex-direction:column;gap:3px;align-items:flex-start}.tr-dim .c b{font-weight:600}.tr-dim .linkbtn{font-size:12px;font-weight:500}
+.tr-ents{display:flex;flex-direction:column}
+.tr-ent{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1px 10px;align-items:center;text-align:left;padding:8px 8px 8px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:13.5px;line-height:1.35}
+.tr-ent .dots{display:inline-flex;gap:3px;grid-row:1/3}.tr-ent .dots i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--muted)}.tr-ent .dots i.on{background:var(--acc);box-shadow:none}
+.tr-ent .n{font-weight:600}.tr-ent .m{grid-column:2;font-size:12px;color:var(--muted)}
+.tr-ent:hover .n{color:var(--acc);text-decoration:underline}
 details.tr-det>summary{cursor:pointer;list-style:none;align-items:center;flex-wrap:nowrap;padding-bottom:14px}
 details.tr-det>summary::-webkit-details-marker{display:none}
 details.tr-det>summary::after{content:"Mostrar";flex:none;font-size:12px;color:var(--acc);font-weight:600;border:1px solid var(--line);border-radius:6px;padding:5px 10px}
@@ -507,11 +516,18 @@ details.tr-lay>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var
 details.tr-lay>summary span{color:var(--muted);font-weight:400}
 details.tr-lay>.layers{margin-top:10px}
 .ift tr.on>th{color:var(--sel)}.ift tr.on>th::before{content:"▸ "}
+.ift tbody th,.ift thead th:first-child{position:sticky;left:0;z-index:1;background:var(--surf)}
+#hab th:first-child,#hab td:first-child,#ipt-tbl-wrap td:first-child{position:sticky;left:0;z-index:1;background:var(--surf)}#ipt-tbl-wrap th:first-child{position:sticky;left:0;z-index:1}
+#hab tr.on td:first-child,#ipt-tbl-wrap tr.on td:first-child{background:#2A261E}
 .ipt-s{display:block;font-size:11px;line-height:1.35;color:var(--muted);margin-top:3px}
 .ipt-tbl td{vertical-align:top}.ipt-tbl td>b{font-size:13px}
+#ipt-tbl-wrap .plad-badge,#ipt-tbl-wrap .grd-badge,#ipt-tbl-wrap .pladet-badge,#ipt-tbl-wrap .paccc-badge,#ipt-tbl-wrap [class^="tag-"]{background:var(--surf3);color:var(--ink2);border-color:var(--line2);font-weight:500}
+#ipt-tbl-wrap .ipt-badge.form{color:#9CC3F5}
 @media (max-width:1180px){.tr-pick{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:760px){.tr-2,.tr-dim{grid-template-columns:minmax(0,1fr)}.tr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tr-ch{grid-template-columns:minmax(0,1fr) auto}.tr-ch .linkbtn{grid-column:1/-1}}
+@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}#map.lf{aspect-ratio:auto;height:min(62vh,560px)}#map .map-svg{max-height:62vh}}
+@media (max-width:760px){.tr-2,.tr-dim,.tr-lead li{grid-template-columns:minmax(0,1fr)}.tr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #v-territorios .linkbtn,#v-territorios .psec>summary,details.tr-lay>summary{min-height:40px;display:inline-flex;align-items:center}#v-territorios .psec>summary{display:flex}.tr-ent{min-height:44px}
+  .ift{min-width:760px}.ift th:first-child{width:150px;white-space:normal}}
 @media (max-width:560px){.tr-pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
@@ -920,7 +936,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <!-- ===== Territorios ===== -->
   <section class="view" id="v-territorios" role="tabpanel" aria-labelledby="tab-territorios" hidden>
     <section class="card" aria-labelledby="tr-pk-h">
-      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y cuántas de las seis dimensiones de infraestructura tiene cada uno en brecha. También puedes elegirlo en el mapa.</div></div></div>
+      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y sus brechas de infraestructura. «Agregado»: cuántas de las seis dimensiones están en brecha para el territorio en conjunto. «Comunas»: cuántas de sus comunas tienen alguna. También puedes elegirlo en el mapa.</div></div></div>
       <div class="card-b"><div class="tr-pick" id="tr-pick" role="group" aria-labelledby="tr-pk-h"></div></div>
     </section>
     <div class="grid g-terr">
@@ -945,7 +961,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
     </div>
     <section class="card" id="if-card">
       <div class="card-h">
-        <div><h2>Comparar territorios: infraestructura por cadena productiva</h2><div class="sub">Dónde la infraestructura frena a una cadena que ya existe y dónde está lista para una nueva. Clic en una celda para ver las brechas y la inversión en camino.</div></div>
+        <div><h2>Comparar territorios: infraestructura por cadena productiva</h2><div class="sub">Dónde la infraestructura frena a una cadena que ya existe y dónde está lista para una nueva. Clic en una celda para ver las brechas y la inversión en camino (iniciativas BIP postuladas desde 2025; postular no implica financiamiento).</div></div>
         <div class="ctrls"><div class="seg" id="if-lev" role="group" aria-label="Nivel"></div></div>
       </div>
       <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
@@ -961,7 +977,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       <div class="tr-detb">
         <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="hb-scope"></select></label><button class="btn pri" id="hb-csv" type="button" hidden>Exportar CSV</button></div>
         <div class="tbl-wrap" id="hab"></div>
-        <p class="note">▲ marca los valores en el tercio peor de las 32 comunas. Una dimensión está en brecha cuando alguno de sus indicadores lo está: conectividad vial (pavimento o puentes de madera), energía (interrupción eléctrica), conectividad digital (antenas), agua potable (viviendas sin red pública), riego (superficie regada) y educación superior (territorio sin sedes). El archivo CSV trae además el resto de las variables de infraestructura.</p>
+        <p class="note">▲ marca los valores en el tercio peor de las 32 comunas. Una dimensión está en brecha cuando alguno de sus indicadores lo está: conectividad vial (pavimento o puentes de madera), energía (interrupción eléctrica), conectividad digital (antenas), agua potable (viviendas sin red pública), riego (superficie regada) y educación superior (territorio sin sedes). El archivo CSV trae además el resto de las variables de infraestructura y la inversión BIP por comuna.</p>
       </div>
     </details>
     <details class="card tr-det" id="ipt-card">
@@ -1107,10 +1123,10 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <section class="view" id="v-evid" role="tabpanel" aria-labelledby="tab-evid" hidden>
     <div style="background:var(--surf2);border:1px solid var(--line2);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
-        <b style="color:var(--ink);font-size:14px">Instrumentos de Planificación Territorial (IPT)</b>
-        <span style="color:var(--ink2);margin-left:8px;font-size:13px">20 comunas con Plan Regulador Comunal vigente (12 en actualización) y 12 sin PRC. Catastro completo, límites urbanos históricos, PRI intercomunales y ZOIT según la ERD 2040.</span>
+        <b style="color:var(--ink);font-size:14px">Instrumentos de planificación por comuna</b>
+        <span style="color:var(--ink2);margin-left:8px;font-size:13px"><span id="ev-ipt-n">12</span> de las 32 comunas no tienen plan regulador vigente (ERD 2040, Tabla 14). El resto del catastro (PLADECO, riesgo, turismo, clima) está sin verificar.</span>
       </div>
-      <button class="btn pri" id="ev-goto-ipt" type="button">Ver catálogo y tabla de IPT →</button>
+      <button class="btn pri" id="ev-goto-ipt" type="button">Ver instrumentos de planificación por comuna</button>
     </div>
     <div class="kpis" id="ev-kpis"></div>
     <div class="grid g-ev">
@@ -1268,6 +1284,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Iniciativas BIP ===== -->
   <section class="view" id="v-bip" role="tabpanel" aria-labelledby="tab-bip" hidden>
+    <div class="fm-from" id="bx-from" hidden></div>
     <div class="kpis" id="bx-kpis"></div>
     <div class="fbar" id="bx-f" role="group" aria-label="Filtros de iniciativas BIP">
       <input class="srch" id="bx-q" type="search" placeholder="Buscar por nombre, código BIP o institución" autocomplete="off" aria-label="Buscar iniciativas">

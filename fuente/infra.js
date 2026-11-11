@@ -76,7 +76,7 @@ function renderInfra() {
     STRAT_CHAINS.forEach((ch, ci) => {
       const x = ifCell(lev, j, ci), on = IFU.sel && IFU.sel.lev === lev && IFU.sel.j === j && IFU.sel.ci === ci;
       if (x.st === 'hab') { nHab++; nSin += x.sinInv; } if (x.st === 'div') nDiv++;
-      h += `<td><button type="button" class="ifc ${x.st}" data-j="${j}" data-ci="${ci}" aria-pressed="${on}" title="${esc(IF_ST[x.st].d)}">${x.st === 'nop' ? '–' : IF_ST[x.st].l}${x.st === 'hab' ? ` <b>${x.gaps.length}</b>` : ''}</button></td>`;
+      h += `<td><button type="button" class="ifc ${x.st}" data-j="${j}" data-ci="${ci}" aria-pressed="${on}" title="${esc(IF_ST[x.st].d)}" aria-label="${esc(ifName(lev, j))}, ${esc(ifShort(ch))}: ${x.st === 'nop' ? 'sin prioridad' : IF_ST[x.st].l}${x.st === 'hab' ? `, ${x.gaps.length} en brecha` : ''}">${x.st === 'nop' ? '–' : IF_ST[x.st].l}${x.st === 'hab' ? ` <b>${x.gaps.length}</b>` : ''}</button></td>`;
     });
     h += '</tr>';
   }
@@ -99,9 +99,9 @@ function renderInfraDet() {
         : dm.gap ? `<span class="pill warn">Sin inversión en camino</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : '<small>Sin iniciativas recientes</small>'}</div>
     </div>`).join('')}</div>${MX ? '<div><button type="button" class="btn pri" id="if-fm">Formular con esta combinación</button></div>' : ''}`;
   if ($('#if-fm')) $('#if-fm').addEventListener('click', () => trFormular(s.lev === 'ter' ? s.j : TOF[s.j], s.ci, '#if-fm'));
-  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) })));
+  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => { TR_RET = { kind: 'bip', sy: scrollY, sel: `#if-det button[data-cat="${b.dataset.cat}"]`, ter: UI.ter, what: `${ifName(s.lev, s.j)}, ${Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).l}` }; openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }));
 }
 function initInfra() {
-  $('#if-lev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; IFU.lev = b.dataset.k; renderInfra(); });
-  $('#if-wrap').addEventListener('click', e => { const b = e.target.closest('button.ifc'); if (!b) return; const j = +b.dataset.j, ci = +b.dataset.ci, s = IFU.sel; IFU.sel = s && s.lev === IFU.lev && s.j === j && s.ci === ci ? null : { lev: IFU.lev, j, ci }; renderInfra(); });
+  $('#if-lev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; IFU.lev = b.dataset.k; renderInfra(); const nb = $(`#if-lev button[data-k="${IFU.lev}"]`); if (nb) nb.focus({ preventScroll: true }); });
+  $('#if-wrap').addEventListener('click', e => { const b = e.target.closest('button.ifc'); if (!b) return; const j = +b.dataset.j, ci = +b.dataset.ci, s = IFU.sel; IFU.sel = s && s.lev === IFU.lev && s.j === j && s.ci === ci ? null : { lev: IFU.lev, j, ci }; renderInfra(); const nb = $(`#if-wrap button.ifc[data-j="${j}"][data-ci="${ci}"]`); if (nb) nb.focus({ preventScroll: true }); });
 }
