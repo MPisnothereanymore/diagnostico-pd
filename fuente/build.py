@@ -12,11 +12,14 @@ from pathlib import Path
 
 H = Path(__file__).resolve().parent
 head = (H / 'head.html').read_text(encoding='utf-8')
-app = (H / 'app.js').read_text(encoding='utf-8').replace('// @@EMPRESAS@@', (H / 'emp.js').read_text(encoding='utf-8'))
+app = (H / 'app.js').read_text(encoding='utf-8').replace('// @@EMPRESAS@@', (H / 'emp.js').read_text(encoding='utf-8') + '\n' + (H / 'infra.js').read_text(encoding='utf-8') + '\n' + (H / 'formular.js').read_text(encoding='utf-8'))
 pack = (H / 'pack_frpd6.b64').read_text(encoding='utf-8').strip()
 # capa opcional de obras georreferenciadas (procesamiento/prep_geocgr.py)
 obras = H / 'obras_geocgr.b64'
 extra = ('\n<script id="obras" type="application/octet-stream">' + obras.read_text(encoding='utf-8').strip() + '</script>') if obras.exists() else ''
+# matriz estratégica art. 8 × ERD/PRFP para la pestaña Formular (procesamiento/prep_matriz.py)
+matriz = H / 'matriz_estrategica.b64'
+if matriz.exists(): extra += '\n<script id="matriz" type="application/octet-stream">' + matriz.read_text(encoding='utf-8').strip() + '</script>'
 scripts = '\n<script id="pack" type="application/octet-stream">' + pack + '</script>' + extra + '\n<script>\n' + app + '\n</script>\n'
 
 # versión local: documento HTML completo (codificación, viewport y margen)
@@ -37,11 +40,6 @@ dist.mkdir(exist_ok=True)
 
 # versión artefacto: el servicio de artefactos agrega el documento envolvente
 (H / 'radar_frpd_artefacto.html').write_text(head + scripts, encoding='utf-8')
-
-# Copiar datos_radar.json a dist si existe
-datos_src = H.parent / 'datos_radar.json'
-if datos_src.exists():
-    (dist / 'datos_radar.json').write_text(datos_src.read_text(encoding='utf-8'), encoding='utf-8')
 
 print('Listo:', H.parent / 'Radar FRPD Araucanía.html', f'({len(local) / 1e6:.1f} MB)')
 print('Listo para GitHub Pages y Netlify:', dist / 'index.html')

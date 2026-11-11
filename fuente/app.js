@@ -29,6 +29,9 @@ try { D = await loadPack(); } catch (e) { $('#loading').textContent = 'No se pud
 // obras georreferenciadas de Geo-CGR (opcional: el tablero funciona sin ellas)
 let OB = null;
 try { if (document.getElementById('obras')) OB = await loadPack('obras'); } catch (e) { console.warn('Obras Geo-CGR no disponibles:', e); }
+// matriz estratégica art. 8 × ERD/PRFP para la pestaña Formular (opcional)
+let MX = null;
+try { if (document.getElementById('matriz')) MX = await loadPack('matriz'); } catch (e) { console.warn('Matriz estratégica no disponible:', e); }
 
 // ================= catálogos =================
 const FR = D.FRPD, NC = D.comunas.length;
@@ -201,8 +204,11 @@ function recomputeSII(m) {
   if (uB) for (let y = 0; y < TY0; y++) { serAll[y] = NaN; serT.forEach(a => { a[y] = NaN; }); serR.forEach(a => { a[y] = NaN; }); serC.forEach(row => row.forEach(a => { a[y] = NaN; })); }
 }
 recomputeSII(ALL);
-const TN0 = tN.slice();   // totales sin filtros (simulador)
 const lqN = (t, L) => (tN[t] && rN[L] ? (cN[t][L] / tN[t]) / (rN[L] / NSEL) : NaN);
+const LQ0 = Array.from({ length: NT }, (_, t) => Array.from({ length: NL }, (_, L) => lqN(t, L)));   // cociente con todas las empresas (Cartera)
+// base sin filtros de empresas: Territorios no cambia con la barra de filtros
+const SII0 = { tN: [...tN], tT: [...tT], tTpub: [...tTpub], T10: [...T10], sales: [...TSALES], totT, comN: [...comN], comLN: comLN.map(x => [...x]), rN: [...rN] };
+const lqCom0 = (c, L) => (SII0.comN[c] && SII0.rN[L] ? (SII0.comLN[c][L] / SII0.comN[c]) / (SII0.rN[L] / N) : NaN);
 const lqT = (t, L) => (tT[t] && rT[L] ? (cT[t][L] / tT[t]) / (rT[L] / totT) : NaN);
 const lqCom = (c, L) => (comN[c] && rN[L] ? (comLN[c][L] / comN[c]) / (rN[L] / NSEL) : NaN);
 const terOn = t => !hasGeo() || TER[t].c.some(c => GEO[c]);
@@ -228,7 +234,6 @@ HABS.forEach(h => {
   HREG[h.k] = h.v(ALLC);
 });
 const isGap = (h, v) => (h.bad === 'high' ? v >= HTH[h.k][1] : v <= HTH[h.k][0]);
-const BRE = ALLC.map(c => HABS.filter(h => isGap(h, HV[h.k][c])).map(h => h.k));
 const terHab = (h, ti) => h.v(TER[ti].c);
 // territory status vs region: worse / similar / better (±10% band)
 function status(h, v) {
@@ -361,19 +366,8 @@ function finRow(i) {
 }
 
 // ================= estado =================
-const UI = { view: 'cartera', t: TIDX.VCE, L: LIDX.L3, mode: 'lq', fb: new Set(), fn: new Set(), fm: new Set(), line: null,
-  ter: TIDX.VCE, mInd: 'ter', mLin: LIDX.L3, layers: new Set(['tl', 'ies', 'erd']), hbScope: 'all', hbSort: 'bre', hbDir: -1,
-  sim: { monto: 10000, ctci: 30, adm: 3, reg: 15, w: { pop: 40, bre: 20, rez: 15, emp: 15, eq: 10 } } };
-const fActive = () => UI.fb.size || UI.fn.size || UI.fm.size || UI.line;
-function entryPass(e) {
-  const ln = LINE[e.l];
-  if (UI.line && e.l !== UI.line) return false;
-  if (UI.fb.size && !UI.fb.has(ln.b)) return false;
-  if (UI.fm.size && !UI.fm.has(e.m)) return false;
-  if (UI.fn.size) { const ns = lineNums(ln); if (![...UI.fn].some(n => ns.has(n))) return false; }
-  return true;
-}
-
+const UI = { view: 'cartera', t: TIDX.VCE, L: LIDX.L3, line: null, fOpen: false,
+  ter: TIDX.VCE, mInd: 'ter', mLin: LIDX.L3, layers: new Set(['tl']), hbScope: 'ter', hbSort: 'bre', hbDir: -1 };
 // ================= colores =================
 function hex2rgb(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
 function mix(a, b, t) { const A = hex2rgb(a), Bc = hex2rgb(b); return '#' + A.map((x, i) => Math.round(x + (Bc[i] - x) * t).toString(16).padStart(2, '0')).join(''); }
@@ -418,12 +412,14 @@ function locator(ti, extra) {
 }
 
 // ================= vistas =================
-const VIEWS = ['cartera', 'bip', 'compras', 'territorios', 'empresas', 'evid', 'marco', 'simulador'];
-const FIRMV = new Set(['cartera', 'territorios', 'empresas']);
+const VIEWS = ['cartera', 'bip', 'territorios', 'empresas', 'evid', 'formular', 'marco'];
+const FIRMV = new Set(['empresas']);   // la barra de filtros de empresas solo se muestra en Empresas
 const rendered = {};
 function setView(v) {
+  if (EMP_RET && v !== 'empresas') { EMP_RET = null; renderEmpFrom(); }
+  if (TR_RET && v !== (TR_RET.kind === 'bip' ? 'bip' : 'cartera')) TR_RET = null;
   UI.view = v;
-  VIEWS.forEach(k => { $('#tab-' + k).setAttribute('aria-selected', String(k === v)); $('#v-' + k).hidden = k !== v; });
+  VIEWS.forEach(k => { const tb = $('#tab-' + k); tb.setAttribute('aria-selected', String(k === v)); tb.tabIndex = k === v ? 0 : -1; $('#v-' + k).hidden = k !== v; });
   $('#work').classList.toggle('norail', !FIRMV.has(v));
   $('#rail').classList.remove('open');
   hideTip();
@@ -431,10 +427,9 @@ function setView(v) {
   if (v === 'territorios') { renderTerritorios(); DIRTY.territorios = false; }
   if (v === 'empresas') renderEmpresas();
   if (v === 'marco' && !rendered.marco) { renderMarco(); rendered.marco = true; }
-  if (v === 'simulador') renderSim();
+  if (v === 'formular') renderFormular();
   if (v === 'bip') renderBip();
   if (v === 'evid') renderEvid();
-  if (v === 'compras') { renderCompras(); if (!CP_FULL && !window.LIVE_COMPRAS) syncRadarData(true); }
   try { history.replaceState(null, '', '#' + v); } catch (_) {}
 }
 VIEWS.forEach(k => $('#tab-' + k).addEventListener('click', () => setView(k)));
@@ -445,97 +440,145 @@ $('.tabs').addEventListener('keydown', e => {
 });
 
 // ================= CARTERA =================
-function renderKpis() {
-  const vis = ENT.filter(entryPass);
-  const ctci = vis.filter(e => isCTCI(LINE[e.l])).length, m3 = vis.filter(e => e.m === 3).length;
-  const gaps = cellList().filter(x => !CELL[TER[x.t].k + '|' + LIN[x.L].k] && lqN(x.t, x.L) >= 1.1).length;
-  const nl = new Set(vis.map(e => e.l)).size;
-  const k = (l, v, s) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
-  $('#kpis').innerHTML = [
-    k('Entradas de la cartera', `${vis.length}<small> / ${ENT.length}</small>`, fActive() ? 'con los filtros aplicados' : 'de 48 celdas territorio × lineamiento'),
-    k('Líneas de inversión', `${nl}<small> / ${LINES.length}</small>`, nl === LINES.length - 2 && !fActive() ? 'con celdas; L-02 y L-03 son transversales' : 'con entradas visibles'),
-    k('Entradas que aportan al piso CTCI', String(ctci), 'de la cartera, con categoría art. 8 N°3 (no son empresas)'),
-    k('Evidencia levantada', String(m3), 'entradas en madurez 3 de 3'),
-    k('Especialización sin entrada', String(gaps), 'celdas vacías con cociente ≥ 1,1'),
-  ].join('');
-}
+// Tres preguntas, en orden: cuánto hay y qué tan listo está, qué líneas tienen la evidencia levantada y dónde falta.
+// Los filtros de empresas no cambian esta pestaña (usa LQ0); sí cambian las cifras de empresas de la ficha.
+const FRPD_2026 = 21111;   // MM$ · Ley 21.796, total FRPD La Araucanía 2026 (confirmado por DIFOI el 14-oct-2026)
+const MADS = { 3: 'levantada', 2: 'parcial', 1: 'por levantar' };
+const TSHORT = { TPLC: 'Temuco–PLC', VCE: 'Valle Central', CSU: 'Cautín Sur', MNO: 'Malleco Norte', NAH: 'Nahuelbuta', COS: 'Costa', AND: 'Andina', LAC: 'Lacustre' };
+const CT_L2CH = { L3: 'agro', L4: 'ene', L5: 'circ', L6: 'ebtc' };   // lineamiento -> cadena con que abre Formular; L1 y L2 no tienen cadena equivalente
+const CT_MORE = new Set();
+const mDots = m => `<span class="dots" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= m ? 'on' : ''}"></i>`).join('')}</span>`;
 const cellList = () => { const o = []; for (let t = 0; t < NT; t++) for (let L = 0; L < NL; L++) o.push({ t, L }); return o; };
-
-function renderFbar() {
-  const tg = (grp, v, lab, title) => `<button type="button" class="tog" data-g="${grp}" data-v="${v}" aria-pressed="${UI[grp].has(grp === 'fm' ? +v : v)}"${title ? ` title="${esc(title)}"` : ''}>${lab}</button>`;
-  $('#fbar').innerHTML =
-    `<div class="fgrp"><span class="lbl">Bloque</span>${Object.entries(BLOQ).map(([k, n]) => tg('fb', k, `${k} · ${esc(n)}`)).join('')}</div>` +
-    `<div class="fgrp"><span class="lbl">Art. 8</span>${tg('fn', '1', 'N°1 Fomento productivo', FR.art8[0].d)}${tg('fn', '2', 'N°2 Desarrollo regional', FR.art8[1].d)}${tg('fn', '3', 'N°3 CTCI', FR.art8[2].d)}</div>` +
-    `<div class="fgrp"><span class="lbl">Madurez</span>${[3, 2, 1].map(m => tg('fm', m, `${m} · ${{ 3: 'levantada', 2: 'parcial', 1: 'por levantar' }[m]}`, MADT[m])).join('')}</div>` +
-    (UI.line ? `<div class="fgrp"><span class="lbl">Línea</span><button type="button" class="tog" id="f-line" aria-pressed="true" title="Quitar el filtro de línea">${UI.line} ${esc(LINE[UI.line].n)} ✕</button></div>` : '') +
-    `<button type="button" class="btn clear" id="f-clear"${fActive() ? '' : ' hidden'}>Quitar filtros</button>`;
-  $$('#fbar .tog[data-g]').forEach(b => b.addEventListener('click', () => {
-    const g = b.dataset.g, v = g === 'fm' ? +b.dataset.v : b.dataset.v;
-    if (UI[g].has(v)) UI[g].delete(v); else UI[g].add(v);
-    renderCartera(true);
-  }));
-  if (UI.line) $('#f-line').addEventListener('click', () => selectLine(null));
-  $('#f-clear').addEventListener('click', () => { UI.fb.clear(); UI.fn.clear(); UI.fm.clear(); UI.line = null; renderCartera(true); });
+const lq2 = v => Math.round(v * 100) / 100;   // el cociente tal como se muestra, para que la regla no contradiga la cifra
+const lqBand = v => (lq2(v) >= 1.1 ? 'sobre el' : lq2(v) >= 0.9 ? 'similar al' : 'bajo el');
+const cellEmpty = (t, L) => !CELL[TER[t].k + '|' + LIN[L].k];
+const cellGap = (t, L) => cellEmpty(t, L) && lq2(LQ0[t][L]) >= 1.1;
+const lineEnts = ln => ENT.filter(e => e.l === ln.k);
+const lineIsInv = ln => ln.a8.length > 0 || ln.g.length > 0;   // sin ítems ni gastos del art. 8 es un encargo de levantamiento
+const listY = a => (a.length > 1 ? a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1] : a[0] || '');
+// la minuta prevé la línea para más (u otros) territorios que los de sus entradas: se avisa en la fila
+const scopeDiff = (ln, es) => { if (ln.terr === 'REGIONAL') return false; const want = ln.terr === 'TODOS' ? TER.map(x => x.k) : ln.terr.split(','), have = new Set(es.map(e => e.t)); return !es.length || want.length !== have.size || want.some(k => !have.has(k)); };
+const lineScope = ln => (ln.terr === 'REGIONAL' ? 'alcance regional' : ln.terr === 'TODOS' ? 'todos los territorios' : listY(ln.terr.split(',').map(k => TER[TIDX[k]].n)));
+// 0: evidencia levantada en todas sus entradas · 1: en algunas · 2: en ninguna. Sin entradas, manda la madurez de la línea en la minuta.
+function lineState(ln) {
+  const es = lineEnts(ln);
+  if (!es.length) return parseInt(ln.mad, 10) >= 3 ? 0 : 2;
+  const n3 = es.filter(e => e.m === 3).length;
+  return n3 === es.length ? 0 : n3 ? 1 : 2;
 }
-
-function cellVal(t, L) {
-  const e = CELL[TER[t].k + '|' + LIN[L].k];
-  if (UI.mode === 'lq') { const v = lqN(t, L); return { v, txt: f2(v), bg: lqColor(v) }; }
-  if (UI.mode === 'n') { const v = cN[t][L], mx = Math.max(...cN.flat()); return { v, txt: f0(v), bg: ramp(SEQ, Math.log(1 + v) / Math.log(1 + mx)) }; }
-  if (UI.mode === 'g') { const g = gr(serC[t][L]), gR = gr(serR[L]); return { v: g, txt: pcs(g), bg: lqColor((1 + g) / (1 + gR)) }; }
-  if (UI.mode === 'fin') { const v = finN[t][L], mx = Math.max(...finN.flat()); return { v, txt: f0(v), bg: v ? ramp(SEQ, Math.log(1 + v) / Math.log(1 + mx)) : NODATA }; }
-  return { v: e ? e.m : NaN, txt: '', bg: e ? MADC[e.m] : NODATA };
+const CT_GRP = [
+  ['Evidencia levantada en todas sus entradas', 'Lo más cercano a formular. Antes, revisa que las entradas cubran los territorios que la minuta prevé para la línea.'],
+  ['Evidencia levantada en algunas entradas', 'Se puede partir por los territorios con evidencia levantada y completar el resto.'],
+  ['Sin evidencia levantada todavía', 'Falta levantar o completar la evidencia antes de formular.'],
+];
+function renderCtSum() {
+  const m = { 1: 0, 2: 0, 3: 0 }; ENT.forEach(e => { m[e.m]++; });
+  const ct = ENT.filter(e => isCTCI(LINE[e.l])).length, emp = cellList().filter(x => cellEmpty(x.t, x.L)).length, gaps = cellList().filter(x => cellGap(x.t, x.L)).length;
+  const inv = LINES.filter(lineIsInv).length, enc = LINES.length - inv;
+  const seg = k => (m[k] ? `<span class="m${k}" style="flex:${m[k]}"><b>${m[k]}</b><em>${MADS[k]}</em></span>` : '');
+  $('#ct-sum').innerHTML = `<div class="ct-s1"><p class="ct-lead"><b>${f0(inv)}</b> líneas de inversión${enc ? ` y <b>${f0(enc)}</b> ${enc === 1 ? 'encargo' : 'encargos'} de levantamiento` : ''} · <b>${f0(ENT.length)}</b> entradas</p>
+      <div class="ct-bar" role="img" aria-label="Entradas según su evidencia: ${m[3]} levantada, ${m[2]} parcial y ${m[1]} por levantar">${seg(3)}${seg(2)}${seg(1)}</div>
+      <p class="ct-barleg" aria-hidden="true">${[3, 2, 1].map(k => `<span class="m${k}"><i></i>${m[k]} ${MADS[k]}</span>`).join('')}</p>
+      <p class="note">Una entrada es una línea aplicada a un territorio. La barra las cuenta según la madurez de su evidencia en la minuta DIFOI (sept. 2026).</p></div>
+    <ul class="ct-facts">
+      <li><b>${f0(ct)} de ${f0(ENT.length)}</b> entradas tienen al menos un componente de investigación (N°3 del art. 8), que puede contar para el mínimo de 25% del art. 7. Cuánto cubren se sabrá cuando haya montos.</li>
+      <li>FRPD 2026: <b>${f0(FRPD_2026)} MM$</b> (Ley 21.796); ese mínimo equivale a unos ${f0(FRPD_2026 * 0.25)} MM$. La cartera todavía no tiene montos por línea.</li>
+      <li><b>${f0(emp)}</b> combinaciones de territorio y lineamiento no tienen entrada; en <b>${f0(gaps)}</b> la base empresarial está sobre el promedio regional. <button type="button" class="linkbtn" id="ct-go-gap">Ver dónde falta</button></li>
+    </ul>`;
+  $('#ct-go-gap').addEventListener('click', () => { const h = $('#ct-gap-h'); $('#ct-gap').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); h.focus({ preventScroll: true }); });
+}
+function renderBoard() {
+  const grp = [[], [], []]; LINES.forEach(ln => grp[lineState(ln)].push(ln));
+  const share = ln => { const es = lineEnts(ln); return es.length ? es.filter(e => e.m === 3).length / es.length : 0; };
+  grp.forEach(g => g.sort((a, b) => share(b) - share(a) || a.k.localeCompare(b.k)));
+  const row = (ln, j) => {
+    const es = lineEnts(ln).sort((a, b) => b.m - a.m || TIDX[a.t] - TIDX[b.t]), more = CT_MORE.has(ln.k);
+    const lin = ln.ctci.filter(k => LSHORT[k]).map(k => `${k} ${LSHORT[k]}`).join(' · ') || 'Transversal';
+    return `<div class="ct-row${UI.fOpen && UI.line === ln.k ? ' on' : ''}" data-line="${ln.k}">
+      <span class="code">${ln.k}</span>
+      <div class="ct-rn"><h4>${esc(ln.n)}</h4><p class="ct-meta">${esc(lin)}${lineIsInv(ln) ? '' : ' · encargo de levantamiento'}${isCTCI(ln) ? '' : ' · <span title="Sin ítems ni tipos de gasto del N°3 del art. 8: no cuenta para el mínimo de 25%">sin componente N°3</span>'}${ln.terr === 'REGIONAL' && !es.length ? ' · alcance regional' : ''}${scopeDiff(ln, es) ? ` · <span class="warnmk">la minuta la prevé para ${esc(lineScope(ln))}</span>` : ''}</p></div>
+      <div class="ct-ter">${es.length ? es.map(e => `<button type="button" class="ct-t${UI.fOpen && UI.t === TIDX[e.t] && UI.L === LIDX[e.c] ? ' on' : ''}" data-t="${TIDX[e.t]}" data-l="${LIDX[e.c]}" aria-label="${ln.k} ${esc(ln.n)}, ${esc(TER[TIDX[e.t]].n)}: evidencia ${MADS[e.m]}. Abrir ficha" title="${esc(TER[TIDX[e.t]].n)} · ${e.c} · evidencia ${MADS[e.m]}">${mDots(e.m)}${TSHORT[e.t]}<span aria-hidden="true">›</span></button>`).join('')
+        : `<p class="ct-meta">Sin entradas territoriales. Ubicada según la madurez de la línea en la minuta: ${esc(ln.mad)} de 3.</p>`}</div>
+      <div class="ct-ra">${j === 0 ? `<button type="button" class="btn sm" data-fml="${ln.k}">Formular</button>` : ''}<button type="button" class="linkbtn" data-more="${ln.k}" aria-expanded="${more}">Qué financia</button></div>
+      ${more ? `<div class="ct-rm"><p>${esc(ln.que)}</p><p><b>Evidencia de la minuta.</b> ${esc(ln.ev)}</p></div>` : ''}</div>`;
+  };
+  $('#ct-board').innerHTML = grp.map((ls, j) => `<section class="ct-grp" aria-label="${CT_GRP[j][0]}"><div class="ct-gh"><h3>${CT_GRP[j][0]} <span>${pl(ls.length, 'línea', 'líneas')}</span></h3><p>${CT_GRP[j][1]}</p></div>${ls.map(ln => row(ln, j)).join('') || '<p class="note">Ninguna línea en este grupo.</p>'}</section>`).join('');
 }
 function renderMatrix() {
-  const host = $('#mx');
-  let h = '<div></div>' + LIN.map((l, L) => `<div class="ch${linOn(L) ? '' : ' dim'}" title="${esc(l.n)}"><b>${l.k}</b><span>${esc(LSHORT[l.k])}</span></div>`).join('');
+  let h = '<div class="rh"></div>' + LIN.map(l => `<div class="ch" title="${esc(l.n)}"><b>${l.k}</b><span>${esc(LSHORT[l.k])}</span></div>`).join('');
   for (let t = 0; t < NT; t++) {
     const T = TER[t];
-    h += `<button type="button" class="rh${UI.t === t ? ' on' : ''}${terOn(t) ? '' : ' dim'}" data-t="${t}" title="Ver el territorio en el mapa"><b>${esc(T.n)}</b><span>${f0(T.pop)} hab. · ${pl(T.c.length, 'comuna', 'comunas')}</span></button>`;
+    h += `<div class="rh"><b>${esc(T.n)}</b></div>`;
     for (let L = 0; L < NL; L++) {
-      const e = CELL[T.k + '|' + LIN[L].k], cv = cellVal(t, L), ink = inkOn(cv.bg);
-      const dim = (fActive() && (!e || !entryPass(e))) || !terOn(t) || !linOn(L);
-      const gap = !e && lqN(t, L) >= 1.1;
-      const on = UI.t === t && UI.L === L;
-      const lab = e ? `${e.l}, madurez ${e.m}` : 'sin entrada';
-      h += `<button type="button" class="cell${e ? '' : ' empty'}${gap ? ' gap' : ''}${dim ? ' dim' : ''}${on ? ' on' : ''}" data-t="${t}" data-l="${L}" style="background:${cv.bg};color:${ink}" aria-label="${esc(T.n)}, ${LIN[L].k}: ${lab}" aria-pressed="${on}">` +
-        (e ? `<span class="code">${e.l}</span><span class="dots" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= e.m ? 'on' : ''}"></i>`).join('')}</span>` : `<span class="code">Sin entrada</span>`) +
-        (cv.txt ? `<span class="v">${cv.txt}</span>` : '') + '</button>';
+      const e = CELL[T.k + '|' + LIN[L].k], gap = cellGap(t, L), on = UI.fOpen && UI.t === t && UI.L === L, v = f2(LQ0[t][L]);
+      const lab = e ? `${e.l} ${LINE[e.l].n}: evidencia ${MADS[e.m]}` : `sin entrada; cociente ${v}, base empresarial ${lqBand(LQ0[t][L])} promedio regional`;
+      h += `<button type="button" class="cell ${e ? 'has' : gap ? 'gap' : 'empty'}${on ? ' on' : ''}" data-t="${t}" data-l="${L}" title="${esc(lab)}" aria-label="${esc(T.n)}, ${LIN[L].k} ${esc(LSHORT[LIN[L].k])}: ${esc(lab)}. Abrir ficha">${e ? mDots(e.m) : `<span class="v">${v}</span>`}</button>`;
     }
   }
-  host.innerHTML = h;
-  $$('.cell', host).forEach(b => {
-    b.addEventListener('click', () => { UI.t = +b.dataset.t; UI.L = +b.dataset.l; UI.ter = UI.t; renderMatrix(); renderFicha(); if (innerWidth <= 1100) $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    b.addEventListener('mousemove', ev => cellTip(ev, +b.dataset.t, +b.dataset.l));
-    b.addEventListener('mouseleave', hideTip);
-  });
-  $$('.rh', host).forEach(b => b.addEventListener('click', () => { UI.ter = +b.dataset.t; setView('territorios'); }));
-  // leyenda
-  const lg = $('#mx-leg');
-  const gapk = '<span class="k"><i></i>Especializado sin entrada (cociente ≥ 1,1)</span>';
-  if (UI.mode === 'lq' || UI.mode === 'g') {
-    const st = [0.5, 0.71, 1, 1.41, 2];
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${st.map(v => `<span style="background:${lqColor(v)}"></span>`).join('')}</div><div class="t"><span>${UI.mode === 'lq' ? 'menos que la región' : 'crece menos'}</span><span>${UI.mode === 'lq' ? 'más' : 'más'}</span></div></div>` +
-      `<span>${UI.mode === 'lq' ? 'Cociente de localización: peso del lineamiento en las empresas del territorio ÷ su peso en la región (1,0 = igual)' : `Crecimiento del N° de empresas ${pLab()} comparado con el del mismo lineamiento en la región`}</span>` + gapk;
-  } else if (UI.mode === 'fin') {
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${[0, .25, .5, .75, 1].map(v => `<span style="background:${ramp(SEQ, v)}"></span>`).join('')}</div><div class="t"><span>pocos</span><span>muchos</span></div></div><span>Proyectos ANID, CORFO InnovaChile e iniciativas BIP de fomento o CTCI 2019–2026 en el territorio y lineamiento (escala logarítmica). Los proyectos sin comuna (alcance regional) se ven en la ficha.</span>` + gapk;
-  } else if (UI.mode === 'n') {
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${[0, .25, .5, .75, 1].map(v => `<span style="background:${ramp(SEQ, v)}"></span>`).join('')}</div><div class="t"><span>pocas</span><span>muchas</span></div></div><span>Empresas del territorio en los subrubros del lineamiento (escala logarítmica)</span>` + gapk;
-  } else {
-    lg.innerHTML = [3, 2, 1].map(m => `<span class="k"><span style="width:14px;height:12px;border-radius:3px;background:${MADC[m]}"></span>${m} · ${MADT[m]}</span>`).join('') + gapk;
-  }
-  $('#mx-note').textContent = (hasAttr() ? `Empresas filtradas: ${filterText(true)}. Cocientes y crecimiento se calculan dentro de esa selección. ` : '') + (hasGeo() || hasLin() ? 'Los filtros de territorio y lineamiento atenúan las filas y columnas que no corresponden. ' : '') + 'La asignación de subrubros SII a cada lineamiento es provisional y algunos subrubros (agrícolas, forestales) cuentan en más de un lineamiento. Una celda vacía no es una brecha por sí sola: revisa la ficha.';
+  $('#mx').innerHTML = h;
+  $('#mx-leg').innerHTML = `<span class="k">${mDots(3)}evidencia levantada</span><span class="k">${mDots(2)}parcial</span><span class="k">${mDots(1)}por levantar</span><span class="k"><i class="empty">1,00</i>sin entrada: se muestra el cociente de localización</span><span class="k"><i class="gap">1,10</i>sin entrada y con cociente de 1,10 o más</span>`;
+  const emp = cellList().filter(x => cellEmpty(x.t, x.L)).sort((a, b) => LQ0[b.t][b.L] - LQ0[a.t][a.L]);
+  $('#ct-opp').innerHTML = `<h3 class="lbl">Combinaciones sin entrada · ${emp.length}</h3>` + (emp.length ? `<ul class="ct-ol">${emp.map(x => `<li class="${cellGap(x.t, x.L) ? 'gap' : ''}"><div><b>${esc(TER[x.t].n)} · ${LIN[x.L].k} ${esc(LSHORT[LIN[x.L].k])}</b>
+      <span class="sm">Cociente ${f2(LQ0[x.t][x.L])}: base empresarial ${lqBand(LQ0[x.t][x.L])} promedio regional</span></div>
+      <div class="ct-ob"><button type="button" class="btn sm" data-t="${x.t}" data-l="${x.L}">Ver ficha</button><button type="button" class="btn sm" data-fm="${x.t},${x.L}">Formular</button></div></li>`).join('')}</ul>` : '<p class="note">Todas las combinaciones tienen entrada.</p>')
+    + '<p class="note">El cociente de localización compara el peso del lineamiento en las empresas del territorio con su peso en la región (1,00 = igual; SII 2024). La asignación de subrubros a lineamientos es un supuesto provisional. Una combinación sin entrada no es una brecha por sí sola: revisa su ficha.</p>';
 }
-function cellTip(ev, t, L) {
+// Formular desde la cartera: lleva el territorio, la línea y sus ítems del art. 8. La cadena solo se fija si el lineamiento tiene una equivalente.
+function ctFormular(t, L, line, org) {
+  const back = { sy: scrollY, ficha: UI.fOpen, fiFrom: FI_FROM, sel: null, ...org };
+  closeFicha(true);
+  const j = L == null ? -1 : STRAT_CHAINS.findIndex(c => c.id === CT_L2CH[LIN[L].k]);
+  fmOpen(t, j, { t, L, line: line || null, ch: j >= 0, back, noEnt: !!(org && org.noEnt) });
+}
+function ctFormularLine(k) {
+  const ln = LINE[k], e = lineEnts(ln).sort((a, b) => b.m - a.m)[0];
+  const t = e ? TIDX[e.t] : TIDX[ln.terr.split(',')[0]] ?? FMU.t, L = e ? LIDX[e.c] : LIDX[ln.ctci.find(c => LSHORT[c])] ?? null;
+  ctFormular(t, L, k, { sel: `#ct-board button[data-fml="${k}"]`, ficha: false, noEnt: !e });
+}
+// vuelve desde Formular al punto de partida: misma altura de página, mismo botón y la ficha solo si se salió desde ella
+function ctBack(fr) {
+  const bk = fr.back || {};
+  setView('cartera');
+  if (bk.ficha && fr.L != null) openFicha(fr.t, fr.L, bk.fiFrom);
+  window.scrollTo(0, bk.sy || 0);
+  const el = !bk.ficha && bk.sel && $(bk.sel); if (el) el.focus({ preventScroll: true });
+}
+// ficha lateral: se abre al elegir un territorio o una celda y no ocupa espacio mientras está cerrada
+let FI_FROM = null;
+const fiWide = () => innerWidth >= 1280;   // con pantalla ancha el contenido se reacomoda y la ficha no tapa nada
+function openFicha(t, L, from, top0) {
   const e = CELL[TER[t].k + '|' + LIN[L].k];
-  showTip(ev, `${TER[t].n} · ${LIN[L].k} ${LSHORT[LIN[L].k]}`, [
-    [f0(cN[t][L]), 'empresas en el lineamiento'], [f2(lqN(t, L)), 'cociente de localización'], [pcs(gr(serC[t][L])), `crecimiento ${pLab()} (región ${pcs(gr(serR[L]))})`], [f0(finN[t][L]), 'proyectos financiados 2019–2026'],
-  ], e ? `${e.l} ${LINE[e.l].n} · madurez ${e.m}` : 'Sin entrada en la cartera');
+  UI.t = t; UI.L = L; UI.ter = t; UI.line = e ? e.l : null; UI.fOpen = true; FI_FROM = from || null;
+  $('#v-cartera').classList.add('fopen');
+  renderBoard(); renderMatrix(); renderFicha();
+  const f = $('#ficha'); f.hidden = false; f.scrollTop = 0; f.focus({ preventScroll: true });
+  const b = FI_FROM && $(`${FI_FROM} [data-t="${t}"][data-l="${L}"]`);
+  if (b && top0 != null) scrollBy(0, b.getBoundingClientRect().top - top0); else if (b && fiWide()) b.scrollIntoView({ block: 'nearest' });
 }
-$('#mx-mode').addEventListener('change', e => { UI.mode = e.target.value; renderMatrix(); });
+function closeFicha(quiet) {
+  if (!UI.fOpen) return;
+  if (TR_RET && TR_RET.kind === 'ficha') TR_RET = null;
+  const sel = FI_FROM && `${FI_FROM} [data-t="${UI.t}"][data-l="${UI.L}"]`, b0 = sel && $(sel), top0 = b0 ? b0.getBoundingClientRect().top : null;
+  UI.fOpen = false; $('#ficha').hidden = true; $('#v-cartera').classList.remove('fopen'); renderBoard(); renderMatrix();
+  const b = sel && $(sel); if (!b) return;
+  if (top0 != null) scrollBy(0, b.getBoundingClientRect().top - top0);
+  if (!quiet) b.focus({ preventScroll: true });
+}
+$('#v-cartera').addEventListener('click', ev => {
+  if (ev.target.closest('#ficha')) return;
+  const fm = ev.target.closest('button[data-fm]'), fl = ev.target.closest('button[data-fml]'), mo = ev.target.closest('button[data-more]'), b = ev.target.closest('button[data-t][data-l]');
+  if (fm) { const [t, L] = fm.dataset.fm.split(',').map(Number); ctFormular(t, L, null, { sel: `#ct-opp button[data-fm="${t},${L}"]`, ficha: false }); }
+  else if (fl) ctFormularLine(fl.dataset.fml);
+  else if (mo) { const k = mo.dataset.more; if (CT_MORE.has(k)) CT_MORE.delete(k); else CT_MORE.add(k); renderBoard(); const n = $(`#ct-board button[data-more="${k}"]`); if (n) n.focus({ preventScroll: true }); }
+  else if (b) openFicha(+b.dataset.t, +b.dataset.l, '#' + b.closest('#ct-board, #mx, #ct-opp').id, b.getBoundingClientRect().top);
+});
+// en pantallas angostas la ficha tapa el contenido: un clic fuera de ella (que no sea en un botón) la cierra
+document.addEventListener('click', ev => { if (UI.fOpen && UI.view === 'cartera' && !fiWide() && !ev.target.closest('#ficha') && !ev.target.closest('button')) closeFicha(); });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && UI.view === 'cartera' && UI.fOpen) closeFicha(); });
 
 // --- ficha
 let FICHA = null; // contexto de la celda abierta
+const FI_OPEN = new Set(), FI_KEEP = /^(Entrada de la cartera|Sin entrada en la cartera|Encaje en el D\.S\. 1\.699)/;
 function cellFirms(t, L, onlyVig) {
   const out = [], ls = LS[L];
   for (let i = 0; i < N; i++) if (MA[i] && TOF[COM[i]] === t && ls[SUB[i]] && (!onlyVig || VIG[i])) out.push(i);
@@ -569,37 +612,23 @@ function renderFicha() {
   const g = gr(serC[t][L]), gR = gr(serR[L]), lq = lqN(t, L), lqt = lqT(t, L);
   FICHA = { t, L, e, firms, topSub };
   const others = LINES.filter(l => (l.ctci.includes(Lk)) && (!e || l.k !== e.l));
-  let h = `<div class="fi-h"><div style="flex:1;min-width:0"><div class="eyebrow">Ficha · territorio × lineamiento</div><h2>${esc(T.n)} · ${Lk} ${esc(LSHORT[Lk])}</h2><p class="note" style="margin-top:4px">${esc(LIN[L].n)}</p></div><div class="loc">${locator(t)}</div></div>`;
+  let h = `<div class="fi-h"><div style="flex:1;min-width:0"><div class="eyebrow">Ficha · territorio × lineamiento</div><h2 id="fi-title">${esc(T.n)} · ${Lk} ${esc(LSHORT[Lk])}</h2><p class="note" style="margin-top:4px">${esc(LIN[L].n)}</p></div><div class="loc">${locator(t)}</div><button type="button" class="btn sm" id="fi-x">Cerrar</button></div>`;
   if (e) {
     h += `<div class="fi-sec"><h3>Entrada de la cartera</h3><div class="line-t"><span class="code">${ln.k}</span><b>${esc(ln.n)}</b></div>
       <div class="pills"><span class="pill">Bloque ${ln.b} · ${esc(BLOQ[ln.b])}</span><span class="mad"><span class="dots">${[1, 2, 3].map(i => `<i class="${i <= e.m ? 'on' : ''}"></i>`).join('')}</span>Madurez ${e.m}: ${esc(MADT[e.m].toLowerCase())}</span></div>
-      <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p></div>`;
-    if (e.liveEstado || e.liveMonto) {
-      h += `<div class="fi-sec" style="background:var(--surf2);border:1px solid var(--line2);border-radius:8px;padding:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b style="color:var(--acc);font-size:13px">Gestión Viva DIFOI · Monitoreo FRPD</b>
-          <span style="font-size:11px;color:var(--muted)">${esc(e.liveFecha || 'Sincronizado')}</span>
-        </div>
-        <div class="pills">
-          <span class="pill" style="border-color:var(--acc);color:var(--acc);font-weight:600">${esc(e.liveEstado || '2. Ficha Técnica Completa')}</span>
-          <span class="pill">Presupuesto est.: <b>${e.liveMonto ? '$' + f0(e.liveMonto) + ' MM$' : 'Por definir'}</b></span>
-          <span class="pill">Responsable: <b>${esc(e.liveResp || 'Por asignar')}</b></span>
-        </div>
-        ${e.liveEjecutor ? `<p class="note" style="margin-top:6px"><strong>Ejecutor propuesto:</strong> ${esc(e.liveEjecutor)}</p>` : ''}
-      </div>`;
-    }
+      <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p><div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular en este territorio</button></div></div>`;
     const ct = isCTCI(ln);
-    h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Aporta al piso CTCI del 25 % (art. 7)</span>' : '<span class="pill">No aporta al piso CTCI</span>'}</div>
+    h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Tiene componente N°3: puede contar para el mínimo de 25% (art. 7)</span>' : '<span class="pill">Sin componente N°3: no cuenta para el mínimo de 25%</span>'}</div>
       <div class="hab" style="grid-template-columns:auto minmax(0,1fr)">${ln.a8.map(k => `<span class="x" style="text-align:left;color:var(--acc)">${k}</span><span class="n">${esc(A8[k].n)}</span>`).join('')}${ln.g.map(k => `<span class="x" style="text-align:left;color:var(--acc)">gasto ${k}</span><span class="n">${esc(GASTO[k])}</span>`).join('')}</div>
       ${!ln.a8.length && !ln.g.length ? '<p class="note">La minuta no asigna categoría del art. 8: es un encargo de levantamiento.</p>' : ''}</div>`;
   } else {
-    h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>${lq >= 1.1 ? `<strong>El territorio está especializado en este lineamiento</strong> (cociente ${f2(lq)}) y la cartera no tiene entrada. Es una celda a revisar antes de cerrar la cartera.` : `La base empresarial del territorio en este lineamiento está ${lq >= 0.9 ? 'en torno al' : 'bajo el'} promedio regional (cociente ${f2(lq)}).`}</p>
-      ${others.length ? `<p>Líneas de ${Lk} en otros territorios: ${others.map(l => `<button type="button" class="linkbtn" data-line="${l.k}">${l.k}</button> ${esc(l.n)}`).join(' · ')}.</p>` : ''}</div>`;
+    h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>La cartera no tiene entrada para esta combinación. La base empresarial del territorio en el lineamiento ${lq2(LQ0[t][L]) >= 0.9 && lq2(LQ0[t][L]) < 1.1 ? 'es' : 'está'} <strong>${lqBand(LQ0[t][L])} promedio regional</strong> (cociente ${f2(LQ0[t][L])} con todas las empresas; 1,00 = igual a la región).</p>
+      ${others.length ? `<p>Líneas de ${Lk} en otros territorios: ${others.map(l => `<button type="button" class="linkbtn" data-line="${l.k}">${l.k}</button> ${esc(l.n)}`).join(' · ')}.</p>` : ''}<div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular aquí</button></div></div>`;
   }
   const ler = ln ? ln.ler : [];
   h += `<div class="fi-sec"><h3>Alineación con la ERD 2040</h3>${ler.length ? `<div class="pills">${ler.map(k => `<span class="pill"><b>LER ${k}</b>${esc(LERN[k])}</span>`).join('')}</div>` : ''}
     <p class="quote">${esc(T.obj)}</p><p class="note">Objetivo del territorio ${esc(T.nOficial || T.n)} en la ERD${T.k === 'TPLC' ? ' (resumen; ver texto completo en la ERD, tabla 29)' : ''}.</p></div>`;
-  h += `<div class="fi-sec"><h3>Base empresarial · SII 2024</h3>${hasAttr() ? `<p class="note warn">Calculada con los filtros de empresas: ${esc(filterText(true))}.</p>` : ''}<div class="stats">
+  h += `<div class="fi-sec"><h3>Base empresarial · SII 2024</h3><div class="stats">
       <div class="stat"><div class="l">Empresas</div><div class="v">${f0(cN[t][L])}</div><div class="s">${pc(cN[t][L] / tN[t])} del territorio</div></div>
       <div class="stat"><div class="l">Trabajadores</div><div class="v">${f0(cT[t][L])}</div><div class="s">${f0(c10[t][L])} empresas con 10 o más</div></div>
       <div class="stat"><div class="l">Cociente de localización</div><div class="v">${f2(lq)}</div><div class="s">${f2(lqt)} en trabajadores</div></div></div>
@@ -664,52 +693,49 @@ function renderFicha() {
   h += `<div class="fi-sec"><h3>Empresas objetivo</h3><p class="note">${pl(firms.length, 'empresa vigente', 'empresas vigentes')} del territorio en los subrubros del lineamiento${secTxt}${nomN ? `; ${nomN} en la nómina Res. 1/2026` : ''}. Ordenadas por trabajadores. Para aislar un tipo de entidad usa «Sector» en la barra de filtros.</p>
     <div>${top.map(i => `<div class="firm"><span>${esc(NAMES[i])}${SEC[i] ? `<em class="tagx">${SECSH[SEC[i]]}</em>` : ''}${NOM[i] ? '<em class="tagx ct">Nómina 2026</em>' : ''}</span><b>${f0(TRAB[i])}</b><small>${esc(CN(COM[i]))} · ${esc(D.subs[SUB[i]].l)} · ventas ${esc(tramoTxt(TRAMO[i]))}</small></div>`).join('')}</div>
     <div class="ctrls"><button class="btn" type="button" id="fi-emp">Ver y filtrar en «Empresas»</button><button class="btn pri" type="button" id="fi-csv" hidden>Exportar ${f0(firms.length)} empresas (CSV)</button></div></div>`;
-  h += `<div class="fi-sec"><div class="claude"><div class="hd"><div><b style="font-size:14px">Perfil de iniciativa con Claude</b><p class="note">Borrador con los datos de esta ficha: problema, objetivo, encaje normativo, población objetivo y vacíos de información.</p></div>
+  if (SAMPLE !== null) h += `<div class="fi-sec"><div class="claude"><div class="hd"><div><b style="font-size:14px">Perfil de iniciativa con Claude</b><p class="note">Borrador con los datos de esta ficha: problema, objetivo, encaje normativo, población objetivo y vacíos de información.</p></div>
     <div class="ctrls"><button class="btn warm" type="button" id="cl-go">Redactar borrador</button><button class="btn" type="button" id="cl-stop" hidden>Detener</button><button class="btn" type="button" id="cl-copy" hidden>Copiar</button></div></div>
     <p class="note" id="cl-status"></p><div class="draft" id="cl-out" hidden></div></div></div>`;
   $('#ficha').innerHTML = h;
+  if (TR_RET && TR_RET.kind === 'ficha') {
+    $('#ficha .fi-h').insertAdjacentHTML('afterend', `<div class="fm-from" id="fi-from">${trFromHtml(TR_RET, 'fi-back', 'fi-fromx')}</div>`);
+    $('#fi-back').addEventListener('click', trReturn); $('#fi-fromx').addEventListener('click', () => { TR_RET = null; $('#fi-from').remove(); $('#ficha').focus({ preventScroll: true }); });
+  }
+  // lo esencial queda a la vista; el resto de las secciones se pliega y recuerda si quedó abierta
+  $$('#ficha .fi-sec').forEach(s => {
+    const h3 = s.querySelector(':scope > h3'); if (!h3 || FI_KEEP.test(h3.textContent)) return;
+    const k = h3.textContent.split(' · ')[0], d = document.createElement('details'), sm = document.createElement('summary'), body = document.createElement('div');
+    d.className = 'fi-sec'; d.dataset.k = k; d.open = FI_OPEN.has(k); sm.appendChild(h3); while (s.firstChild) body.appendChild(s.firstChild); d.append(sm, body); s.replaceWith(d);
+    d.addEventListener('toggle', () => { if (d.open) FI_OPEN.add(k); else FI_OPEN.delete(k); });
+  });
+  const secOf = k => $$('#ficha details.fi-sec').find(d => d.dataset.k === k);
+  const empS = secOf('Base empresarial');
+  if (empS) {
+    empS.querySelector('summary h3').textContent = 'Empresas del territorio · SII 2024';
+    for (const k of ['Empresas objetivo', 'Oferta de conocimiento']) { const d = secOf(k); if (!d) continue; const lb = document.createElement('h4'); lb.className = 'lbl fi-sub'; lb.textContent = d.querySelector('summary h3').textContent; const body = d.querySelector(':scope > div'); empS.querySelector(':scope > div').append(lb, ...body.childNodes); d.remove(); }
+  }
+  $('#fi-x').addEventListener('click', () => closeFicha());
+  $('#fi-fm').addEventListener('click', () => ctFormular(t, L, e ? e.l : null));
   $$('#ficha [data-line]').forEach(b => b.addEventListener('click', () => selectLine(b.dataset.line)));
   $('#fi-bip').addEventListener('click', () => openBip({ t, L, cat: 'frpd' }));
   $('#fi-ev').addEventListener('click', () => openEvid({ t, g: EVL[Lk].map(k => EVK[k].g)[0] }));
-  $('#fi-of').addEventListener('click', () => openEmpresas({ ter: t, ctci: true }));
-  $('#fi-emp').addEventListener('click', () => openEmpresas({ ter: t, lin: L }));
+  $('#fi-of').addEventListener('click', () => openEmpresas({ ter: t, ctci: true, ret: { t, L, sy: scrollY, from: FI_FROM } }));
+  $('#fi-emp').addEventListener('click', () => openEmpresas({ ter: t, lin: L, ret: { t, L, sy: scrollY, from: FI_FROM } }));
   if (DL) { $('#fi-csv').hidden = !firms.length; $('#fi-csv').addEventListener('click', exportFirms); $('#fi-fcsv').hidden = !FICHA.fin.length; $('#fi-fcsv').addEventListener('click', exportFin); }
   wireClaude();
 }
 
-// --- tabla de líneas
-function renderLines() {
-  const rows = LINES.map(ln => {
-    const ents = ENT.filter(e => e.l === ln.k);
-    return `<tr class="click${UI.line === ln.k ? ' on' : ''}" data-line="${ln.k}" tabindex="0">
-      <td class="m" style="color:var(--acc)">${ln.k}</td>
-      <td style="min-width:240px"><b style="font-weight:600">${esc(ln.n)}</b><span class="sm">Bloque ${ln.b} · ${esc(BLOQ[ln.b])}</span></td>
-      <td class="m">${ln.ler.map(k => 'LER ' + k).join('<br>')}</td>
-      <td><div class="tchips">${ln.a8.map(k => `<span class="tchip" title="${esc(A8[k].n)}">${k}</span>`).join('')}${ln.g.map(k => `<span class="tchip" title="${esc(GASTO[k])}">g. ${k}</span>`).join('')}${!ln.a8.length && !ln.g.length ? '<span class="sm">levantamiento</span>' : ''}</div></td>
-      <td>${isCTCI(ln) ? '<span class="pill ct">Sí</span>' : '<span class="pill">No</span>'}</td>
-      <td><div class="tchips">${ents.length ? ents.map(e => `<span class="tchip m${e.m}" title="${esc(TER[TIDX[e.t]].n)} · ${e.c} · madurez ${e.m}">${e.t} ${e.c}</span>`).join('') : `<span class="sm">${ln.terr === 'REGIONAL' ? 'Alcance regional' : 'Todos los territorios'}, sin celda propia</span>`}</div></td></tr>`;
-  }).join('');
-  $('#lines').innerHTML = `<table><thead><tr><th>Línea</th><th>Nombre</th><th>LER</th><th>Art. 8 / gasto</th><th>Piso CTCI</th><th>Entradas (territorio · lineamiento)</th></tr></thead><tbody>${rows}</tbody></table>`;
-  $$('#lines tr[data-line]').forEach(r => {
-    const go = () => selectLine(UI.line === r.dataset.line ? null : r.dataset.line);
-    r.addEventListener('click', go); r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
-  });
-  $('#ln-clear').hidden = !UI.line;
-}
-function selectLine(k) {
-  UI.line = k;
-  if (k) { const e = ENT.find(x => x.l === k); if (e) { UI.t = TIDX[e.t]; UI.L = LIDX[e.c]; } }
-  renderCartera(true);
-  if (k) $('#mx').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-$('#ln-clear').addEventListener('click', () => selectLine(null));
+// abre la ficha en la primera entrada de una línea
+function selectLine(k) { const e = ENT.find(x => x.l === k); if (e) openFicha(TIDX[e.t], LIDX[e.c], '#ct-board'); }
 function renderCartera(withFicha) {
-  renderKpis(); renderFbar(); renderMatrix(); renderLines();
-  if (withFicha || !rendered.ficha) { renderFicha(); rendered.ficha = true; }
+  renderCtSum(); renderBoard(); renderMatrix();
+  if (UI.fOpen && withFicha) renderFicha();
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
-// Catastro oficial: ERD 2040 (Tabla 14), MINVU 2024, SUBDERE/SINIM y SENAPRED Dirección Regional La Araucanía 2024 (Ley 21.364)
+// ================= INSTRUMENTOS DE PLANIFICACIÓN POR COMUNA (datos) =================
+// Catastro cargado a mano, sin fuente verificable en el radar salvo el estado «con o sin plan regulador» (ERD 2040, Tabla 14).
+// Los campos frpd* y obs no se muestran: son una calificación sin método ni fuente.
+const PRC_L = { vigente: 'Vigente', modificacion: 'Vigente, en modificación', formulacion: 'Sin plan, en formulación', limite: 'Sin plan, solo límite urbano', sin: 'Sin plan ni límite urbano' };
 const IPT_DATA = [
   { c: 0, com: 'Carahue', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'D.O. 1989 (Mod. 2010; Carahue y Trovolhue)', limAno: '1989', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'fire'], threatStr: 'Tsunami / Inundación Imperial · Incendios', pladetEst: 'formulacion', pladetLbl: 'En Formulación', pladetCls: 'form', pladetDet: 'Ruta Fluvial Carahue Navegable y humedales', pladetCol: '#5598E7', pacccEst: 'elaboracion', pacccLbl: 'En Elaboración', pacccCls: 'elab', pacccDet: 'En formulación financiamiento FNDR', pacccCol: '#5598E7', adi: '–', adiNom: '–', adiCol: '#354856', descont: '–', descontDet: '–', descontCol: '#354856', frpdNivel: 'Medio-alto', frpdCls: 'medio-alto', frpdVal: 3, frpdCol: '#5598E7', frpdFund: 'PRC consolidado, ZUBC litoral, Rezago Costa y PLADETUR fluvial en curso', obs: 'Zonificación urbana consolidada y ZUBC costera D.S. 475/1994. En formulación de PLADETUR (turismo fluvial río Imperial) y PACCC; rezago Costa y riesgo tsunami/inundación.' },
   { c: 1, com: 'Cholchol', ti: 4, terr: 'Nahuelbuta', est: 'sin', estLbl: 'Sin Instrumento', cls: 'sin', color: '#E07A6B', val: 0, prcAno: 'Sin PRC', prcDet: 'Sin Plan Regulador Comunal ni Límite propio', limAno: '–', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (previo)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: 'Incendios interfaz · Déficit hídrico severo', pladetEst: 'sin', pladetLbl: 'Sin PLADETUR', pladetCls: 'sin', pladetDet: 'Sin instrumento formal', pladetCol: '#A0AAB2', pacccEst: 'pendiente', pacccLbl: 'Pendiente', pacccCls: 'pend', pacccDet: 'Sin inicio formal', pacccCol: '#E07A6B', adi: '–', adiNom: '–', adiCol: '#354856', descont: '–', descontDet: '–', descontCol: '#354856', frpdNivel: 'Bajo', frpdCls: 'bajo', frpdVal: 1, frpdCol: '#E07A6B', frpdFund: 'Sin PRC ni límite, PLADECO vencido y planes GRD/PACCC pendientes', obs: 'Comuna creada en 2004 sin PRC ni límite. Alta dependencia FCM, PLADECO vencido, PACCC y planes GRD pendientes; máxima necesidad de asistencia técnica preparatoria FRPD.' },
@@ -749,18 +775,11 @@ const IPT_DATA = [
 const MP = FR.map;
 const MAPIND = [
   { k: 'ter', l: 'Territorio ERD' },
-  { k: 'frpd', l: 'Relevancia e Impacto FRPD Territorial', grp: 'Planificación y sostenibilidad' },
-  { k: 'ipt', l: 'Plan Regulador Comunal (PRC · LGUC)', grp: 'Planificación y sostenibilidad' },
-  { k: 'pladeco', l: 'Plan de Desarrollo Comunal (PLADECO)', grp: 'Planificación y sostenibilidad' },
-  { k: 'grd', l: 'Gestión del Riesgo de Desastres (GRD · SENAPRED)', grp: 'Planificación y sostenibilidad' },
-  { k: 'pladetur', l: 'Plan de Desarrollo Turístico (PLADETUR · SERNATUR)', grp: 'Planificación y sostenibilidad' },
-  { k: 'paccc', l: 'Plan de Acción de Cambio Climático (PACCC · Ley 21.455)', grp: 'Planificación y sostenibilidad' },
-  { k: 'adi', l: 'Áreas de Desarrollo Indígena (ADI · CONADI)', grp: 'Planificación y sostenibilidad' },
-  { k: 'descont', l: 'Descontaminación Atmosférica y Lacustre (PDA/PDL · MMA)', grp: 'Planificación y sostenibilidad' },
-  { k: 'bre', l: 'N° de brechas habilitantes (0–5)' },
+  { k: 'bre', l: 'N° de dimensiones de infraestructura en brecha (0–6)' },
   ...HABS.map(h => ({ k: h.k, l: `${h.l} (${h.u})`, hab: h })),
+  { k: 'ipt', l: 'Plan regulador comunal (ERD 2040, Tabla 14)' },
   { k: 'ipa', l: 'Inversión pública 2010–2022 por habitante' },
-  { k: 'emp', l: 'Empresas por 1.000 habitantes (SII 2024, con los filtros de empresas)' },
+  { k: 'emp', l: 'Empresas por 1.000 habitantes (SII 2024)' },
   { k: 'binv', l: 'Iniciativas BIP habilitantes 2019–2027 (miles de $ por habitante)' },
   { k: 'lq', l: 'Especialización en un lineamiento' },
   ...EVI.map(e => ({ k: 'ev:' + e.k, l: `${e.l} (${e.u.split(' · ')[0]})`, ev: e, grp: EVG[e.g] })),
@@ -782,36 +801,22 @@ const LAYERS = [
 ];
 function comVal(k, c) {
   if (k === 'ipt') return IPT_DATA[c].val;
-  if (k === 'pladeco') return IPT_DATA[c].pladEst === 'vigente' ? 2 : IPT_DATA[c].pladEst === 'actualizacion' ? 1 : 0;
-  if (k === 'grd') return IPT_DATA[c].grdRrd === 'aprobado' ? 3 : IPT_DATA[c].grdEmerg === 'aprobado' ? 2 : IPT_DATA[c].grdEmerg === 'tramite' ? 1 : 0;
-  if (k === 'pladetur') return IPT_DATA[c].pladetEst === 'vigente' ? 2 : IPT_DATA[c].pladetEst === 'formulacion' ? 1 : 0;
-  if (k === 'paccc') return IPT_DATA[c].pacccEst === 'aprobado' ? 2 : IPT_DATA[c].pacccEst === 'elaboracion' ? 1 : 0;
-  if (k === 'adi') return IPT_DATA[c].adi !== '–' ? 1 : 0;
-  if (k === 'descont') return IPT_DATA[c].descont === 'PDL Lago' ? 3 : IPT_DATA[c].descont === 'PDA Aire' ? 2 : IPT_DATA[c].descont === 'PDA Estudio' ? 1 : 0;
-  if (k === 'frpd') return IPT_DATA[c].frpdVal;
   if (k.startsWith('ev:')) return EVV[k.slice(3)][c];
-  if (k === 'bre') return BRE[c].length;
+  if (k === 'bre') return trData().com[c].length;
   if (k === 'ipa') return IN.ipapc[c] / 1e6;
-  if (k === 'emp') return comN[c] / POP[c] * 1000;
+  if (k === 'emp') return SII0.comN[c] / POP[c] * 1000;
   if (k === 'binv') return binvC[c] * 1000 / POP[c];
-  if (k === 'lq') return lqCom(c, UI.mLin);
+  if (k === 'lq') return lqCom0(c, UI.mLin);
   const h = HABS.find(x => x.k === k); return h ? HV[k][c] : NaN;
 }
 function comFill(k) {
   if (k === 'ter') return ALLC.map(c => TCOL[TOF[c]]);
   if (k === 'ipt') return ALLC.map(c => IPT_DATA[c].color);
-  if (k === 'pladeco') return ALLC.map(c => IPT_DATA[c].pladCol);
-  if (k === 'grd') return ALLC.map(c => IPT_DATA[c].grdCol);
-  if (k === 'pladetur') return ALLC.map(c => IPT_DATA[c].pladetCol);
-  if (k === 'paccc') return ALLC.map(c => IPT_DATA[c].pacccCol);
-  if (k === 'adi') return ALLC.map(c => IPT_DATA[c].adiCol);
-  if (k === 'descont') return ALLC.map(c => IPT_DATA[c].descontCol);
-  if (k === 'frpd') return ALLC.map(c => IPT_DATA[c].frpdCol);
   if (k === 'lq') return ALLC.map(c => lqColor(comVal('lq', c)));
   const v = ALLC.map(c => comVal(k, c)), fv = v.filter(isFinite), mn = Math.min(...fv), mx = Math.max(...fv);
   const h = HABS.find(x => x.k === k);
   if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; return v.map(x => (!isFinite(x) ? NODATA : e.bad ? ramp(BADR, e.bad === 'high' ? (x - mn) / (mx - mn || 1) : (mx - x) / (mx - mn || 1)) : ramp(SEQ, (x - mn) / (mx - mn || 1)))); }
-  if (k === 'bre') return v.map(x => ramp(BADR, x / 4));
+  if (k === 'bre') return v.map(x => ramp(BADR, x / 4));   // 4 o más dimensiones: tono máximo
   if (h) return v.map(x => ramp(BADR, h.bad === 'high' ? (x - mn) / (mx - mn) : (mx - x) / (mx - mn)));
   return v.map(x => ramp(SEQ, (x - mn) / (mx - mn)));
 }
@@ -819,72 +824,9 @@ function mapLegend(k) {
   const lg = MAP.legend;
   if (k === 'ter') { lg.innerHTML = '<b>Territorios ERD 2040</b>' + TER.map((t, i) => `<span class="row"><span class="sw" style="background:${TCOL[i]}"></span>${esc(t.n)}</span>`).join(''); return; }
   if (k === 'ipt') {
-    lg.innerHTML = '<b>Plan Regulador Comunal (PRC · LGUC)</b>' + [
-      ['#5CBF8A', 'PRC Vigente consolidado (8 comunas)'],
-      ['#F2A541', 'PRC en Modificación / Actualización (12 comunas)'],
-      ['#5598E7', 'Sin PRC · En Formulación (con límite) (6 comunas)'],
-      ['#E0974A', 'Sin PRC · Solo Límite Urbano histórico (5 comunas)'],
-      ['#E07A6B', 'Sin Instrumento ni Límite aprobado (1 comuna)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'pladeco') {
-    lg.innerHTML = '<b>Plan de Desarrollo Comunal (PLADECO)</b>' + [
-      ['#5CBF8A', 'PLADECO Vigente (14 comunas)'],
-      ['#F2A541', 'PLADECO en Actualización / Licitación (10 comunas)'],
-      ['#E07A6B', 'PLADECO Vencido / Desactualizado (8 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'grd') {
-    lg.innerHTML = '<b>Gestión del Riesgo de Desastres (GRD · SENAPRED)</b>' + [
-      ['#5CBF8A', 'Plan Emergencia + RRD Aprobados (11 comunas)'],
-      ['#F2A541', 'Plan Emergencia Aprobado · RRD en Elaboración (11 comunas)'],
-      ['#5598E7', 'Plan Emergencia en Trámite / Actualización (5 comunas)'],
-      ['#E07A6B', 'Planes de Emergencia y RRD Pendientes (5 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'pladetur') {
-    lg.innerHTML = '<b>Plan de Desarrollo Turístico (PLADETUR · SERNATUR)</b>' + [
-      ['#5CBF8A', 'PLADETUR Vigente (11 comunas)'],
-      ['#5598E7', 'PLADETUR en Formulación / Actualización (8 comunas)'],
-      ['#A0AAB2', 'Sin PLADETUR formal (13 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'paccc') {
-    lg.innerHTML = '<b>Plan Comunal de Cambio Climático (PACCC · Ley 21.455)</b>' + [
-      ['#5CBF8A', 'PACCC Aprobado / En Implementación (4 comunas)'],
-      ['#5598E7', 'PACCC en Elaboración / FNDR-MMA (16 comunas)'],
-      ['#E07A6B', 'PACCC en Etapa Inicial o Pendiente (12 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'adi') {
-    lg.innerHTML = '<b>Áreas de Desarrollo Indígena (ADI · CONADI Ley 19.253)</b>' + [
-      ['#E29D62', 'Comuna con ADI Decretada (8 comunas)'],
-      ['#354856', 'Comuna sin ADI (24 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'descont') {
-    lg.innerHTML = '<b>Planes de Descontaminación (PDA / PDL · MMA)</b>' + [
-      ['#6BA8F2', 'PDL Lacustre Cuenca Lago Villarrica (3 comunas)'],
-      ['#F27878', 'PDA Atmosférico Temuco–Padre Las Casas (2 comunas)'],
-      ['#F2A541', 'PDA Macroárea Centro-Sur en Estudio (3 comunas)'],
-      ['#354856', 'Sin Plan de Descontaminación decretado (24 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'frpd') {
-    lg.innerHTML = '<b>Relevancia e Impacto FRPD Territorial</b>' + [
-      ['#C7A2F0', 'Muy Alto: Alta concurrencia y restricción (5 comunas)'],
-      ['#5CBF8A', 'Alto: Diversificación y vocación estratégica (9 comunas)'],
-      ['#5598E7', 'Medio-alto: Rezago o pertinencia intercultural (10 comunas)'],
-      ['#F2A541', 'Medio: Habilitación estándar y cuencas (7 comunas)'],
-      ['#E07A6B', 'Bajo: Brechas críticas basales (1 comuna)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+    const n = {}; IPT_DATA.forEach(it => { n[it.est] = (n[it.est] || 0) + 1; });
+    lg.innerHTML = '<b>Plan regulador comunal</b>' + [['vigente', '#5CBF8A'], ['modificacion', '#F2A541'], ['formulacion', '#5598E7'], ['limite', '#E0974A'], ['sin', '#E07A6B']]
+      .map(([e, c, l = PRC_L[e]]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l} (${n[e] || 0})</span>`).join('');
     return;
   }
   if (k === 'lq') { lg.innerHTML = `<b>Cociente de localización en ${LIN[UI.mLin].k} ${esc(LSHORT[LIN[UI.mLin].k])} (empresas)</b>` + [[0.5, '< 0,6'], [0.8, '0,8'], [1, '1,0'], [1.25, '1,25'], [2, '> 1,7']].map(([v, l]) => `<span class="row"><span class="sw" style="background:${lqColor(v)}"></span>${l}</span>`).join(''); return; }
@@ -1180,7 +1122,7 @@ function createMap(host) {
     const ci = e.target.dataset && e.target.dataset.ci != null ? +e.target.dataset.ci : -1;
     setHover(ci, e);
   });
-  svg.addEventListener('pointerup', () => { if (drag && !drag.moved && drag.ci >= 0) { UI.ter = TOF[drag.ci]; renderTerritorios(); } drag = null; });
+  svg.addEventListener('pointerup', () => { if (drag && !drag.moved && drag.ci >= 0) trMapPick(drag.ci); drag = null; });
   svg.addEventListener('pointercancel', () => { drag = null; });
   svg.addEventListener('pointerleave', () => { if (!drag) setHover(-1); });
   svg.addEventListener('wheel', e => {
@@ -1204,43 +1146,8 @@ function createMap(host) {
 function comTip(c) {
   const k = UI.mInd, rows = [];
   rows.push([TER[TOF[c]].n, 'territorio']);
-  const ipt = IPT_DATA[c];
-  if (k === 'ipt') {
-    rows.push([ipt.estLbl, 'estado del PRC']);
-    rows.push([ipt.prcAno, 'publicación D.O.']);
-    if (ipt.pri !== '–') rows.push([ipt.pri, 'intercomunal']);
-    if (ipt.zoit !== '–') rows.push([ipt.zoit, 'turismo']);
-    if (ipt.reg !== '–') rows.push([ipt.reg, 'régimen especial']);
-  }
-  else if (k === 'pladeco') {
-    rows.push([ipt.pladLbl, 'estado PLADECO']);
-    rows.push([ipt.pladPer, 'periodo']);
-  }
-  else if (k === 'grd') {
-    rows.push([ipt.grdEmergLbl, 'Plan Emergencia']);
-    rows.push([ipt.grdRrdLbl, 'Plan RRD (Prevención)']);
-    rows.push([ipt.threatStr, 'amenazas críticas']);
-  }
-  else if (k === 'pladetur') {
-    rows.push([ipt.pladetLbl, 'estado PLADETUR']);
-    rows.push([ipt.pladetDet, 'circuito / foco']);
-    if (ipt.zoit !== '–') rows.push([ipt.zoit, 'ZOIT Ley 20.423']);
-  }
-  else if (k === 'paccc') {
-    rows.push([ipt.pacccLbl, 'estado PACCC']);
-    rows.push([ipt.pacccDet, 'detalle']);
-  }
-  else if (k === 'adi') {
-    rows.push([ipt.adi !== '–' ? ipt.adiNom : 'Sin ADI decretada', 'Área Indígena (Ley 19.253)']);
-  }
-  else if (k === 'descont') {
-    rows.push([ipt.descont !== '–' ? ipt.descontDet : 'Sin plan decretado', 'descontaminación']);
-  }
-  else if (k === 'frpd') {
-    rows.push([ipt.frpdNivel, 'relevancia e impacto FRPD']);
-    rows.push([ipt.frpdFund, 'fundamento estratégico']);
-  }
-  else if (k === 'ter' || k === 'bre') rows.push([BRE[c].length ? BRE[c].map(x => HABS.find(h => h.k === x).l.split(' (')[0]).join(', ') : 'ninguna', 'brechas (tercio peor)']);
+  if (k === 'ipt') { rows.push([PRC_L[IPT_DATA[c].est], 'plan regulador comunal']); if (/^D\.O\./.test(IPT_DATA[c].prcAno)) rows.push([IPT_DATA[c].prcAno, 'publicación']); }
+  else if (k === 'ter' || k === 'bre') { const g = trData().com[c]; rows.push(g.length ? [g.map(x => IF_DIM[x].l).join(', '), 'en brecha'] : ['Sin dimensiones de infraestructura', 'en brecha']); }
   else if (k === 'ipa') rows.push([f1(IN.ipapc[c] / 1e6) + ' MM$', 'inversión pública 2010–2022 por hab.']);
   else if (k === 'emp') rows.push([f1(comVal('emp', c)), 'empresas por 1.000 hab.']);
   else if (k === 'binv') rows.push([f0(binvC[c]) + ' MM$', `BIP habilitante 2019–2027 (${f0(comVal('binv', c))} mil $ por hab.)`]);
@@ -1248,17 +1155,13 @@ function comTip(c) {
   else if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; rows.push([e.f(EVV[e.k][c]), e.l + ' · ' + e.u]); if (!e.sum) rows.push([e.f(EVREG[e.k]), 'región']); }
   else { const h = HABS.find(x => x.k === k); rows.push([h.f(HV[k][c]), h.l + ' · ' + h.u]); }
   rows.push([f0(POP[c]), 'habitantes (Censo 2024)']);
-  let sub = `FRPD ${ipt.frpdNivel} · PRC ${ipt.estLbl} · PLADECO ${ipt.pladLbl}`;
-  if (ipt.zoit !== '–') sub += ' · ' + ipt.zoit;
-  if (ipt.adi !== '–') sub += ' · ADI';
-  if (ipt.descont !== '–') sub += ' · ' + ipt.descont;
-  else if (IN.rez[c]) sub += ' · Rezago';
+  const sub = [IN.rez[c] ? 'Zona de rezago' : '', TER[TOF[c]].prcSin.includes(c) ? 'Sin plan regulador vigente' : ''].filter(Boolean).join(' · ');
   return [CN(c), rows, sub];
 }
 let MAP = null;
 function initMap() {
-  MAP = mapAuto($('#map'), { tip: comTip, click: ci => { UI.ter = TOF[ci]; renderTerritorios(); }, labelMode: 'layers', layerKeys: LAYERS.map(l => l.k).filter(k => k !== 'tl' && k !== 'cl'), buildLayer: lfInfra,
-    sub: [$('#m-sub'), 'Clic en una comuna para ver su territorio · rueda o botones para acercar, arrastra para moverte'] }, () => createMap($('#map')));
+  MAP = mapAuto($('#map'), { tip: comTip, click: trMapPick, labelMode: 'layers', layerKeys: LAYERS.map(l => l.k).filter(k => k !== 'tl' && k !== 'cl'), buildLayer: lfInfra,
+    sub: [$('#m-sub'), 'Clic en una comuna para elegir su territorio · rueda o botones para acercar, arrastra para moverte'] }, () => createMap($('#map')));
   if (MAP.map) { const m = MAP; MAP = { legend: m.legend, setLayers: set => m.setLayers(set), paint: (fills, ti) => m.paint(fills, [], ti >= 0 ? [ti] : []) }; }
   const og = {}; MAPIND.forEach(m => { const g = m.grp || 'Territorio e infraestructura'; (og[g] = og[g] || []).push(m); });
   $('#m-ind').innerHTML = Object.entries(og).map(([g, ms]) => `<optgroup label="${esc(g)}">${ms.map(m => `<option value="${m.k}">${esc(m.l)}</option>`).join('')}</optgroup>`).join('');
@@ -1269,9 +1172,10 @@ function initMap() {
   const LGRP = [['Referencias', ['tl', 'cl', 'rez']], ['Transporte y conectividad', ['rut', 'erd', 'pue', 'port', 'aer']], ['Servicios y equipamiento', ['elec', 'ssr', 'ant', 'ies']]];
   const lyIn = new Set(LGRP.flatMap(g => g[1])), lyRest = LAYERS.filter(l => !lyIn.has(l.k));
   $('#layers').insertAdjacentHTML('beforeend', LGRP.map(([g, ks]) => `<div class="lgrp"><b>${g}</b>${ks.map(k => LAYERS.find(l => l.k === k)).filter(Boolean).map(lyItem).join('')}</div>`).join('') + (lyRest.length ? `<div class="lgrp"><b>Otras</b>${lyRest.map(lyItem).join('')}</div>` : ''));
-  $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); }));
-  MAP.setLayers(UI.layers);
+  $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); lyCount(); }));
+  MAP.setLayers(UI.layers); lyCount();
 }
+function lyCount() { const n = UI.layers.size; $('#ly-n').textContent = n ? `· ${n} ${n === 1 ? 'activa' : 'activas'}` : ''; }
 function renderMapOnly() {
   $('#m-ind').value = UI.mInd; $('#m-lin').value = String(UI.mLin); $('#m-lin-w').hidden = UI.mInd !== 'lq';
   MAP.paint(comFill(UI.mInd), UI.ter); mapLegend(UI.mInd); renderMapNote();
@@ -1282,365 +1186,215 @@ function renderMapNote() {
   if (UI.layers.has('pue')) n.push(`Puentes: ${f0(MP.pue.filter(p => p[2]).length)} de ${f0(MP.pue.length)} con tablero de madera.`);
   if (UI.layers.has('erd')) n.push('Corredor bioceánico (línea continua) y ferrocarril (discontinua) son trazados de iniciativas del plan de la ERD, no infraestructura existente.');
   if (UI.layers.has('rez')) n.push('Zonas de rezago: Costa Araucanía y el grupo Malleco–Nahuelbuta (Collipulli, Ercilla, Los Sauces, Lumaco, Purén, Traiguén, Victoria).');
+  if (UI.mInd === 'ipt') n.push('Plan regulador: qué comunas no lo tienen vigente viene de la ERD 2040 (Tabla 14); el detalle del estado no está verificado.');
+  if (UI.mInd === 'bre') n.push('Una dimensión está en brecha cuando alguno de sus indicadores cae en el tercio peor de las comunas; educación superior, cuando el territorio no tiene sedes.');
   if (UI.mInd === 'vse') n.push('Viviendas sin energía: la capa registra 50 en ocho comunas, lo que sugiere un valor mínimo de la fuente.');
   if (UI.mInd.startsWith('ev:')) { const e = EVK[UI.mInd.slice(3)]; n.push(EVSRC[e.g].map(k => CX.meta[k]).join(' ')); if (e.k === 'inu') n.push('Una comuna sin zonas puede estar fuera del área estudiada.'); }
   setNote($('#m-note'), n.join(' '), 'Más notas de las capas activas');
 }
-const TP_OPEN = new Set(['Especialización por lineamiento']);
+// ================= TERRITORIOS: selector, lectura y tablas por comuna =================
+// Tres preguntas por territorio, en orden: en qué destaca, qué lo frena y qué hay en cartera.
+// No cambia con los filtros de empresas (usa SII0 y LQ0). «Brecha» es siempre la de las seis dimensiones de infraestructura (IF_DIM, en infra.js).
+let TR_C = null;
+function trData() {
+  if (!TR_C) {
+    const com = ALLC.map(c => Object.keys(IF_DIM).filter(k => ifDim(k, [c]).gap));
+    TR_C = { com, ter: TER.map((T, ti) => { const dims = Object.keys(IF_DIM).map(k => ifDim(k, T.c)); return { dims, nGap: dims.filter(d => d.gap).length, ch: STRAT_CHAINS.map((c, ci) => ({ ...ifCell('ter', ti, ci), ci })), cg: T.c.filter(c => com[c].length).sort((a, b) => com[b].length - com[a].length || POP[b] - POP[a]) }; }) };
+  }
+  return TR_C;
+}
+const fMil = v => (v >= 1e5 ? f0(v / 1000) : f1(v / 1000)) + ' mil';
+function renderTerPick() {
+  const d = trData().ter;
+  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><span class="h"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span></span><span><span class="g${d[i].nGap ? '' : ' z'}">Territorio: ${d[i].nGap} de ${d[i].dims.length} en brecha</span> · Comunas con brecha: ${d[i].cg.length} de ${T.c.length}</span></button>`).join('');
+}
+function trSelect(ti, focusSel) {
+  if (ti === UI.ter) return;
+  UI.ter = ti; renderTerritorios();
+  const el = focusSel && $(focusSel); if (el) el.focus({ preventScroll: true });
+}
+// elegir en el mapa: si la lectura queda fuera de la vista (mapa debajo), se lleva hasta ella
+function trMapPick(ci) {
+  trSelect(TOF[ci]);
+  if (innerWidth <= 1100) { trReveal($('#tprof')); $('#tp-title').focus({ preventScroll: true }); }
+}
+// de Territorios a Formular, con vuelta al mismo punto
+function trFormular(t, ci, sel) { fmOpen(t, ci, { src: 'ter', t, ci, L: null, line: null, ch: ci >= 0, back: { sy: scrollY, sel, ter: UI.ter } }); }
+function trBack(fr) {
+  const bk = fr.back || {};
+  if (bk.ter != null) UI.ter = bk.ter;
+  setView('territorios'); window.scrollTo(0, bk.sy || 0);
+  const el = bk.sel && $(bk.sel); if (el) el.focus({ preventScroll: true });
+}
+// de Territorios a una ficha de Cartera o a Iniciativas BIP: se guarda el punto de partida para ofrecer la vuelta
+let TR_RET = null;
+function trReturn() { const r = TR_RET; if (!r) return; if (UI.fOpen) closeFicha(true); TR_RET = null; trBack({ back: r }); }
+const trFromHtml = (r, idB, idX) => `<p><b>Vienes de Territorios:</b> ${esc(r.what || TER[r.ter].n)}.</p><div class="ct-ob"><button type="button" class="btn sm" id="${idB}">Volver a Territorios</button><button type="button" class="btn sm" id="${idX}">Quitar este aviso</button></div>`;
+function renderBxFrom() { const bf = $('#bx-from'), on = !!(TR_RET && TR_RET.kind === 'bip'), was = !bf.hidden; bf.hidden = !on; bf.innerHTML = on ? trFromHtml(TR_RET, 'bx-back', 'bx-fromx') : ''; if (on && !was) setTimeout(() => bf.focus({ preventScroll: true }), 0); }
+$('#bx-from').addEventListener('click', e => { if (e.target.closest('#bx-back')) trReturn(); else if (e.target.closest('#bx-fromx')) { TR_RET = null; renderBxFrom(); $('#bx-q').focus(); } });
+const TR_OPEN = new Set();
+const a8Txt = a8 => (a8 === '–' ? 'Fuera de las categorías del art. 8: se financia por otras vías' : `Candidata al FRPD, art. 8 ${a8.startsWith('N') ? a8 : 'N°' + a8[0] + ' letra ' + a8[1]}`);
+const mmR = v => (v / 1000 >= 10 ? f0(v / 1000) : f1(v / 1000));   // M$ → MM$, como lo muestra Iniciativas BIP
+const chg = v => (Math.round(v * 100) === 0 ? 'sin cambio' : pcs(v));
 function renderTprof() {
-  const ti = UI.ter, T = TER[ti];
-  const ents = ENT.filter(e => e.t === T.k);
-  const lqs = LIN.map((l, L) => ({ L, v: lqN(ti, L) }));
-  const mxq = Math.max(2, ...lqs.map(x => x.v));
-  const x = v => Math.min(100, v / mxq * 100);
-  const ies = iesOfTer(ti), gTot = sum(TER.map(t => t.gore || 0));
+  const ti = UI.ter, T = TER[ti], D0 = trData(), d = D0.ter[ti], S = SII0;
+  const ents = ENT.filter(e => e.t === T.k).sort((a, b) => b.m - a.m || a.c.localeCompare(b.c));
+  const lqs = LIN.map((l, L) => ({ L, k: l.k, v: LQ0[ti][L] }));
+  const top = lqs.filter(q => lq2(q.v) >= 1.1).sort((a, b) => b.v - a.v);
+  const mxq = Math.max(2, ...lqs.map(q => q.v)), x = v => Math.min(100, v / mxq * 100);
+  const pres = d.ch.filter(c => c.pres).sort((a, b) => b.n - a.n), aus = d.ch.filter(c => !c.pres);
+  const gaps = d.dims.filter(m => m.gap), sinInv = gaps.filter(m => !m.inv.n), nD = d.dims.length;
+  const noEnt = lqs.filter(q => cellEmpty(ti, q.L)), n3 = ents.filter(e => e.m === 3).length;
+  const ies = iesOfTer(ti), gTot = sum(TER.map(t => t.gore || 0)), rez = T.c.filter(c => IN.rez[c]);
   const inT = []; for (let i = 0; i < NFN; i++) if (FN_T[i] === ti) inT.push(i);
   const tfin = [['ANID (sede en el territorio)', inT.filter(i => FN_S[i] === S_ANID)], ['CORFO InnovaChile', inT.filter(i => FN_S[i] === S_CORFO)]]
     .concat(Object.keys(BIPCAT).map(g => [`BIP · ${BIPCAT[g]}`, inT.filter(i => FN_S[i] === S_BIP && fnG(i) === g)]));
+  // las tres conclusiones
+  const c1 = `${top.length ? `Lineamientos CTCI claramente sobre el promedio regional (cociente de 1,10 o más): <b>${esc(top.map(q => LSHORT[q.k]).join(' · '))}</b>.` : 'Ningún lineamiento CTCI llega a un cociente de 1,10 sobre el promedio regional.'} ${pres.length ? `Cadenas presentes y sus empresas: ${pres.map(c => `<b>${esc(ifShort(c.ch))}</b> ${f0(c.n)}`).join(' · ')}.` : 'Ninguna cadena productiva alcanza presencia.'}`;
+  const invTxt = !gaps.length ? '' : !sinInv.length ? (gaps.length === 1 ? 'Con' : `Las ${gaps.length} con`) + ` alguna iniciativa BIP postulada desde ${IF_Y0}.`
+    : sinInv.length === gaps.length ? (gaps.length === 1 ? 'Sin' : 'Ninguna con') + ` iniciativas BIP postuladas desde ${IF_Y0}.` : `${sinInv.length} de ellas sin iniciativas BIP postuladas desde ${IF_Y0}.`;
+  const comTxt = ` ${d.cg.length} de ${T.c.length} comunas con alguna.`;
+  const c2 = (gaps.length ? `<b>${gaps.length} de ${nD}</b> dimensiones de infraestructura en brecha en el territorio en conjunto: <b>${esc(gaps.map(m => m.d.l).join(' · '))}</b>. ${invTxt}`
+    : `Ninguna de las ${nD} dimensiones de infraestructura está en brecha en el territorio en conjunto.`) + comTxt;
+  const c3 = `<b>${pl(ents.length, 'entrada', 'entradas')}</b>${ents.length ? `, ${n3} con evidencia levantada` : ''}. ${noEnt.length ? `Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}${lq2(q.v) >= 1.1 ? ` (cociente ${f2(q.v)}, sobre el promedio)` : ''}`)))}.` : 'Tiene entrada en los seis lineamientos.'}`;
+  const dimRow = m => {
+    const req = m.gap ? pres.filter(c => (IF_REQ[c.ch.id] || []).includes(m.k)).map(c => ifShort(c.ch)) : [];
+    const cg = m.k === 'con' ? [] : T.c.filter(c => D0.com[c].includes(m.k));
+    return `<div class="tr-dim${m.gap ? ' gap' : ''}">
+      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small${i.gap ? ' class="g"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${m.k === 'con' ? '' : ` · región ${esc(i.reg)}`}${i.gap ? `<span class="sr"> (${m.k === 'con' ? 'sin sedes' : 'en el tercio peor'})</span>` : ''}</small>`).join('')}${cg.length ? `<small>Comunas en brecha: ${esc(cg.map(CN).join(' · '))}</small>` : ''}</div>
+      <div class="b"><span class="pill${m.gap ? ' bad' : ''}">${m.gap ? 'En brecha' : ifOkLab(m)}</span>${req.length ? `<small>La requieren (supuesto): ${esc(req.join(' · '))}</small>` : ''}</div>
+      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${m.k === 'con' ? ` de ${esc(BIPCAT[m.d.cat])}` : ''} ${m.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0} · ${mmR(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}" data-dim="${esc(m.d.l)}" aria-label="Ver las iniciativas BIP de ${esc(m.d.l)}">Ver estas iniciativas</button>`
+        : m.gap ? `<span class="pill warn">Sin iniciativas BIP desde ${IF_Y0}</span><small>${a8Txt(m.d.a8)}</small>` : `<small>Sin iniciativas BIP desde ${IF_Y0}</small>`}</div>
+    </div>`;
+  };
+  const sec = (key, body) => `<details class="psec"${TR_OPEN.has(key) ? ' open' : ''} data-k="${key}"><summary><span class="lbl">${key}</span></summary><div>${body}</div></details>`;
   $('#tprof').innerHTML = `<div class="prof">
-    <div><div class="eyebrow">Territorio ERD 2040</div><h2>${esc(T.n)}</h2><p class="note">${esc(T.c.map(CN).join(' · '))}</p></div>
-    <p class="quote">${esc(T.obj)}</p>
-    <div class="stats">
-      <div class="stat"><div class="l">Población 2024</div><div class="v">${f0(T.pop)}</div><div class="s">${pcs(T.pop / T.pop17 - 1)} desde 2017</div></div>
-      <div class="stat"><div class="l">Empresas SII 2024${hasAttr() ? ' · selección' : ''}</div><div class="v">${f0(tN[ti])}</div><div class="s">${f1(tN[ti] / T.pop * 1000)} por 1.000 hab. (región ${f1(NSEL / POPREG * 1000)})</div></div>
-      <div class="stat"><div class="l">Crecimiento ${pLab()}</div><div class="v">${pcs(gr(serT[ti]))}</div><div class="s">región ${pcs(gr(serAll))}</div></div>
-      <div class="stat"><div class="l">Trabajadores dependientes</div><div class="v">${f0(tT[ti])}</div><div class="s">${pc(tT[ti] / totT, 0)} de la región${tTpub[ti] ? ` · ${pc(tTpub[ti] / tT[ti], 0)} en entidades públicas` : ''}</div></div>
-      <div class="stat"><div class="l">Empresas con 10 o más trabajadores</div><div class="v">${f0(T10[ti])}</div><div class="s">${pc(T10[ti] / tN[ti])} de sus empresas</div></div>
-      <div class="stat"><div class="l">Ventas anuales (mill. UF)</div><div class="v">${(r => NF1.format(r.lo / 1e6) + '–' + NF1.format(r.hi / 1e6))(TSALES[ti])}</div><div class="s" title="Suma de los tramos de ventas SII de las empresas vigentes; la estadística comunal del SII (capa regional, año no indicado) incluye personas naturales">rango por tramos SII${TSALES[ti].open ? ` + ${TSALES[ti].open} sin tope` : ''}; SII comunal ${NF1.format(sumC('jv', T.c) / 1e6)}</div></div>
+    <div class="tr-h"><div><div class="eyebrow">Territorio ERD 2040</div><h2 id="tp-title" tabindex="-1">${esc(T.n)}</h2><p class="note">${esc(T.c.map(CN).join(' · '))}</p></div>
+      <button class="btn pri" type="button" id="tp-fm">Formular en este territorio</button></div>
+    <ol class="tr-lead" aria-label="Lectura en tres líneas">
+      <li><button type="button" class="linkbtn" data-go="tq1">En qué destaca</button><p>${c1}</p></li>
+      <li><button type="button" class="linkbtn" data-go="tq2">Qué lo frena</button><p>${c2}</p></li>
+      <li><button type="button" class="linkbtn" data-go="tq3">Qué hay en cartera</button><p>${c3}</p></li>
+    </ol>
+    <div class="tr-stats">
+      <div class="stat"><div class="l">Habitantes · Censo 2024</div><div class="v">${f0(T.pop)}</div><div class="s">${pc(T.pop / POPREG, 0)} de la región · ${chg(T.pop / T.pop17 - 1)} desde 2017</div></div>
+      <div class="stat"><div class="l">Empresas · SII 2024</div><div class="v">${f0(S.tN[ti])}</div><div class="s">${f1(S.tN[ti] / T.pop * 1000)} por 1.000 hab. · región ${f1(N / POPREG * 1000)}</div></div>
+      <div class="stat"><div class="l">Trabajadores dependientes</div><div class="v">${f0(S.tT[ti])}</div><div class="s">${pc(S.tT[ti] / S.totT, 0)} de la región</div></div>
+      <div class="stat"><div class="l">Sedes de educación superior</div><div class="v">${ies.length}</div><div class="s">${ies.length ? esc([...new Set(ies.map(i => i.t))].join(', ')) : 'ninguna'}</div></div>
+    </div>
+    <section class="tr-q" aria-labelledby="tq1"><h3 id="tq1" tabindex="-1">En qué destaca</h3>
+      <div class="tr-2">
+        <div><span class="lbl">Por lineamiento CTCI · cociente de localización</span>
+          ${lqs.map(({ k, v }) => `<div class="lqrow${lq2(v) >= 1.1 ? ' hi' : ''}"><span>${k} ${esc(LSHORT[k])}</span><span class="tr"><i style="width:${x(v)}%"></i><u style="left:${x(1)}%"></u></span><span class="x">${f2(v)}</span></div>`).join('')}
+          <p class="note">Cociente: peso entre las empresas del territorio dividido por su peso en la región. La línea vertical marca 1,00 (igual que la región); se destaca desde 1,10.</p></div>
+        <div><span class="lbl">Por cadena productiva · las presentes</span>
+          ${pres.length ? pres.map(c => `<div class="tr-ch"><span class="n"><b>${esc(ifShort(c.ch))}</b><small>${pl(c.n, 'empresa', 'empresas')} · cociente ${f2(c.lq)}</small><small${c.gaps.length ? ' class="w"' : ''}>${c.gaps.length ? `En brecha, de lo que requiere: ${esc(c.gaps.map(g => g.d.l).join(' · '))}` : 'Sin brechas en lo que requiere'}</small></span><button type="button" class="linkbtn" data-ch="${c.ci}" aria-label="Formular con la cadena ${esc(ifShort(c.ch))}">Formular</button></div>`).join('') : '<p class="note">Ninguna reúne cinco empresas y un peso igual o mayor al regional.</p>'}
+          <p class="note">Qué infraestructura requiere cada cadena es un supuesto provisional, a validar por DIFOI.${aus.length ? ` Poco presentes: ${esc(aus.map(c => ifShort(c.ch)).join(' · '))}.` : ''}</p></div>
+      </div>
+    </section>
+    <section class="tr-q" aria-labelledby="tq2"><h3 id="tq2" tabindex="-1">Qué lo frena</h3>
+      ${rez.length || T.prcSin.length ? `<p class="tr-ctx">${rez.length ? `<span><b>Zona de rezago:</b> ${rez.length === T.c.length ? `sus ${T.c.length} comunas` : esc(listY(rez.map(CN)))}.</span>` : ''}${T.prcSin.length ? `<span><b>Sin plan regulador vigente:</b> ${esc(listY(T.prcSin.map(CN)))}.</span>` : ''}</p>` : ''}
+      <div class="tr-dims">${gaps.map(dimRow).join('')}${gaps.length < nD ? `<div class="tr-dsep">No están en brecha</div>` : ''}${d.dims.filter(m => !m.gap).map(dimRow).join('')}</div>
+      <p class="note">Cifras del agregado del territorio. En brecha: algún indicador (▲) cae en el tercio peor de las 32 comunas; en educación superior, el territorio no tiene sedes. Que una iniciativa esté postulada no implica que tenga financiamiento.</p>
+      <div><button type="button" class="linkbtn" id="tp-com">Ver estos indicadores comuna por comuna</button></div>
+    </section>
+    <section class="tr-q" aria-labelledby="tq3"><h3 id="tq3" tabindex="-1">Qué hay en cartera</h3>
+      <div class="tr-ents">${ents.map(e => `<button type="button" class="tr-ent" data-c="${e.c}" data-e="${e.l}">${mDots(e.m)}<span class="n">${esc(LINE[e.l].n)}</span><span class="m">${e.c} ${esc(LSHORT[e.c])} · evidencia ${MADS[e.m]}</span></button>`).join('')}</div>
+      <p class="note">Cada fila abre la ficha de esa entrada en Cartera.</p>
+    </section>
+  </div>`;
+  $('#tprof-x').innerHTML = `<div class="prof"><div><h2 class="tr-xh">Más datos de ${esc(T.n)}</h2></div>
+    <div><span class="lbl">Objetivo del territorio en la ERD 2040</span><p class="quote" style="margin-top:7px">${esc(T.obj)}</p></div>
+    ${sec('Más cifras', `<div class="stats">
+      <div class="stat"><div class="l">Empresas con 10 o más trabajadores</div><div class="v">${f0(S.T10[ti])}</div><div class="s">${pc(S.T10[ti] / S.tN[ti])} de sus empresas</div></div>
+      <div class="stat"><div class="l">Trabajo en entidades públicas</div><div class="v">${pc(S.tTpub[ti] / S.tT[ti], 0)}</div><div class="s">de sus trabajadores dependientes</div></div>
+      <div class="stat"><div class="l">Ventas anuales (mill. UF)</div><div class="v">${(r => NF1.format(r.lo / 1e6) + '–' + NF1.format(r.hi / 1e6))(S.sales[ti])}</div><div class="s">rango por tramos SII${S.sales[ti].open ? ` + ${S.sales[ti].open} sin tope` : ''}</div></div>
       <div class="stat"><div class="l">Inversión pública 2010–2022</div><div class="v">${T.ipaTpc ? f1(T.ipaTpc / 1e6) : '–'} <small style="font-size:12px;color:var(--muted)">MM$/hab.</small></div><div class="s">${T.ipaT ? f0(T.ipaT / 1000) + ' mil MM$ en total' : ''}</div></div>
       <div class="stat"><div class="l">Inversión GORE 2010–2022</div><div class="v">${T.gore ? pc(T.gore / gTot, 0) : '–'}</div><div class="s">${T.gore ? f0(T.gore) + ' MM$ del total regional' : ''}</div></div>
-      <div class="stat"><div class="l">Sedes de educación superior</div><div class="v">${ies.length}</div><div class="s">${ies.length ? esc([...new Set(ies.map(x => x.t))].join(', ')) : 'ninguna'}</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Especialización por lineamiento (empresas)</span>
-      ${lqs.map(({ L, v }) => `<div class="lqrow"><span>${LIN[L].k} ${esc(LSHORT[LIN[L].k])}</span><span class="tr"><i style="width:${x(v)}%;background:${lqColor(v)}"></i><u style="left:${x(1)}%"></u></span><span class="x">${f2(v)}</span></div>`).join('')}
-      <p class="note">La línea vertical marca 1,0: el promedio regional.</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Condiciones habilitantes</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
-      ${HABS.map(hb => { const v = terHab(hb, ti), st = status(hb, v); return `<span class="n">${esc(hb.l)} <small style="color:var(--muted)">${esc(hb.u)}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${hb.f(v)}</span></span><span class="x"><small>${hb.f(HREG[hb.k])}</small></span>`; }).join('')}</div>
-      <p class="note">${T.c.some(c => IN.rez[c]) ? `Zona de rezago: ${esc(T.c.filter(c => IN.rez[c]).map(CN).join(', '))}. ` : ''}${T.prcSin.length ? `Sin plan regulador vigente: ${esc(T.prcSin.map(CN).join(', '))}.` : ''}</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Planificación, Gestión y Relevancia FRPD</span>
-      <div class="hab" style="grid-template-columns:minmax(0,1fr) auto auto auto auto">
-        <span class="h">Comuna</span><span class="h" style="text-align:center">Nivel FRPD</span><span class="h" style="text-align:center">Plan Regulador</span><span class="h" style="text-align:center">PLADECO</span><span class="h" style="text-align:right">GRD Emerg.</span>
-        ${T.c.map(c => `<span class="n">${esc(CN(c))}</span><span class="x" style="text-align:center"><span class="frpd-badge ${IPT_DATA[c].frpdCls}">${IPT_DATA[c].frpdNivel}</span></span><span class="x" style="text-align:center"><span class="ipt-badge ${IPT_DATA[c].cls}">${IPT_DATA[c].estLbl}</span></span><span class="x" style="text-align:center"><span class="plad-badge ${IPT_DATA[c].pladCls}">${IPT_DATA[c].pladLbl}</span></span><span class="x" style="text-align:right"><span class="grd-badge ${IPT_DATA[c].grdEmergCls}">${IPT_DATA[c].grdEmergLbl}</span></span>`).join('')}
-      </div>
-      <p class="note">Detalle comunal, fechas de aprobación, límites urbanos, PLADETUR, PACCC, ADI, PDA y planes de GRD en la tabla inferior.</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Evidencia territorial</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
-      ${['pmd', 'ind', 'sred', 'alj', 'prd', 'incp', 'upaa', 'rie', 'fcm', 'prof'].map(k => { const e = EVK[k], v = e.v(T.c), st = evStatus(e, v); return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u.split(' · ')[0])}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${e.f(v)}</span></span><span class="x"><small>${e.f(EVREG[k])}</small></span>`; }).join('')}</div>
-      <div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Financiamiento público 2019–2026</span><div class="hab"><span class="h">Fuente</span><span class="h" style="text-align:right">N°</span><span class="h" style="text-align:right">Monto</span>
+    </div>`)}
+    ${sec('Evidencia territorial', `<div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
+      ${['pmd', 'ind', 'sred', 'alj', 'prd', 'incp', 'upaa', 'rie', 'fcm', 'prof'].map(k => { const e = EVK[k], v = e.v(T.c), g = evGap(e, v); return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u.split(' · ')[0])}</small></span><span class="x"><span class="pill${g ? ' bad' : ''}">${g ? '<span aria-hidden="true">▲ </span>' : ''}${e.f(v)}${g ? '<span class="sr"> (en el tercio peor)</span>' : ''}</span></span><span class="x"><small>${e.f(EVREG[k])}</small></span>`; }).join('')}</div>
+      <p class="note">▲: el valor del territorio cae en el tercio peor de las 32 comunas.</p><div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div>`)}
+    ${sec('Financiamiento público desde 2019', `<div class="hab"><span class="h">Fuente</span><span class="h" style="text-align:right">N°</span><span class="h" style="text-align:right">Monto</span>
       ${tfin.map(([l, ix]) => `<span class="n">${esc(l)}</span><span class="x">${f0(ix.length)}</span><span class="x"><small>${ix.length ? mm(sumM(ix)) : '–'}</small></span>`).join('')}</div>
-      <p class="note">ANID por sede de la institución; CORFO InnovaChile por casa matriz del beneficiario; BIP: iniciativas postuladas 2019–2027 con comuna en el territorio (costo total de la etapa).</p><div><button class="btn" type="button" id="tp-bip">Ver las iniciativas BIP del territorio</button></div></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Entradas de la cartera (${ents.length})</span>
-      <div class="tchips">${ents.map(e => `<button type="button" class="tchip m${e.m}" data-c="${e.c}" style="background:none;cursor:pointer" title="${esc(LINE[e.l].n)} · madurez ${e.m}">${e.c} ${e.l}</button>`).join('')}</div>
-      <p class="note">Clic en una entrada para abrir su ficha en la cartera.</p></div>
+      <p class="note">ANID por sede de la institución; CORFO InnovaChile por casa matriz del beneficiario; BIP: iniciativas postuladas 2019–2027 con comuna en el territorio, de todos los tipos de inversión (costo total de la etapa). Por eso las cifras BIP son mayores que las «postuladas desde ${IF_Y0}» de «Qué lo frena».</p><div><button class="btn" type="button" id="tp-bip">Ver las iniciativas BIP del territorio</button></div>`)}
   </div>`;
-  for (const d of [...$('#tprof .prof').children]) {
-    const lb = d.firstElementChild; if (!lb || !lb.classList.contains('lbl')) continue;
-    const key = lb.textContent.replace(/\s*\(.*\)\s*$/, ''), det = document.createElement('details'), sum = document.createElement('summary'), body = document.createElement('div');
-    det.className = 'psec'; det.open = TP_OPEN.has(key); sum.appendChild(lb); while (d.firstChild) body.appendChild(d.firstChild); det.append(sum, body); d.replaceWith(det);
-    det.addEventListener('toggle', () => { if (det.open) TP_OPEN.add(key); else TP_OPEN.delete(key); });
-  }
-  $('#tp-bip').addEventListener('click', () => openBip({ t: ti }));
-  $('#tp-ev').addEventListener('click', () => openEvid({ t: ti }));
-  $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { UI.t = ti; UI.L = LIDX[b.dataset.c]; setView('cartera'); renderMatrix(); renderFicha(); $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+  $$('#tprof-x details.psec').forEach(det => det.addEventListener('toggle', () => { if (det.open) TR_OPEN.add(det.dataset.k); else TR_OPEN.delete(det.dataset.k); }));
 }
-// tabla de habilitantes por comuna
+// lleva a un bloque de la pestaña; repite el ajuste porque el mapa cambia el alto de la página al iniciarse
+function trReveal(el) { const go = () => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.top > innerHeight * 0.4) el.scrollIntoView({ block: 'start' }); }; go(); setTimeout(go, 400); }
+function trOpenDet(id) { const d = $(id); d.open = true; trReveal(d); const s = d.querySelector('summary'); if (s) s.focus({ preventScroll: true }); }
+$$('#tprof,#tprof-x').forEach(el => el.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const leave = (kind, sel, what) => { TR_RET = { kind, sy: scrollY, sel, ter: UI.ter, what }; };
+  if (b.id === 'tp-fm') trFormular(UI.ter, -1, '#tp-fm');
+  else if (b.dataset.go) { const h = $('#' + b.dataset.go); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
+  else if (b.dataset.ch != null) trFormular(UI.ter, +b.dataset.ch, `#tprof button[data-ch="${b.dataset.ch}"]`);
+  else if (b.dataset.e) { leave('ficha', `#tprof button[data-e="${b.dataset.e}"]`); setView('cartera'); openFicha(UI.ter, LIDX[b.dataset.c]); }
+  else if (b.dataset.cat) { leave('bip', `#tprof button[data-cat="${b.dataset.cat}"]`, `${TER[UI.ter].n} · ${b.dataset.dim}`); openBip({ t: UI.ter, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }
+  else if (b.id === 'tp-bip') { leave('bip', '#tp-bip'); openBip({ t: UI.ter }); }
+  else if (b.id === 'tp-ev') openEvid({ t: UI.ter });
+  else if (b.id === 'tp-com') trOpenDet('#tr-com');
+}));
+$('#tr-pick').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) trSelect(+b.dataset.t, `#tr-pick button[data-t="${b.dataset.t}"]`); });
+// tabla por comuna: los indicadores de cada dimensión de infraestructura
 const HCOLS = [
   { k: 'com', l: 'Comuna', s: c => CN(c) },
   { k: 'pop', l: 'Habitantes 2024', r: 1, s: c => POP[c], f: c => f0(POP[c]) },
-  ...HABS.map(h => ({ k: h.k, l: `${h.l.replace(' (SAIDI 2022)', '')} · ${h.u}`, r: 1, s: c => HV[h.k][c], f: c => h.f(HV[h.k][c]), hab: h })),
-  { k: 'ssr', l: 'Servicios sanitarios rurales · benef.', r: 1, s: c => IN.ssrb[c], f: c => `${IN.ssr[c]} · ${f0(IN.ssrb[c])}` },
-  { k: 'ies', l: 'Sedes educación superior', r: 1, s: c => IN.ies[c], f: c => (IN.ies[c] || '–') },
-  { k: 'ipa', l: 'Inversión pública 2010–22 · MM$/hab.', r: 1, s: c => IN.ipapc[c], f: c => f1(IN.ipapc[c] / 1e6) },
-  { k: 'binv', l: 'BIP habilitante 2019–27 · MM$', r: 1, s: c => binvC[c], f: c => f0(binvC[c]) },
+  ...['pav', 'pmad', 'saidi', 'ant'].map(k => HABS.find(h => h.k === k)).map(h => ({ k: h.k, l: `${h.l.replace(' (SAIDI 2022)', '')} · ${h.u}`, r: 1, s: c => HV[h.k][c], f: c => (h.u.startsWith('%') ? pc(HV[h.k][c], 1) : h.f(HV[h.k][c])), gap: c => isGap(h, HV[h.k][c]) })),
+  ...['sred', 'rie'].map(k => EVK[k]).map(e => ({ k: e.k, l: `${e.l} · ${e.u.split(' · ')[0]}`, r: 1, s: c => EVV[e.k][c], f: c => e.f(EVV[e.k][c]), gap: c => evGap(e, EVV[e.k][c]) })),
+  { k: 'ies', l: 'Sedes de educación superior', r: 1, s: c => IN.ies[c], f: c => (IN.ies[c] || '–'), gap: c => iesOfTer(TOF[c]).length === 0 },
+  { k: 'bre', l: 'Dimensiones en brecha · de 6', r: 1, s: c => trData().com[c].length, f: c => trData().com[c].length },
   { k: 'rez', l: 'Zona de rezago', s: c => IN.rez[c], f: c => (IN.rez[c] ? 'Sí' : '') },
-  { k: 'bre', l: 'Brechas', r: 1, s: c => BRE[c].length, f: c => BRE[c].length },
 ];
+const trScope = () => (UI.hbScope === 'ter' ? TER[UI.ter].c : ALLC);
+function trScopeSel() { $$('#hb-scope,#ipt-scope').forEach(s => { s.innerHTML = `<option value="ter">Solo ${esc(TER[UI.ter].n)}</option><option value="all">Las 32 comunas</option>`; s.value = UI.hbScope; }); }
 function renderHab() {
-  const scope = UI.hbScope === 'ter' ? TER[UI.ter].c : ALLC;
   const col = HCOLS.find(c => c.k === UI.hbSort) || HCOLS[0];
-  const rows = [...scope].sort((a, b) => { const x = col.s(a), y = col.s(b); return (typeof x === 'string' ? x.localeCompare(y, 'es') : x - y) * UI.hbDir || POP[b] - POP[a]; });
-  $('#hab').innerHTML = `<table><thead><tr>${HCOLS.map(c => `<th class="${c.r ? 'r' : ''}"><button type="button" data-k="${c.k}"${UI.hbSort === c.k ? ` aria-sort="${UI.hbDir > 0 ? 'ascending' : 'descending'}"` : ''}>${esc(c.l)}${UI.hbSort === c.k ? (UI.hbDir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`).join('')}</tr></thead><tbody>` +
-    rows.map(c => `<tr class="click${TOF[c] === UI.ter ? ' on' : ''}" data-c="${c}">${HCOLS.map(k => {
-      if (k.k === 'com') return `<td><b style="font-weight:600">${esc(CN(c))}</b><span class="sm">${esc(TER[TOF[c]].n)}</span></td>`;
-      const cls = k.hab ? (isGap(k.hab, HV[k.k][c]) ? 'flag' : '') : '';
-      return `<td class="m${k.r ? ' r' : ''} ${cls}">${k.f(c)}</td>`;
-    }).join('')}</tr>`).join('') + '</tbody></table>';
-  $$('#hab th button').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; if (UI.hbSort === k) UI.hbDir *= -1; else { UI.hbSort = k; UI.hbDir = k === 'com' ? 1 : -1; } renderHab(); }));
-  $$('#hab tr[data-c]').forEach(r => r.addEventListener('click', () => { UI.ter = TOF[+r.dataset.c]; renderTerritorios(); }));
+  const num = v => (typeof v === 'number' && !isFinite(v) ? -Infinity : v);
+  const rows = [...trScope()].sort((a, b) => { const p = num(col.s(a)), q = num(col.s(b)); return (typeof p === 'string' ? p.localeCompare(q, 'es') : p - q) * UI.hbDir || POP[b] - POP[a]; });
+  $('#hab').innerHTML = `<table><thead><tr>${HCOLS.map(c => `<th class="${c.r ? 'r' : ''}"${UI.hbSort === c.k ? ` aria-sort="${UI.hbDir > 0 ? 'ascending' : 'descending'}"` : ''}><button type="button" data-k="${c.k}">${esc(c.l)}${UI.hbSort === c.k ? (UI.hbDir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`).join('')}</tr></thead><tbody>` +
+    rows.map(c => `<tr class="${UI.hbScope === 'all' && TOF[c] === UI.ter ? 'on' : ''}">${HCOLS.map(k => (k.k === 'com' ? `<td><b style="font-weight:600">${esc(CN(c))}</b>${UI.hbScope === 'all' ? `<span class="sm">${esc(TER[TOF[c]].n)}</span>` : ''}</td>` : `<td class="m${k.r ? ' r' : ''}${k.gap && k.gap(c) ? ' flag' : ''}">${k.f(c)}</td>`)).join('')}</tr>`).join('') + '</tbody></table>';
 }
-$('#hb-scope').addEventListener('change', e => { UI.hbScope = e.target.value; renderHab(); });
+$('#hab').addEventListener('click', e => { const b = e.target.closest('th button'); if (!b) return; const k = b.dataset.k; if (UI.hbSort === k) UI.hbDir *= -1; else { UI.hbSort = k; UI.hbDir = k === 'com' ? 1 : -1; } renderHab(); const nb = $(`#hab th button[data-k="${k}"]`); if (nb) nb.focus({ preventScroll: true }); });
+$$('#hb-scope,#ipt-scope').forEach(s => s.addEventListener('change', e => { UI.hbScope = e.target.value; trScopeSel(); renderHab(); renderIptTable(); }));
 function renderTerritorios() {
   if (!MAP) initMap();
-  renderMapOnly(); renderTprof(); renderHab(); renderIptTable();
-  $('#m-title').textContent = 'Territorios ERD 2040 · ' + TER[UI.ter].n;
+  if (!rendered.infra) { initInfra(); rendered.infra = true; }
+  renderTerPick(); renderMapOnly(); renderTprof(); renderInfra(); trScopeSel(); renderHab(); renderIptTable();
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
-const IPT_STATE = {
-  ter: 'all', frpd: 'all', est: 'all', plad: 'all', grd: 'all',
-  pladet: 'all', paccc: 'all', adi: 'all', descont: 'all',
-  threat: 'all', reg: 'all', q: '', sort: 'com', dir: 1
-};
-let iptInitDone = false;
-
-function initIpt() {
-  if (iptInitDone) return;
-  iptInitDone = true;
-  const sTer = $('#ipt-f-ter');
-  if (sTer) {
-    sTer.innerHTML = '<option value="all">Todos los territorios</option>' +
-      TER.map((t, i) => `<option value="${i}">${esc(t.n)}</option>`).join('');
-    sTer.addEventListener('change', e => { IPT_STATE.ter = e.target.value; renderIptTable(); });
-  }
-  const sFrpd = $('#ipt-f-frpd');
-  if (sFrpd) sFrpd.addEventListener('change', e => { IPT_STATE.frpd = e.target.value; renderIptTable(); });
-  const sEst = $('#ipt-f-est');
-  if (sEst) sEst.addEventListener('change', e => { IPT_STATE.est = e.target.value; renderIptTable(); });
-  const sPlad = $('#ipt-f-plad');
-  if (sPlad) sPlad.addEventListener('change', e => { IPT_STATE.plad = e.target.value; renderIptTable(); });
-  const sGrd = $('#ipt-f-grd');
-  if (sGrd) sGrd.addEventListener('change', e => { IPT_STATE.grd = e.target.value; renderIptTable(); });
-  const sPladet = $('#ipt-f-pladet');
-  if (sPladet) sPladet.addEventListener('change', e => { IPT_STATE.pladet = e.target.value; renderIptTable(); });
-  const sPaccc = $('#ipt-f-paccc');
-  if (sPaccc) sPaccc.addEventListener('change', e => { IPT_STATE.paccc = e.target.value; renderIptTable(); });
-  const sAdi = $('#ipt-f-adi');
-  if (sAdi) sAdi.addEventListener('change', e => { IPT_STATE.adi = e.target.value; renderIptTable(); });
-  const sDescont = $('#ipt-f-descont');
-  if (sDescont) sDescont.addEventListener('change', e => { IPT_STATE.descont = e.target.value; renderIptTable(); });
-  const sThreat = $('#ipt-f-threat');
-  if (sThreat) sThreat.addEventListener('change', e => { IPT_STATE.threat = e.target.value; renderIptTable(); });
-  const sReg = $('#ipt-f-reg');
-  if (sReg) sReg.addEventListener('change', e => { IPT_STATE.reg = e.target.value; renderIptTable(); });
-  const sQ = $('#ipt-q');
-  if (sQ) sQ.addEventListener('input', e => { IPT_STATE.q = e.target.value.toLowerCase().trim(); renderIptTable(); });
-  const bClear = $('#ipt-clear');
-  if (bClear) bClear.addEventListener('click', () => {
-    IPT_STATE.ter = 'all'; IPT_STATE.frpd = 'all'; IPT_STATE.est = 'all'; IPT_STATE.plad = 'all'; IPT_STATE.grd = 'all';
-    IPT_STATE.pladet = 'all'; IPT_STATE.paccc = 'all'; IPT_STATE.adi = 'all'; IPT_STATE.descont = 'all';
-    IPT_STATE.threat = 'all'; IPT_STATE.reg = 'all'; IPT_STATE.q = '';
-    if (sTer) sTer.value = 'all';
-    if (sFrpd) sFrpd.value = 'all';
-    if (sEst) sEst.value = 'all';
-    if (sPlad) sPlad.value = 'all';
-    if (sGrd) sGrd.value = 'all';
-    if (sPladet) sPladet.value = 'all';
-    if (sPaccc) sPaccc.value = 'all';
-    if (sAdi) sAdi.value = 'all';
-    if (sDescont) sDescont.value = 'all';
-    if (sThreat) sThreat.value = 'all';
-    if (sReg) sReg.value = 'all';
-    if (sQ) sQ.value = '';
-    renderIptTable();
-  });
-  const bCsv = $('#ipt-csv');
-  if (bCsv) bCsv.addEventListener('click', exportIptCSV);
-  const bMapPrc = $('#ipt-btn-map');
-  if (bMapPrc) bMapPrc.addEventListener('click', () => {
-    UI.mInd = 'ipt'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPlad = $('#ipt-btn-map-plad');
-  if (bMapPlad) bMapPlad.addEventListener('click', () => {
-    UI.mInd = 'pladeco'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapGrd = $('#ipt-btn-map-grd');
-  if (bMapGrd) bMapGrd.addEventListener('click', () => {
-    UI.mInd = 'grd'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPladet = $('#ipt-btn-map-pladet');
-  if (bMapPladet) bMapPladet.addEventListener('click', () => {
-    UI.mInd = 'pladetur'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPaccc = $('#ipt-btn-map-paccc');
-  if (bMapPaccc) bMapPaccc.addEventListener('click', () => {
-    UI.mInd = 'paccc'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapAdi = $('#ipt-btn-map-adi');
-  if (bMapAdi) bMapAdi.addEventListener('click', () => {
-    UI.mInd = 'adi'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapDescont = $('#ipt-btn-map-descont');
-  if (bMapDescont) bMapDescont.addEventListener('click', () => {
-    UI.mInd = 'descont'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapFrpd = $('#ipt-btn-map-frpd');
-  if (bMapFrpd) bMapFrpd.addEventListener('click', () => {
-    UI.mInd = 'frpd'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bEv = $('#ev-goto-ipt');
-  if (bEv) bEv.addEventListener('click', () => {
-    setView('territorios');
-    setTimeout(() => {
-      const card = $('#ipt-card');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  });
-}
-
+// ================= INSTRUMENTOS DE PLANIFICACIÓN POR COMUNA =================
+// Catastro cargado a mano (IPT_DATA). Solo el estado «con o sin plan regulador» (ERD 2040, Tabla 14) y las zonas de rezago
+// coinciden con una fuente del radar; el resto se muestra plegado y con el aviso de que no está verificado.
+const IPTU = { sort: 'com', dir: 1 };
+const IPT_SV = { com: it => it.com, est: it => it.val, plad: it => ({ vigente: 2, actualizacion: 1 })[it.pladEst] || 0, grd: it => (it.grdEmerg === 'aprobado' ? 2 : it.grdEmerg === 'tramite' ? 1 : 0) + (it.grdRrd === 'aprobado' ? 2 : it.grdRrd === 'elaboracion' ? 1 : 0), pladet: it => ({ vigente: 2, formulacion: 1 })[it.pladetEst] || 0, paccc: it => ({ aprobado: 2, elaboracion: 1 })[it.pacccEst] || 0 };
 function renderIptTable() {
-  initIpt();
-  const wrap = $('#ipt-tbl-wrap');
-  if (!wrap) return;
-  const q = IPT_STATE.q;
-  const filtered = IPT_DATA.filter(it => {
-    if (IPT_STATE.ter !== 'all' && TOF[it.c] !== +IPT_STATE.ter) return false;
-    if (IPT_STATE.frpd !== 'all' && it.frpdCls !== IPT_STATE.frpd) return false;
-    if (IPT_STATE.est !== 'all' && it.est !== IPT_STATE.est) return false;
-    if (IPT_STATE.plad !== 'all' && it.pladEst !== IPT_STATE.plad) return false;
-    if (IPT_STATE.grd === 'ambos' && !(it.grdEmerg === 'aprobado' && it.grdRrd === 'aprobado')) return false;
-    if (IPT_STATE.grd === 'emerg' && it.grdEmerg !== 'aprobado') return false;
-    if (IPT_STATE.grd === 'rrd' && it.grdRrd !== 'aprobado') return false;
-    if (IPT_STATE.grd === 'pend' && !(it.grdEmerg === 'pendiente' || it.grdRrd === 'pendiente' || it.grdEmerg === 'tramite')) return false;
-    if (IPT_STATE.pladet !== 'all' && it.pladetEst !== IPT_STATE.pladet) return false;
-    if (IPT_STATE.paccc !== 'all' && it.pacccEst !== IPT_STATE.paccc) return false;
-    if (IPT_STATE.adi === 'si' && it.adi === '–') return false;
-    if (IPT_STATE.adi === 'no' && it.adi !== '–') return false;
-    if (IPT_STATE.descont === 'si' && it.descont === '–') return false;
-    if (IPT_STATE.descont === 'pda' && it.descont !== 'PDA Aire') return false;
-    if (IPT_STATE.descont === 'pdl' && it.descont !== 'PDL Lago') return false;
-    if (IPT_STATE.descont === 'estudio' && it.descont !== 'PDA Estudio') return false;
-    if (IPT_STATE.descont === 'no' && it.descont !== '–') return false;
-    if (IPT_STATE.threat !== 'all' && !it.threats.includes(IPT_STATE.threat)) return false;
-    if (IPT_STATE.reg === 'zoit' && it.zoit === '–') return false;
-    if (IPT_STATE.reg === 'pri' && it.pri === '–') return false;
-    if (IPT_STATE.reg === 'zubc' && !it.zubc) return false;
-    if (IPT_STATE.reg === 'rez' && !it.rez) return false;
-    if (q) {
-      const s = (it.com + ' ' + it.terr + ' ' + it.frpdNivel + ' ' + it.frpdFund + ' ' + it.estLbl + ' ' + it.prcAno + ' ' + it.prcDet + ' ' + it.limAno + ' ' + it.pladLbl + ' ' + it.pladPer + ' ' + it.grdEmergLbl + ' ' + it.grdRrdLbl + ' ' + it.threatStr + ' ' + it.pladetLbl + ' ' + it.pladetDet + ' ' + it.pacccLbl + ' ' + it.pacccDet + ' ' + it.adi + ' ' + it.adiNom + ' ' + it.descont + ' ' + it.descontDet + ' ' + it.pri + ' ' + it.zoit + ' ' + it.reg + ' ' + it.obs).toLowerCase();
-      if (!s.includes(q)) return false;
-    }
-    return true;
-  });
-
-  const sv = it => {
-    if (IPT_STATE.sort === 'com') return it.com;
-    if (IPT_STATE.sort === 'terr') return it.terr;
-    if (IPT_STATE.sort === 'frpd') return it.frpdVal;
-    if (IPT_STATE.sort === 'est') return it.val;
-    if (IPT_STATE.sort === 'prc') return it.prcAno;
-    if (IPT_STATE.sort === 'plad') return it.pladEst;
-    if (IPT_STATE.sort === 'emerg') return (it.grdEmerg === 'aprobado' ? 2 : it.grdEmerg === 'tramite' ? 1 : 0);
-    if (IPT_STATE.sort === 'rrd') return (it.grdRrd === 'aprobado' ? 2 : it.grdRrd === 'elaboracion' ? 1 : 0);
-    if (IPT_STATE.sort === 'pladet') return (it.pladetEst === 'vigente' ? 2 : it.pladetEst === 'formulacion' ? 1 : 0);
-    if (IPT_STATE.sort === 'paccc') return (it.pacccEst === 'aprobado' ? 2 : it.pacccEst === 'elaboracion' ? 1 : 0);
-    if (IPT_STATE.sort === 'adi') return it.adi !== '–' ? 1 : 0;
-    if (IPT_STATE.sort === 'descont') return (it.descont === 'PDL Lago' ? 3 : it.descont === 'PDA Aire' ? 2 : it.descont === 'PDA Estudio' ? 1 : 0);
-    return it.com;
-  };
-  filtered.sort((a, b) => {
-    const va = sv(a), vb = sv(b);
-    return (typeof va === 'string' ? va.localeCompare(vb, 'es') : va - vb) * IPT_STATE.dir || a.c - b.c;
-  });
-
-  const th = (col, label) => `<th scope="col"><button type="button" data-col="${col}">${label}${IPT_STATE.sort === col ? (IPT_STATE.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
-
-  wrap.innerHTML = `<table class="ipt-tbl">
-    <thead>
-      <tr>
-        ${th('com', 'Comuna & Territorio')}
-        ${th('frpd', 'Relevancia FRPD')}
-        ${th('est', 'PRC · Suelo')}
-        ${th('plad', 'PLADECO')}
-        <th style="min-width:140px">GRD SENAPRED</th>
-        ${th('pladet', 'Turismo (PLADETUR / ZOIT)')}
-        ${th('paccc', 'Clima & Descont. (PACCC / PDA)')}
-        ${th('adi', 'Pueblos & Régimen')}
-        <th style="min-width:230px">Diagnóstico e Implicancia FRPD</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No se encontraron comunas con los filtros seleccionados.</td></tr>' : filtered.map(it => {
-        const isSel = TOF[it.c] === UI.ter;
-        return `<tr class="click${isSel ? ' on' : ''}" data-c="${it.c}">
-          <td>
-            <b style="color:var(--ink);font-size:13px">${esc(it.com)}</b>
-            <span class="sm" style="display:block;color:var(--ink2)">${esc(it.terr)}</span>
-          </td>
-          <td>
-            <span class="frpd-badge ${it.frpdCls}">${esc(it.frpdNivel)}</span>
-          </td>
-          <td>
-            <span class="ipt-badge ${it.cls}">${esc(it.estLbl)}</span>
-            <span class="mono" style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.prcAno)}</span>
-          </td>
-          <td>
-            <span class="plad-badge ${it.pladCls}">${esc(it.pladLbl)}</span>
-            <span class="mono" style="display:block;font-size:11px;color:var(--ink2);margin-top:2px">${esc(it.pladPer)}</span>
-          </td>
-          <td>
-            <div style="display:flex;flex-direction:column;gap:3px">
-              <div style="display:flex;gap:4px">
-                <span class="grd-badge ${it.grdEmergCls}" title="Plan Comunal de Emergencia">${esc(it.grdEmergLbl)}</span>
-                <span class="grd-badge ${it.grdRrdCls}" title="Plan RRD">${esc(it.grdRrdLbl)}</span>
-              </div>
-              <span style="font-size:11px;color:var(--ink2);line-height:1.2">${esc(it.threatStr)}</span>
-            </div>
-          </td>
-          <td>
-            <span class="pladet-badge ${it.pladetCls}">${esc(it.pladetLbl)}</span>
-            ${it.zoit !== '–' ? `<span class="tag-zoit" style="margin-top:3px;display:inline-block">${esc(it.zoit)}</span>` : ''}
-            <span style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.pladetDet)}</span>
-          </td>
-          <td>
-            <span class="paccc-badge ${it.pacccCls}">PACCC: ${esc(it.pacccLbl)}</span>
-            ${it.descont === 'PDA Aire' ? '<span class="tag-pda" style="margin-top:3px;display:inline-block">PDA Aire</span>' : ''}
-            ${it.descont === 'PDL Lago' ? '<span class="tag-pdl" style="margin-top:3px;display:inline-block">PDL Lago</span>' : ''}
-            ${it.descont === 'PDA Estudio' ? '<span class="tag-pda" style="margin-top:3px;display:inline-block;background:rgba(242,165,65,.18);color:var(--sel)">PDA Estudio</span>' : ''}
-            <span style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.pacccDet)}</span>
-          </td>
-          <td>
-            ${it.adi !== '–' ? `<span class="tag-adi" style="margin-bottom:2px;display:inline-block" title="${esc(it.adiNom)}">${esc(it.adi)}</span><br>` : ''}
-            ${it.pri !== '–' ? `<span class="tag-pri" style="margin-bottom:2px;display:inline-block">${esc(it.pri)}</span><br>` : ''}
-            ${it.zubc ? '<span class="tag-zubc" title="D.S. 475/1994">Borde Costero</span> ' : ''}
-            ${it.rez ? '<span class="tag-rez" title="Zona de Rezago Subdere">Rezago</span> ' : ''}
-            ${it.adi === '–' && it.pri === '–' && !it.zubc && !it.rez ? '<span style="color:var(--muted)">–</span>' : ''}
-          </td>
-          <td>
-            <b style="color:var(--ink);display:block;margin-bottom:2px;font-size:11.5px">${esc(it.frpdFund)}</b>
-            <span style="font-size:11.5px;line-height:1.4;color:var(--ink2)">${esc(it.obs)}</span>
-          </td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table>`;
-
-  // Listener para sorting
-  $$('#ipt-tbl-wrap th button').forEach(b => b.addEventListener('click', () => {
-    const col = b.dataset.col;
-    if (IPT_STATE.sort === col) IPT_STATE.dir *= -1;
-    else { IPT_STATE.sort = col; IPT_STATE.dir = 1; }
-    renderIptTable();
-  }));
-
-  // Listener para clic en fila: selecciona territorio y actualiza
-  $$('#ipt-tbl-wrap tr[data-c]').forEach(r => r.addEventListener('click', () => {
-    const c = +r.dataset.c;
-    UI.ter = TOF[c];
-    renderTerritorios();
-  }));
+  const wrap = $('#ipt-tbl-wrap'); if (!wrap) return;
+  const nSin = sum(TER.map(t => t.prcSin.length));
+  $('#ipt-sum').innerHTML = `<b>Catastro sin verificar.</b> Se cargó a mano y el radar no tiene su fuente; confírmalo con el municipio o el servicio antes de citarlo. Lo único contrastado es que ${nSin} de las ${NC} comunas no tienen plan regulador vigente (ERD 2040, Tabla 14) y cuáles son zona de rezago.`;
+  const sc = new Set(trScope()), sv = IPT_SV[IPTU.sort] || IPT_SV.com;
+  const rows = IPT_DATA.filter(it => sc.has(it.c)).sort((a, b) => { const p = sv(a), q = sv(b); return (typeof p === 'string' ? p.localeCompare(q, 'es') : p - q) * IPTU.dir || a.com.localeCompare(b.com, 'es'); });
+  const th = (col, label) => `<th scope="col"${IPTU.sort === col ? ` aria-sort="${IPTU.dir > 0 ? 'ascending' : 'descending'}"` : ''}><button type="button" data-col="${col}">${label}${IPTU.sort === col ? (IPTU.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
+  const sm = t => (t && t !== '–' ? `<span class="ipt-s">${esc(t)}</span>` : '');
+  wrap.innerHTML = `<table class="ipt-tbl"><thead><tr>${th('com', 'Comuna')}${th('est', 'Plan regulador')}${th('plad', 'PLADECO')}${th('grd', 'Riesgo de desastres')}${th('pladet', 'Turismo')}${th('paccc', 'Clima y descontaminación')}<th scope="col">Regímenes especiales</th></tr></thead><tbody>
+    ${rows.map(it => `<tr class="${UI.hbScope === 'all' && TOF[it.c] === UI.ter ? 'on' : ''}">
+      <td><b>${esc(it.com)}</b>${UI.hbScope === 'all' ? sm(TER[TOF[it.c]].n) : ''}</td>
+      <td><span class="ipt-badge ${it.cls}">${PRC_L[it.est]}</span>${sm(/^D\.O\./.test(it.prcAno) ? it.prcAno : '')}</td>
+      <td><span class="plad-badge ${it.pladCls}">${esc(it.pladLbl)}</span>${sm(it.pladPer)}</td>
+      <td><span class="grd-badge ${it.grdEmergCls}" title="Plan comunal de emergencia">Emergencia: ${esc(it.grdEmergLbl.toLowerCase())}</span> <span class="grd-badge ${it.grdRrdCls}" title="Plan de reducción del riesgo de desastres">Reducción: ${esc(it.grdRrdLbl.toLowerCase())}</span>${sm(it.threatStr)}</td>
+      <td><span class="pladet-badge ${it.pladetCls}">${esc(it.pladetLbl)}</span>${it.zoit !== '–' ? ` <span class="tag-zoit">${esc(it.zoit)}</span>` : ''}${sm(it.pladetDet)}</td>
+      <td><span class="paccc-badge ${it.pacccCls}">PACCC: ${esc(it.pacccLbl.toLowerCase())}</span>${it.descont !== '–' ? ` <span class="${it.descont === 'PDL Lago' ? 'tag-pdl' : 'tag-pda'}">${esc(it.descont)}</span>` : ''}${sm(it.pacccDet)}</td>
+      <td>${[it.adi !== '–' ? `<span class="tag-adi" title="${esc(it.adiNom)}">${esc(it.adi)}</span>` : '', it.pri !== '–' ? `<span class="tag-pri">${esc(it.pri)}</span>` : '', it.zubc ? '<span class="tag-zubc" title="Zonificación de uso del borde costero">Borde costero</span>' : '', IN.rez[it.c] ? '<span class="tag-rez">Zona de rezago</span>' : ''].filter(Boolean).join(' ') || '<span style="color:var(--muted)">–</span>'}</td>
+    </tr>`).join('')}</tbody></table>`;
 }
-
-function exportIptCSV() {
-  const head = [
-    'Comuna', 'Territorio ERD', 'Nivel Relevancia FRPD', 'Fundamento Estratégico FRPD',
-    'Estado Plan Regulador', 'Año Aprobación PRC', 'Detalle PRC', 'Límite Urbano Histórico',
-    'PRI Intercomunal', 'Estado PLADECO', 'Periodo PLADECO', 'Plan Emergencia SENAPRED',
-    'Plan RRD Prevención Ley 21.364', 'Amenazas Críticas (GRD)', 'Estado PLADETUR', 'Detalle PLADETUR',
-    'ZOIT Turismo Ley 20.423', 'Estado PACCC Ley 21.455', 'Detalle PACCC', 'Área Indígena ADI Ley 19.253',
-    'Nombre ADI', 'Plan Descontaminación (PDA/PDL)', 'Detalle Descontaminación',
-    'Zonificación Borde Costero (ZUBC)', 'Zona de Rezago', 'Régimen Especial', 'Diagnóstico e Implicancia FRPD'
-  ];
-  const lines = [head].concat(IPT_DATA.map(it => [
-    it.com, it.terr, it.frpdNivel, it.frpdFund,
-    it.estLbl, it.prcAno, it.prcDet, it.limAno,
-    it.pri, it.pladLbl, it.pladPer, it.grdEmergLbl,
-    it.grdRrdLbl, it.threatStr, it.pladetLbl, it.pladetDet,
-    it.zoit, it.pacccLbl, it.pacccDet, it.adi,
-    it.adiNom, it.descont, it.descontDet,
-    it.zubc ? 'Sí' : 'No', it.rez ? 'Sí' : 'No', it.reg, it.obs
-  ]));
-  saveCSV(lines, 'instrumentos_planificacion_y_gestion_araucania_erd2040.csv');
-}
+$('#ipt-tbl-wrap').addEventListener('click', e => { const b = e.target.closest('th button'); if (!b) return; const col = b.dataset.col; if (IPTU.sort === col) IPTU.dir *= -1; else { IPTU.sort = col; IPTU.dir = 1; } renderIptTable(); const nb = $(`#ipt-tbl-wrap th button[data-col="${col}"]`); if (nb) nb.focus({ preventScroll: true }); });
+$('#ipt-csv').addEventListener('click', () => {
+  const head = ['Comuna', 'Territorio ERD', 'Estado plan regulador', 'Publicación PRC', 'Detalle PRC', 'Límite urbano', 'Plan regulador intercomunal', 'Estado PLADECO', 'Periodo PLADECO', 'Plan de emergencia', 'Plan de reducción del riesgo', 'Amenazas', 'Estado PLADETUR', 'Detalle PLADETUR', 'ZOIT', 'Estado PACCC', 'Detalle PACCC', 'Área de desarrollo indígena', 'Nombre ADI', 'Plan de descontaminación', 'Detalle descontaminación', 'Borde costero (ZUBC)', 'Zona de rezago', 'Verificación'];
+  saveCSV([head].concat(IPT_DATA.map(it => [it.com, TER[TOF[it.c]].n, PRC_L[it.est], it.prcAno, it.prcDet, it.limAno, it.pri, it.pladLbl, it.pladPer, it.grdEmergLbl, it.grdRrdLbl, it.threatStr, it.pladetLbl, it.pladetDet, it.zoit, it.pacccLbl, it.pacccDet, it.adi, it.adiNom, it.descont, it.descontDet, it.zubc ? 'Sí' : 'No', IN.rez[it.c] ? 'Sí' : 'No', 'Catastro sin verificar, salvo plan regulador (ERD 2040, Tabla 14) y zona de rezago'])), 'instrumentos_planificacion_comunas_araucania_sin_verificar.csv');
+});
+$('#ev-ipt-n').textContent = sum(TER.map(t => t.prcSin.length));
+{ const bEv = $('#ev-goto-ipt'); if (bEv) bEv.addEventListener('click', () => { UI.hbScope = 'all'; setView('territorios'); trOpenDet('#ipt-card'); }); }
 
 // ================= EVIDENCIA TERRITORIAL =================
 Object.assign(UI, { evG: 'eq', evScope: 'all', evSort: 'com', evDir: 1, evMap: 'pmd' });
@@ -1743,7 +1497,7 @@ function renderEvid() {
     $$('#ev-g button').forEach(b => b.addEventListener('click', () => { UI.evG = b.dataset.g; if (!['com', 'pop'].includes(UI.evSort)) { UI.evSort = 'com'; UI.evDir = 1; } renderEvTable(); }));
     $('#ev-scope').addEventListener('change', e => { UI.evScope = e.target.value; renderEvTable(); });
     $('#ev-map').addEventListener('change', e => { UI.evMap = e.target.value; });
-    $('#ev-go').addEventListener('click', () => { UI.mInd = 'ev:' + UI.evMap; setView('territorios'); });
+    $('#ev-go').addEventListener('click', () => { UI.mInd = 'ev:' + UI.evMap; setView('territorios'); trReveal($('#tr-mapc')); $('#m-ind').focus({ preventScroll: true }); });
     $('#ev-csv').addEventListener('click', exportEvid);
     rendered.evid = true;
   }
@@ -1760,22 +1514,32 @@ function exportEvid() {
 
 // ================= MARCO NORMATIVO =================
 const focoCorto = f => { const s = f.split('Objetivo Estratégico Regional')[0].trim().split(/(?<=\.)\s+/); return s.slice(0, 2).join(' '); };
+// ================= MARCO NORMATIVO: las reglas en una página =================
+// Orden de las preguntas de quien formula: cuánto, qué no, quién, qué sí (art. 8, con el uso que le da la cartera) y con qué se alinea.
 function renderMarco() {
   const used = {}; LINES.forEach(ln => { ln.a8.forEach(k => { (used[k] = used[k] || []).push(ln.k); }); ln.g.forEach(k => { (used['g' + k] = used['g' + k] || []).push(ln.k); }); });
   const nA8 = A8KEYS.filter(k => used[k]).length, nG = FR.gastos.filter(g => used['g' + g.k]).length, nC = LINES.filter(isCTCI).length;
-  const k = (l, v, s) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
-  $('#mk-kpis').innerHTML = [k('Piso de investigación (art. 7)', '25 %', 'mínimo del fondo para N°3; bajarlo requiere solicitud a Hacienda'), k('Gastos de administración (art. 9)', '≤ 5 %', 'tope sobre el fondo'),
-    k('Categorías del art. 8 usadas', `${nA8}<small> / ${A8KEYS.length}</small>`, 'por al menos una línea'), k('Gastos de N°3 usados', `${nG}<small> / ${FR.gastos.length}</small>`, 'tipos i a x'), k('Líneas que aportan al piso', `${nC}<small> / ${LINES.length}</small>`, 'tienen N°3 o gasto i–x')].join('');
-  const cols = `minmax(300px,4fr) repeat(${LINES.length},minmax(30px,.6fr)) 46px`;
-  let h = `<div class="cov" style="grid-template-columns:${cols}"><div></div>${LINES.map(l => `<div class="hd" title="${esc(l.n)}">${l.k.replace('L-', '')}</div>`).join('')}<div class="hd">Líneas</div>`;
-  const row = (key, code, name) => { const u = used[key] || []; return `<div class="rh${u.length ? '' : ' zero'}" title="${esc(name)}"><b>${code}</b><span>${esc(name)}</span></div>` + LINES.map(l => `<div class="c">${u.includes(l.k) ? `<i title="${esc(l.k + ' · ' + l.n)}"></i>` : ''}</div>`).join('') + `<div class="tot${u.length ? '' : ' zero'}">${u.length || '0'}</div>`; };
-  FR.art8.forEach(g => { h += `<div class="grp">N°${g.k} · ${esc(g.n)}</div>`; g.items.forEach(it => { h += row(it.k, it.k, it.n); }); });
-  h += `<div class="grp">Gastos financiables en N°3</div>`; FR.gastos.forEach(gs => { h += row('g' + gs.k, gs.k, gs.n); });
-  $('#cov').innerHTML = h + '</div>';
-  // tarjetas
-  const pav15 = ALLC.filter(c => HV.pav[c] < 0.15).length, madR = sumC('pmad', ALLC) / sumC('pue', ALLC);
-  const saidiTop = [...ALLC].sort((a, b) => IN.saidi[b] - IN.saidi[a]).slice(0, 3);
-  const noN1 = !A8KEYS.filter(x => x.startsWith('1')).some(x => used[x]);
+  const piso = FRPD_2026 * 0.25, adm = FRPD_2026 * 0.05;
+  $('#mk-rules').innerHTML = `
+    <div class="mk-nums">
+      <div class="mk-rule"><span class="a">Art. 7 · mínimo para investigación</span><b class="v">25 %</b><p>del fondo debe ir a investigación científica y tecnológica (el N°3 del art. 8). En 2026 son unos <b>${f0(piso)} MM$</b> de ${f0(FRPD_2026)} MM$. Bajarlo requiere solicitud a Hacienda.</p></div>
+      <div class="mk-rule"><span class="a">Art. 9 · tope de administración</span><b class="v">5 %</b><p>del fondo como máximo para gastos de administración: unos <b>${f0(adm)} MM$</b> en 2026.</p></div>
+    </div>
+    <div class="mk-rule"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><p>Nada que no tenga por <b>objeto directo</b> el fomento de actividades productivas, el desarrollo regional o la investigación científica y tecnológica. El decreto da estos ejemplos:</p><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div class="mk-rule"><span class="a">Arts. 11 a 15</span><h3>Quién puede ejecutar</h3><ul>${FR.ejec.map(e => `<li><b>${esc(e.n)}</b> (${esc(e.a)}): ${esc(e.d)}</li>`).join('')}</ul><div><button type="button" class="linkbtn" id="mk-go-exe">Ver las ${f0(EXE.length)} instituciones con sede en la región</button></div></div>`;
+  // art. 8: categorías y el uso que les da la cartera
+  const grpUnused = FR.art8.map(g => ({ g, un: g.items.filter(it => !used[it.k]) }));
+  const code = k => k.slice(1).replace('.', ' ');   // letra dentro de su numeral, como en el decreto y en Formular («N°3 b ii»)
+  const sinTxt = grpUnused.filter(x => x.un.length).map(x => (x.un.length === x.g.items.length ? `todo el N°${x.g.k}` : `N°${x.g.k} ${x.un.map(it => code(it.k)).join(', ')}`)).join('; ');
+  const sinA8 = LINES.filter(ln => !ln.a8.length && !ln.g.length).map(ln => ln.k);
+  $('#mk-a8-sub').innerHTML = `Todo lo listado es financiable. «Sin línea» solo indica que la cartera DIFOI aún no lo usa: hoy usa <b>${nA8} de ${A8KEYS.length}</b> categorías y <b>${nG} de ${FR.gastos.length}</b> tipos de gasto de investigación.${sinTxt ? ` Sin línea: ${esc(sinTxt)}.` : ''} <b>${nC} de ${LINES.length}</b> líneas tienen componente de investigación (N°3) y pueden contar para el mínimo de 25 %.`;
+  const item = (key, code, name) => { const u = used[key] || []; return `<li><b>${code}</b><span>${esc(name)}</span><span class="u">${u.length ? u.map(k => `<i title="${esc(LINE[k].n)}">${k}</i>`).join('') : '<em>sin línea</em>'}</span></li>`; };
+  const wide = innerWidth > 760;   // en teléfono cada numeral parte plegado, con su conteo a la vista
+  const group = (title, n, rows) => `<details class="mk-g"${wide ? ' open' : ''}><summary><h3>${esc(title)}</h3><span>${n}</span></summary><ul class="mk-l">${rows}</ul></details>`;
+  const gHtml = FR.art8.map(g => group(`N°${g.k} · ${g.n}`, `${g.items.filter(it => used[it.k]).length} de ${g.items.length} con línea`, g.items.map(it => item(it.k, code(it.k), it.n)).join('')));
+  const gastos = group('Gastos financiables dentro del N°3', `${nG} de ${FR.gastos.length} con línea`, FR.gastos.map(gs => item('g' + gs.k, gs.k, gs.n)).join(''));
+  $('#mk-a8').innerHTML = `<div>${gHtml.slice(0, 2).join('')}</div><div>${gHtml.slice(2).join('')}${gastos}</div>`;
+  $('#mk-lines').innerHTML = `<summary><b>Líneas</b><span>Qué es cada código de línea de la cartera</span><small>${LINES.length} líneas</small></summary><ul class="mk-ll">${LINES.map(ln => `<li><i>${ln.k}</i>${esc(ln.n)}</li>`).join('')}</ul>${sinA8.length ? `<p class="note">${esc(listY(sinA8))} no ${sinA8.length === 1 ? 'declara' : 'declaran'} ninguna categoría del art. 8.</p>` : ''}`;
   // lo que ya se financia
   const grp = (f) => { const o = []; for (let i = 0; i < NFN; i++) if (f(i)) o.push(i); return o; };
   const isB = g => i => FN_S[i] === S_BIP && fnG(i) === g;
@@ -1792,34 +1556,29 @@ function renderMarco() {
     ['–', 'Agua potable rural (fuera del ámbito productivo)', 'BIP · APR y servicios sanitarios rurales', grp(isB('apr'))],
   ];
   const mxF = Math.max(...FROWS.map(r => sumM(r[3])));
-  $('#mk-fin').innerHTML = `<table><thead><tr><th>Art. 8</th><th>Categoría</th><th>Fuente</th><th class="r">N°</th><th class="r">MM$</th><th style="min-width:160px">Monto (escala logarítmica)</th><th>Mayores</th></tr></thead><tbody>` +
+  $('#mk-fin').innerHTML = `<table><thead><tr><th>Art. 8</th><th>Categoría</th><th>Fuente</th><th class="r">N°</th><th class="r">MM$</th><th>Mayores</th></tr></thead><tbody>` +
     FROWS.map(([k, n, src, ix]) => { const v = sumM(ix), top = [...ix].sort(byAmt).slice(0, 2); return `<tr><td class="m" style="color:${used[k] || k.startsWith('N') ? 'var(--acc)' : 'var(--sel)'}">${k}</td><td>${esc(n)}${k !== '–' && !k.startsWith('N') && !used[k] ? '<span class="sm" style="color:var(--sel)">sin línea en la cartera FRPD</span>' : ''}</td><td>${esc(src)}</td><td class="m r">${f0(ix.length)}</td><td class="m r">${f0(v)}</td>
-      <td><div style="height:10px;background:var(--surf2);border-radius:2px"><div style="height:10px;border-radius:2px;background:var(--data);width:${v ? Math.log10(1 + v) / Math.log10(1 + mxF) * 100 : 0}%"></div></div></td>
       <td><span class="sm" style="color:var(--ink2)">${top.map(i => esc(FN_N[i].slice(0, 70)) + (isFinite(FN_M[i]) ? ` (${f0(FN_M[i])})` : '')).join('<br>')}</span></td></tr>`; }).join('') + '</tbody></table>' +
     '<p class="note" style="margin-top:10px">BIP: iniciativas postuladas 2019–2027 (FNDR, sectoriales y mixtas), última postulación de cada código; monto = costo total de la etapa postulada, no lo gastado. Tres montos BIP con valores imposibles se dejaron sin monto. ANID: fallos 2019–2026 con región de ejecución La Araucanía. CORFO: proyectos InnovaChile adjudicados 2019–2026 (DataInnovación); en Ley I+D se usa el monto certificado.</p>';
   const via = FROWS[3][3], fom = FROWS[0][3], ene = FROWS[4][3];
+  $('#mk-fin-sub').textContent = `ANID y CORFO adjudicados, e iniciativas BIP postuladas (no necesariamente financiadas), agrupados según la categoría del art. 8 a la que se parecen. Las categorías sin línea en la cartera tienen actividad por otras vías: se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. Sirve para no duplicar.`;
   // ejecutores
   const isIES = x => /Universidad|Instituto profesional|CFT/.test(x.sub);
   const topL = x => x.an.L.map((v, j) => [v, j]).filter(z => z[0] > 0).sort((p, q) => q[0] - p[0]).slice(0, 3).map(([v, j]) => `${LIN[j].k} ${v}`).join(' · ') || '–';
-  $('#mk-exe').innerHTML = `<table><thead><tr><th>Institución</th><th>Habilitación</th><th>Nómina 2026</th><th>Acreditación</th><th class="r">ANID 2019–26</th><th class="r">MM$</th><th>Lineamientos (proyectos ANID)</th></tr></thead><tbody>` +
+  $('#mk-exe').innerHTML = `<table><thead><tr><th>Institución</th><th>Habilitación</th><th>Nómina 2026</th><th>Acreditación (verificar en CNA)</th><th class="r">ANID 2019–26</th><th class="r">MM$</th><th>Lineamientos (proyectos ANID)</th></tr></thead><tbody>` +
     EXE.map(x => `<tr><td style="min-width:220px"><b style="font-weight:600">${esc(x.n)}</b><span class="sm">${esc(x.sub)} · ${esc(x.c.map(CN).join(', '))}${x.note ? ' · ' + esc(x.note) : ''}</span></td><td style="min-width:200px"><span class="sm" style="color:var(--ink2)">${esc(x.base)}</span></td>
       <td>${x.r1 ? '<span class="pill ct">Sí</span>' : x.t === 'pub' ? '<span class="pill">No aplica</span>' : '<span class="pill warn">No</span>'}</td>
-      <td>${isIES(x) ? '<span class="pill warn" title="El art. 13 exige 4 años o más">Verificar en CNA</span>' : '<span class="sm">No aplica</span>'}</td>
+      <td>${isIES(x) ? '<span class="sm" style="color:var(--sel)">4 años o más: por verificar</span>' : '<span class="sm">No aplica</span>'}</td>
       <td class="m r">${x.an.n ? f0(x.an.n) + `<span class="sm">${x.an.apl} aplicada</span>` : '–'}</td><td class="m r">${x.an.m ? f0(x.an.m) : '–'}</td><td class="m">${topL(x)}</td></tr>`).join('') + '</tbody></table>' +
     `<div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Sedes privadas de educación superior que no figuran en la nómina del primer llamado 2026</span><div class="tchips">${EXENO.map(x => `<span class="tchip" title="${esc(CN(x.c))}">${esc(x.n)}</span>`).join('')}</div>
       <p class="note">${esc(FR.res1Meta.segundo)} Fuente de la nómina: ${esc(FR.res1Meta.fuente)}.</p></div>
     <details class="ler"><summary><b>Res. 1</b><span>Nómina completa de privadas sin fines de lucro, primer llamado 2026</span><small>${RES1.length} instituciones · ${RES1.filter(r => r.p).length} con presencia en la región</small></summary>
       <div class="tbl-wrap" style="max-height:420px;overflow-y:auto;margin-top:8px"><table><thead><tr><th>RUT</th><th>Institución</th><th>Presencia en La Araucanía (SII)</th></tr></thead><tbody>${[...RES1].sort((p, q) => (q.p ? 1 : 0) - (p.p ? 1 : 0) || p.n.localeCompare(q.n, 'es')).map(r => `<tr><td class="m">${r.r}</td><td>${esc(r.n)}${r.s ? `<span class="sm">${esc(r.s)}</span>` : ''}</td><td>${r.p ? esc(r.p + ' en ' + r.c.map(CN).join(', ')) : '<span class="sm">Sin registro en la nómina SII de la región</span>'}</td></tr>`).join('')}</tbody></table></div></details>
     <details class="ler"><summary><b>Res. 33</b><span>Instituciones que pueden recibir recursos de innovación, competitividad y CTCI (2024)</span><small>${RES33.length} categorías</small></summary><ol>${RES33.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>`;
-  $('#mk-cards').innerHTML = `
-    <div class="mcard"><span class="a">Lectura de la cartera</span><h3>${noN1 ? 'Ninguna línea usa el N°1 ni la infraestructura habilitante del N°2' : 'Cobertura de categorías'}</h3>
-      <p>La cartera concentra sus categorías en el N°3 y en las capacidades del N°2 (2d, 2e, 2g, 2h). Quedan sin línea el N°1 completo (convenios con SERCOTEC, CORFO o INDAP; productividad; eficiencia hídrica; adaptación) y las inversiones habilitantes 2a, 2b y 2c.</p>
-      <p>Esas categorías no están vacías en la región: entre 2019 y 2027 se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. El FRPD puede concentrarse en lo que esas fuentes no cubren.</p><p>Las capas de infraestructura muestran dónde siguen las brechas: ${pav15} comunas con menos de 15 % de su red vial pavimentada, ${pc(madR, 0)} de los puentes con tablero de madera y SAIDI más alto en ${esc(saidiTop.map(c => CN(c) + ' (' + f1(IN.saidi[c]) + ' h)').join(', '))}.</p></div>
-    <div class="mcard"><span class="a">Arts. 11 a 15</span><h3>Quién puede ejecutar</h3><ul>${FR.ejec.map(e => `<li><b style="color:var(--ink)">${esc(e.n)}</b> (${esc(e.a)}): ${esc(e.d)}</li>`).join('')}</ul></div>
-    <div class="mcard"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"${l.k === 5 ? ' open' : ''}><summary><b>LER ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
+  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"><summary><b>LER ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
     <p class="note" style="margin:6px 0 0 56px;max-width:90ch">${esc(focoCorto(l.foco))}</p><ol>${l.oe.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}</ol></details>`).join('');
 }
+$('#mk-rules').addEventListener('click', e => { if (e.target.closest('#mk-go-exe')) trOpenDet('#mk-exe-d'); });
 
 
 // ================= INICIATIVAS BIP =================
@@ -1842,7 +1601,7 @@ const etLab = e => (e || '–').replace('Ejecucion', 'Ejecución');
 const BX_TI = BX.ti || [], BX_TIV = BX.tiv || [];
 const TI_SHORT = ['Infraestructura', 'Conservación', 'Equipamiento y vehículos', 'Programas', 'Estudios básicos'];
 const BX_S = Array.from({ length: NBX }, (_, i) => normTxt(BX.code[i] + ' ' + BX_N[i] + ' ' + BX_INS(i)));
-const BXF = { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1, ti: new Set(), sort: 's', dir: -1, page: 0, open: new Set() };
+const BXF = { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, y0: 0, e: -1, fin: '', r: -1, ti: new Set(), sort: 's', dir: -1, page: 0, open: new Set() };
 // obras de Geo-CGR vinculadas por código BIP
 const NOB = OB ? OB.b.length : 0;
 const OB_T = OB ? OB.t.split('\n') : [], OB_MP = OB ? OB.mp.split('\n') : [];
@@ -1895,6 +1654,7 @@ function bxList(noGeo, noTi) {
     if (BXF.fin && BX_FIN[i] !== BXF.fin) continue;
     if (!noTi && BXF.ti.size && !BXF.ti.has(BX_TI[i])) continue;
     if (q && !BX_S[i].includes(q)) continue;
+    if (BXF.y0) { const rw = BX_ROWS[i]; if (BXH.y[rw[rw.length - 1]] < BXF.y0) continue; }   // última postulación desde ese año
     const ref = bxRef(i); if (!ref) continue;
     if (BXF.e >= 0 && ref.e !== BXF.e) continue;
     if (BXF.r >= 0 && ref.r !== BXF.r) continue;
@@ -1920,7 +1680,7 @@ function bxInitControls() {
   const bind = (id, key, num) => $('#' + id).addEventListener('change', e => { BXF[key] = num ? +e.target.value : e.target.value; if (key === 't' && BXF.t !== -1) BXF.c = -1; if (key === 'c' && BXF.c >= 0) BXF.t = -1; BXF.page = 0; BXF.open.clear(); renderBip(); });
   bind('bx-t', 't', 1); bind('bx-c', 'c', 1); bind('bx-cat', 'cat'); bind('bx-l', 'L', 1); bind('bx-y', 'y', 1); bind('bx-e', 'e', 1); bind('bx-fin', 'fin'); bind('bx-r', 'r', 1);
   let qt; $('#bx-q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { BXF.q = e.target.value; BXF.page = 0; BXF.open.clear(); renderBip(); }, 180); });
-  $('#bx-clear').addEventListener('click', () => { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }); BXF.open.clear(); $('#bx-q').value = ''; renderBip(); });
+  $('#bx-clear').addEventListener('click', () => { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, y0: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }); BXF.open.clear(); $('#bx-q').value = ''; renderBip(); });
   const mt = $('#bx-mtog'), setMin = v => { $('#bx-mapc').classList.toggle('min', v); mt.textContent = v ? 'Mostrar mapa' : 'Ocultar mapa'; mt.setAttribute('aria-expanded', String(!v)); try { localStorage.setItem('radar-bxmap-min', v ? '1' : ''); } catch (e) {} };
   mt.addEventListener('click', () => setMin(!$('#bx-mapc').classList.contains('min')));
   try { if (localStorage.getItem('radar-bxmap-min')) setMin(true); } catch (e) {}
@@ -1930,13 +1690,14 @@ function bxInitControls() {
   else $('#bx-ti').hidden = true;
   $('#bx-csv').addEventListener('click', exportBip);
 }
-const BX_DEF = { t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1 };
-const BX_FLAB = { t: 'Territorio', c: 'Comuna', cat: 'Categoría', L: 'Lineamiento', y: 'Año', e: 'Etapa', fin: 'Financiamiento', r: 'RATE' };
+const BX_DEF = { t: -1, c: -1, cat: '', L: -1, y: 0, y0: 0, e: -1, fin: '', r: -1 };
+const BX_FLAB = { t: 'Territorio', c: 'Comuna', cat: 'Categoría', L: 'Lineamiento', y: 'Año', y0: 'Última postulación desde', e: 'Etapa', fin: 'Financiamiento', r: 'RATE' };
 const BX_MORE = ['c', 'L', 'y', 'e', 'fin', 'r'];
 const BXPAGE = 50;
 let BX_LAST = [];
 function renderBip() {
   if (!rendered.bip) { bxInitControls(); rendered.bip = true; }
+  renderBxFrom();
   ['t', 'c', 'cat', 'L', 'y', 'e', 'fin', 'r'].forEach(k => { const el = $('#bx-' + (k === 'L' ? 'l' : k)); if (el) el.value = String(BXF[k]); });
   if ($('#bx-q').value !== BXF.q) $('#bx-q').value = BXF.q;
   {
@@ -2190,61 +1951,7 @@ function exportBip() {
   }
   saveCSV(lines, 'iniciativas_bip_araucania.csv');
 }
-function openBip(f) { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }, f); BXF.open.clear(); setView('bip'); window.scrollTo({ top: 0 }); }
-
-// ================= SIMULADOR =================
-const WLAB = { pop: 'Población (Censo 2024)', bre: 'Brechas habilitantes', rez: 'Población en zona de rezago', emp: 'Base empresarial (SII 2024)', eq: 'Partes iguales' };
-function terShares() {
-  const sh = {};
-  sh.pop = TER.map(t => t.pop / POPREG);
-  const bs = TER.map(t => t.c.reduce((a, c) => a + BRE[c].length * POP[c], 0)), bt = sum(bs); sh.bre = bs.map(x => x / bt);
-  const rz = TER.map((t, i) => rezPop(i)), rt = sum(rz); sh.rez = rz.map(x => x / rt);
-  sh.emp = TN0.map(x => x / N);
-  sh.eq = TER.map(() => 1 / NT);
-  return sh;
-}
-const SH = terShares();
-function renderSimForm() {
-  const s = UI.sim;
-  const rng = (id, lab, v, min, max, step, suf) => `<div class="field"><label for="${id}">${lab}<b id="${id}-v">${v}${suf}</b></label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"></div>`;
-  $('#simf').innerHTML = `<div class="field"><label for="s-monto">Monto anual del FRPD (MM$, millones de pesos)</label><input class="inp" id="s-monto" type="number" min="0" step="100" value="${s.monto}"><span class="note">Valor de ejemplo. Ingresa el marco presupuestario aprobado.</span></div>
-    ${rng('s-ctci', 'Investigación científica y tecnológica (N°3)', s.ctci, 0, 70, 1, ' %')}
-    ${rng('s-adm', 'Gastos de administración', s.adm, 0, 8, 0.5, ' %')}
-    ${rng('s-reg', 'Reserva para líneas de alcance regional', s.reg, 0, 50, 1, ' %')}
-    <div class="wts"><span class="lbl">Ponderadores de la distribución territorial</span>${Object.keys(WLAB).map(k => rng('w-' + k, WLAB[k], s.w[k], 0, 100, 5, '')).join('')}
-    <p class="note">Los ponderadores se normalizan: lo que importa es su peso relativo.</p></div>`;
-  const bind = (id, fn) => $('#' + id).addEventListener('input', e => { fn(+e.target.value); const vv = $('#' + id + '-v'); if (vv) vv.textContent = e.target.value + (id.startsWith('w-') ? '' : ' %'); renderSimOut(); });
-  bind('s-monto', v => { s.monto = Math.max(0, v || 0); }); bind('s-ctci', v => { s.ctci = v; }); bind('s-adm', v => { s.adm = v; }); bind('s-reg', v => { s.reg = v; });
-  Object.keys(WLAB).forEach(k => bind('w-' + k, v => { s.w[k] = v; }));
-}
-const pn = v => (Number.isInteger(v) ? f0(v) : f1(v));
-function renderSimOut() {
-  const s = UI.sim, M = s.monto, adm = M * s.adm / 100, ctci = M * s.ctci / 100, rest = Math.max(0, M - adm - ctci);
-  const fmt = v => f0(v) + ' MM$';
-  $('#sim-sub').textContent = `Sobre ${fmt(M)}: administración, investigación (N°3) y fomento productivo y desarrollo regional (N°1 y N°2).`;
-  const seg = (v, col, lab) => (v > 0 ? `<span style="flex:${v};background:${col};color:${inkOn(col)}" title="${lab}: ${fmt(v)}">${v / M >= 0.12 ? lab : ''}</span>` : '');
-  $('#sim-split').innerHTML = `<div class="split">${seg(adm, css('--m1'), 'Administración')}${seg(ctci, css('--acc'), 'N°3 investigación')}${seg(rest, css('--data'), 'N°1 y N°2')}</div>
-    <div class="hab" style="grid-template-columns:minmax(0,1fr) auto auto;margin-top:10px"><span class="n">Administración (art. 9)</span><span class="x">${fmt(adm)}</span><span class="x"><small>${pn(s.adm)} %</small></span>
-    <span class="n">Investigación científica y tecnológica (N°3)</span><span class="x">${fmt(ctci)}</span><span class="x"><small>${pn(s.ctci)} %</small></span>
-    <span class="n">Fomento productivo y desarrollo regional (N°1 y N°2)</span><span class="x">${fmt(rest)}</span><span class="x"><small>${pn(100 - s.ctci - s.adm)} %</small></span></div>`;
-  const terN3 = TER.map(t => ENT.filter(e => e.t === t.k && isCTCI(LINE[e.l])).length);
-  const noN3 = TER.filter((t, i) => !terN3[i]);
-  const ck = (ok, txt) => `<div class="check ${ok ? 'ok' : 'no'}"><i>${ok ? '✓' : '!'}</i><span>${txt}</span></div>`;
-  $('#sim-checks').innerHTML = ck(s.ctci >= 25, s.ctci >= 25 ? `Cumple el piso del art. 7: ${f0(s.ctci)} % para investigación científica y tecnológica.` : `Bajo el piso del art. 7 (25 %): requiere solicitud fundada al Ministerio de Hacienda.`) +
-    ck(s.adm <= 5, s.adm <= 5 ? `Administración dentro del tope del 5 % (art. 9).` : `Administración sobre el tope del 5 % del art. 9.`) +
-    ck(s.ctci + s.adm <= 100, s.ctci + s.adm <= 100 ? `La cartera tiene ${ENT.filter(e => isCTCI(LINE[e.l])).length} entradas con categoría N°3 para absorber ${fmt(ctci)}.` : 'La suma de porcentajes supera el 100 %.') +
-    (noN3.length ? ck(false, `Sin entradas N°3 en ${esc(noN3.map(t => t.n).join(', '))}: su parte de investigación quedaría sin cartera.`) : ck(true, 'Todos los territorios tienen al menos una entrada con categoría N°3.'));
-  // distribución territorial
-  const W = s.w, wt = sum(Object.values(W)) || 1;
-  const share = TER.map((t, i) => Object.keys(W).reduce((a, k) => a + W[k] / wt * SH[k][i], 0));
-  const pool = (M - adm) * (1 - s.reg / 100), poolC = ctci * (1 - s.reg / 100);
-  const vals = share.map(x => x * pool), mx = Math.max(...vals, 1);
-  const order = [...Array(NT).keys()].sort((a, b) => vals[b] - vals[a]);
-  $('#sim-allo').innerHTML = `<div class="arow h"><span>Territorio</span><span>Monto (N°3 en verde agua)</span><span style="text-align:right">MM$</span><span style="text-align:right">$ por hab.</span></div>` +
-    order.map(i => `<div class="arow"><span class="n" title="${esc(TER[i].n)}">${esc(TER[i].n)}</span><span class="b"><i style="width:${vals[i] / mx * 100}%"></i><u style="width:${share[i] * poolC / mx * 100}%"></u></span><span class="x">${f0(vals[i])}<small>${pc(share[i], 1)}</small></span><span class="x">${f0(vals[i] * 1e6 / TER[i].pop)}<small>${terN3[i]} de ${ENT.filter(e => e.t === TER[i].k).length} con N°3</small></span></div>`).join('');
-  $('#sim-note').textContent = `Monto territorial: ${fmt(pool)} (descontada la administración y la reserva regional de ${fmt((M - adm) * s.reg / 100)}). El D.S. 1.699 no fija una regla de distribución entre territorios: estos ponderadores son un criterio de discusión del GORE, no una asignación.`;
-}
-function renderSim() { if (!rendered.sim) { renderSimForm(); rendered.sim = true; } renderSimOut(); }
+function openBip(f) { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, y0: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }, f); BXF.open.clear(); setView('bip'); window.scrollTo({ top: 0 }); }
 
 // ================= descargas (CSV) =================
 let DL = null;
@@ -2276,8 +1983,8 @@ $('#exe-csv').addEventListener('click', () => {
   saveCSV(lines, 'ejecutores_frpd_araucania.csv');
 });
 $('#hb-csv').addEventListener('click', () => {
-  const lines = [['Comuna', 'Territorio ERD', 'Habitantes 2024', 'Km red vial', 'Km pavimentados', '% pavimentado', 'Puentes', 'Puentes con tablero de madera', 'SAIDI 2022 (h)', 'Viviendas sin energía', 'Antenas autorizadas', 'Antenas LTE', 'Subestaciones', 'Servicios sanitarios rurales', 'Beneficiarios SSR', 'SSR con grupo electrógeno', 'Bocatomas', 'Embalses', 'Sedes educación superior', 'Inversión pública 2010-2022 (MM$)', 'Inversión pública per cápita ($)', 'BIP habilitante 2019-2027 (MM$)', 'Zona de rezago', 'Brechas (tercio peor)']]
-    .concat(ALLC.map(c => [CN(c), TER[TOF[c]].n, POP[c], IN.kmv[c], IN.kmpav[c], (HV.pav[c] * 100).toFixed(1), IN.pue[c], IN.pmad[c], IN.saidi[c], IN.vse[c], IN.ant[c], IN.lte[c], IN.sub[c], IN.ssr[c], IN.ssrb[c], IN.ssrge[c], IN.boc[c], IN.emb[c], IN.ies[c], IN.ipa[c], IN.ipapc[c], Math.round(binvC[c]), IN.rez[c] ? 'Sí' : 'No', BRE[c].map(k => HABS.find(h => h.k === k).l).join(', ')]));
+  const lines = [['Comuna', 'Territorio ERD', 'Habitantes 2024', 'Km red vial', 'Km pavimentados', '% pavimentado', 'Puentes', 'Puentes con tablero de madera', 'SAIDI 2022 (h)', 'Viviendas sin energía', 'Antenas autorizadas', 'Antenas LTE', 'Subestaciones', 'Servicios sanitarios rurales', 'Beneficiarios SSR', 'SSR con grupo electrógeno', 'Bocatomas', 'Embalses', 'Sedes educación superior', 'Inversión pública 2010-2022 (MM$)', 'Inversión pública per cápita ($)', 'BIP habilitante 2019-2027 (MM$)', 'Zona de rezago', 'Dimensiones de infraestructura en brecha']]
+    .concat(ALLC.map(c => [CN(c), TER[TOF[c]].n, POP[c], IN.kmv[c], IN.kmpav[c], (HV.pav[c] * 100).toFixed(1), IN.pue[c], IN.pmad[c], IN.saidi[c], IN.vse[c], IN.ant[c], IN.lte[c], IN.sub[c], IN.ssr[c], IN.ssrb[c], IN.ssrge[c], IN.boc[c], IN.emb[c], IN.ies[c], IN.ipa[c], IN.ipapc[c], Math.round(binvC[c]), IN.rez[c] ? 'Sí' : 'No', trData().com[c].map(k => IF_DIM[k].l).join(', ')]));
   saveCSV(lines, 'condiciones_habilitantes_comunas_araucania.csv');
 });
 
@@ -2304,7 +2011,7 @@ function buildPrompt() {
     lineamiento_CTCI: `${Lk} ${LIN[L].n}`,
     entrada_cartera: ln ? { linea: `${ln.k} ${ln.n}`, bloque: BLOQ[ln.b], madurez: `${e.m} de 3 (${MADT[e.m]})`, que_financia: ln.que, evidencia_minuta: ln.ev,
       categorias_art8: ln.a8.map(k => `${k}: ${A8[k].n}`), gastos_N3: ln.g.map(k => `${k}: ${GASTO[k]}`), aporta_piso_CTCI_25: isCTCI(ln), LER: ln.ler.map(k => `LER ${k} ${LERN[k]}`) } : 'Sin entrada en la cartera para esta celda',
-    filtros_de_empresas_aplicados: hasAttr() ? filterText(true) : 'ninguno (todas las empresas con casa matriz en la región)',
+    filtros_de_empresas_aplicados: 'ninguno (todas las empresas con casa matriz en la región)',
     oferta_de_conocimiento_CTCI_en_el_territorio: FICHA.of ? Object.fromEntries([1, 2, 3, 4, 5].map(j => [CTG[j - 1], { empresas: FICHA.of.n[j], trabajadores: FICHA.of.w[j] }])) : undefined,
     base_empresarial_SII_2024: { empresas: cN[t][L], porcentaje_del_territorio: +(cN[t][L] / tN[t] * 100).toFixed(1), trabajadores: cT[t][L], empresas_10_o_mas_trabajadores: c10[t][L],
       cociente_localizacion_empresas: +lqN(t, L).toFixed(2), cociente_localizacion_trabajadores: +lqT(t, L).toFixed(2), periodo_crecimiento: pLab(), crecimiento_empresas_pct: +(gr(serC[t][L]) * 100).toFixed(0), crecimiento_region_mismo_lineamiento_pct: +(gr(serR[L]) * 100).toFixed(0),
@@ -2371,438 +2078,12 @@ $('#tab-bip-n').textContent = NF0.format(NBX);
 // fuera de Claude (archivo abierto en el computador): los CSV se descargan directamente desde el navegador
 if (!HAS_CLAUDE) {
   DL = { save: async ({ filename, data }) => { const u = URL.createObjectURL(data), a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } };
-  ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv', '#cp-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
+  ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
 }
-// ================= Compras Públicas (ChileCompra) =================
-let LIVE_COMPRAS = null;
-window.LIVE_COMPRAS = null;
-
-const TERR_INFO = {
-  'TPLC': { n: 'Temuco – Padre Las Casas', c: 'var(--t1)' },
-  'LAC':  { n: 'Araucanía Lacustre', c: 'var(--t8)' },
-  'MNO':  { n: 'Malleco Norte', c: 'var(--t4)' },
-  'VCE':  { n: 'Valle Central', c: 'var(--t2)' },
-  'CSU':  { n: 'Cautín Sur', c: 'var(--t3)' },
-  'COS':  { n: 'Costa Araucanía', c: 'var(--t6)' },
-  'NAH':  { n: 'Nahuelbuta', c: 'var(--t5)' },
-  'AND':  { n: 'Araucanía Andina', c: 'var(--t7)' },
-};
-
-function getTerrName(tCode) {
-  if (!tCode) return '–';
-  const clean = String(tCode).trim();
-  if (TERR_INFO[clean]) return TERR_INFO[clean].n;
-  for (const info of Object.values(TERR_INFO)) {
-    if (info.n.toLowerCase() === clean.toLowerCase()) return info.n;
-  }
-  return clean;
-}
-
-function getTerrColor(tCode) {
-  if (!tCode) return 'var(--line)';
-  const clean = String(tCode).trim();
-  if (TERR_INFO[clean]) return TERR_INFO[clean].c;
-  for (const [k, info] of Object.entries(TERR_INFO)) {
-    if (info.n.toLowerCase() === clean.toLowerCase()) return info.c;
-  }
-  return 'var(--acc)';
-}
-
-const CPF = {
-  q: '',
-  terr: '',
-  ret: '',
-  fecha: '',
-  limit: '100',
-  sort: 'fecha',
-  dir: -1
-};
-let CP_LAST_LIST = [];
-
-function formatCPFecha(raw) {
-  if (!raw) return '–';
-  const s = String(raw).trim();
-  if (s.includes('/')) return s;
-  if (s.includes('-')) {
-    const parts = s.split('-');
-    if (parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return s;
-  }
-  if (/^\d{7,8}$/.test(s)) {
-    const p = s.padStart(8, '0');
-    return `${p.slice(0, 2)}/${p.slice(2, 4)}/${p.slice(4)}`;
-  }
-  return s;
-}
-
-function cpFechaKey(raw) {
-  const f = formatCPFecha(raw);
-  if (!f || f === '–') return 0;
-  const p = f.split('/');
-  if (p.length === 3) {
-    return parseInt(p[2] + p[1] + p[0], 10) || 0;
-  }
-  return 0;
-}
-
-function updateCPFechaOptions(allPurchases) {
-  const selFecha = $('#cp-filter-fecha');
-  if (!selFecha) return;
-  const curr = selFecha.value || CPF.fecha;
-  const setFechas = new Set();
-  (allPurchases || []).forEach(c => {
-    const f = formatCPFecha(c.fecha);
-    if (f && f !== '–') setFechas.add(f);
-  });
-  const fechasArr = Array.from(setFechas).sort((a, b) => cpFechaKey(b) - cpFechaKey(a));
-  const existingValues = Array.from(selFecha.options).map(o => o.value).filter(Boolean);
-  const isSame = existingValues.length === fechasArr.length && existingValues.every((v, i) => v === fechasArr[i]);
-  if (!isSame) {
-    let html = '<option value="">Todas las fechas</option>';
-    fechasArr.forEach(f => {
-      html += `<option value="${esc(f)}">${esc(f)}</option>`;
-    });
-    selFecha.innerHTML = html;
-    if (setFechas.has(curr)) {
-      selFecha.value = curr;
-    }
-  }
-}
-
-function exportComprasCSV() {
-  const cp = LIVE_COMPRAS || window.LIVE_COMPRAS || (window.__LIVE_WORKSPACE_DATA__ ? window.__LIVE_WORKSPACE_DATA__.comprasPublicas : null);
-  if (!cp) {
-    toast('No hay compras cargadas para exportar.');
-    return;
-  }
-  const items = CP_LAST_LIST.length ? CP_LAST_LIST : (cp.ultimasCompras || []);
-  if (!items.length) {
-    toast('Sin compras para los filtros actuales.');
-    return;
-  }
-  const lines = [
-    ['Fecha', 'Código OC', 'Licitación / Compra', 'Organismo Comprador', 'Comuna', 'Territorio ERD 2040', 'Proveedor Adjudicado', 'Región Proveedor', 'Adjudicación Local', 'Monto (CLP)', 'Monto (miles de $)']
-  ];
-  for (const c of items) {
-    lines.push([
-      formatCPFecha(c.fecha),
-      c.codigo || c.codigoOC || '',
-      c.nombre || '',
-      c.organismo || '',
-      c.comuna || '',
-      getTerrName(c.territorio || c.codTerritorio),
-      c.proveedor || '',
-      c.regionProveedor || '',
-      c.esLocal ? 'Local (Araucanía)' : 'Fuga a Santiago / otras',
-      c.montoCLP || 0,
-      c.montoCLP ? Math.round(c.montoCLP / 1000) : 0
-    ]);
-  }
-  const dateStr = new Date().toISOString().slice(0, 10);
-  saveCSV(lines, `compras_publicas_araucania_${dateStr}.csv`);
-}
-
-function renderCompras() {
-  const cp = LIVE_COMPRAS || window.LIVE_COMPRAS || (window.__LIVE_WORKSPACE_DATA__ ? window.__LIVE_WORKSPACE_DATA__.comprasPublicas : null);
-  const tbl = $('#compras-table');
-  if (!cp) {
-    if (tbl) tbl.innerHTML = '<p class="note" style="padding:24px;text-align:center">Cargando compras públicas monitoreadas…</p>';
-    return;
-  }
-  const setTxt = (id, val) => { const el = $(id); if (el) el.textContent = val; };
-
-  // Poblar opciones de fechas únicas según los datos recibidos
-  updateCPFechaOptions(cp.ultimasCompras);
-
-  const selTerr = $('#cp-filter-terr') ? $('#cp-filter-terr').value : CPF.terr;
-  const selRet = $('#cp-filter-ret') ? $('#cp-filter-ret').value : CPF.ret;
-  const selFecha = $('#cp-filter-fecha') ? $('#cp-filter-fecha').value : CPF.fecha;
-  const selLimit = $('#cp-filter-limit') ? $('#cp-filter-limit').value : CPF.limit;
-  const selQ = $('#cp-filter-q') ? $('#cp-filter-q').value.trim() : CPF.q;
-
-  CPF.terr = selTerr;
-  CPF.ret = selRet;
-  CPF.fecha = selFecha;
-  CPF.limit = selLimit;
-  CPF.q = selQ;
-
-  let list = (cp.ultimasCompras || []).slice();
-
-  // 1. Filtro por territorio
-  if (selTerr) {
-    list = list.filter(c => (c.codTerritorio === selTerr || c.territorio === selTerr || getTerrName(c.territorio) === TERR_INFO[selTerr]?.n));
-  }
-
-  // 2. Filtro por retención / fuga
-  if (selRet === 'local') {
-    list = list.filter(c => c.esLocal);
-  } else if (selRet === 'fuga') {
-    list = list.filter(c => !c.esLocal);
-  }
-
-  // 3. Filtro por fecha específica
-  if (selFecha) {
-    list = list.filter(c => formatCPFecha(c.fecha) === selFecha);
-  }
-
-  // 4. Búsqueda por texto (nombre, OC, proveedor, organismo, comuna)
-  if (selQ) {
-    const qNorm = normTxt(selQ);
-    list = list.filter(c => {
-      const haystack = normTxt((c.nombre || '') + ' ' + (c.codigo || c.codigoOC || '') + ' ' + (c.proveedor || '') + ' ' + (c.organismo || '') + ' ' + (c.comuna || '') + ' ' + (c.regionProveedor || ''));
-      return haystack.includes(qNorm);
-    });
-  }
-
-  // 5. Ordenamiento interactivo
-  if (CPF.sort) {
-    const k = CPF.sort, d = CPF.dir;
-    list.sort((a, b) => {
-      let va = 0, vb = 0;
-      if (k === 'fecha') {
-        va = cpFechaKey(a.fecha);
-        vb = cpFechaKey(b.fecha);
-      } else if (k === 'monto') {
-        va = a.montoCLP || 0;
-        vb = b.montoCLP || 0;
-      } else if (k === 'oc') {
-        va = a.codigo || a.codigoOC || '';
-        vb = b.codigo || b.codigoOC || '';
-      } else if (k === 'nombre') {
-        va = a.nombre || '';
-        vb = b.nombre || '';
-      } else if (k === 'proveedor') {
-        va = a.proveedor || '';
-        vb = b.proveedor || '';
-      } else if (k === 'terr') {
-        va = getTerrName(a.territorio || a.codTerritorio);
-        vb = getTerrName(b.territorio || b.codTerritorio);
-      }
-      return (typeof va === 'string' ? va.localeCompare(vb, 'es') : va - vb) * d;
-    });
-  }
-
-  CP_LAST_LIST = list;
-
-  // 6. Recálculo dinámico de KPIs para la selección filtrada
-  const hasFilter = !!(selTerr || selRet || selFecha || selQ);
-  const fTotal = list.reduce((acc, c) => acc + (c.montoCLP || 0), 0);
-  const fLocal = list.filter(c => c.esLocal).reduce((acc, c) => acc + (c.montoCLP || 0), 0);
-  const fFuga = fTotal - fLocal;
-  const fPct = fTotal > 0 ? ((fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
-  const fFugaPct = fTotal > 0 ? ((1 - fLocal / fTotal) * 100).toFixed(1) + '%' : '0%';
-  const fTotalM = Math.round(fTotal / 1000);
-  const fLocalM = Math.round(fLocal / 1000);
-
-  if (hasFilter) {
-    setTxt('#cp-total-monto', '$' + NF0.format(fTotalM) + ' M$');
-    setTxt('#cp-total-regs', `${f0(list.length)} de ${f0(cp.totalRegistros || (cp.ultimasCompras ? cp.ultimasCompras.length : list.length))} compras (${f1(fTotal / 1e6)} MM$)`);
-    setTxt('#cp-ret-pct', fPct);
-    setTxt('#cp-ret-monto', '$' + NF0.format(fLocalM) + ' M$ adjudicado local');
-    setTxt('#cp-fuga-pct', fFugaPct);
-  } else {
-    const totalCLP = cp.montoTotalCLP || fTotal;
-    const localCLP = cp.montoRetenidoAraucania || fLocal;
-    const totalM = Math.round(totalCLP / 1000);
-    const localM = Math.round(localCLP / 1000);
-    setTxt('#cp-total-monto', '$' + NF0.format(totalM) + ' M$');
-    setTxt('#cp-total-regs', `${f0(cp.totalRegistros || list.length)} compras públicas (${f1(totalCLP / 1e6)} MM$)`);
-    setTxt('#cp-ret-pct', cp.porcentajeRetencionLocal || fPct);
-    setTxt('#cp-ret-monto', '$' + NF0.format(localM) + ' M$ adjudicado en la región');
-    setTxt('#cp-fuga-pct', cp.porcentajeFugaSantiago || fFugaPct);
-  }
-
-  setTxt('#cp-live-time', 'Datos al día · ' + (list.length && list[0].fecha ? formatCPFecha(list[0].fecha) : ''));
-
-  // 7. Corte de compras según selector de cantidad a desplegar
-  const lim = selLimit === 'all' ? list.length : (parseInt(selLimit, 10) || 100);
-  const desplegadas = list.slice(0, lim);
-
-  const rows = desplegadas.map(c => {
-    const isLocal = c.esLocal;
-    const badge = isLocal
-      ? '<span class="pill" style="background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);font-weight:600">Local (Araucanía)</span>'
-      : '<span class="pill" style="background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad);font-weight:600">Fuga a Santiago</span>';
-    const tName = getTerrName(c.territorio || c.codTerritorio);
-    const tColor = getTerrColor(c.territorio || c.codTerritorio);
-    const montoM = c.montoCLP ? Math.round(c.montoCLP / 1000) : 0;
-    const montoTxt = montoM ? '$' + NF0.format(montoM) + ' M$' : '–';
-    return `<tr>
-      <td class="m">${esc(formatCPFecha(c.fecha))}</td>
-      <td class="m" style="color:var(--acc)">${esc(c.codigo || c.codigoOC || '')}</td>
-      <td style="max-width:320px"><b style="font-weight:600">${esc(c.nombre || '')}</b><span class="sm">${esc(c.organismo || '')} (${esc(c.comuna || '')})</span></td>
-      <td><span class="tchip" style="border-left:3px solid ${tColor};font-weight:600" title="${esc(tName)}">${esc(tName)}</span></td>
-      <td style="max-width:260px"><span>${esc(c.proveedor || '')}</span><span class="sm">${esc(c.regionProveedor || '')}</span></td>
-      <td style="text-align:center">${badge}</td>
-      <td class="num" style="text-align:right;font-weight:600" title="$${NF0.format(c.montoCLP || 0)} CLP">${montoTxt}</td>
-    </tr>`;
-  }).join('');
-
-  const th = (key, lab, r) => `<th class="${r ? 'r' : ''}">${key ? `<button type="button" data-cpsort="${key}"${CPF.sort === key ? ` aria-sort="${CPF.dir > 0 ? 'ascending' : 'descending'}"` : ''}>${lab}${CPF.sort === key ? (CPF.dir > 0 ? ' ↑' : ' ↓') : ''}</button>` : lab}</th>`;
-
-  if (tbl) {
-    tbl.innerHTML = `<table>
-      <thead><tr>
-        ${th('fecha', 'Fecha')}
-        ${th('oc', 'Código OC')}
-        ${th('nombre', 'Licitación / Compra')}
-        ${th('terr', 'Territorio ERD 2040')}
-        ${th('proveedor', 'Proveedor Adjudicado')}
-        <th style="text-align:center">Retención Regional</th>
-        ${th('monto', 'Monto (miles de $)', 1)}
-      </tr></thead>
-      <tbody>${rows || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Sin compras para los filtros seleccionados.</td></tr>'}</tbody>
-    </table>`;
-
-    $$('#compras-table th button[data-cpsort]').forEach(b => {
-      b.addEventListener('click', () => {
-        const k = b.dataset.cpsort;
-        if (CPF.sort === k) CPF.dir *= -1;
-        else { CPF.sort = k; CPF.dir = (k === 'monto' || k === 'fecha') ? -1 : 1; }
-        renderCompras();
-      });
-    });
-  }
-
-  // 8. Barra resumen / paginación al pie de la tabla
-  const pagerEl = $('#cp-pager');
-  if (pagerEl) {
-    if (list.length > lim) {
-      pagerEl.innerHTML = `<span>Mostrando las primeras <b>${f0(desplegadas.length)}</b> de <b>${f0(list.length)}</b> compras filtradas.</span>` +
-        `<span style="display:flex;gap:6px;align-items:center"><button class="btn" type="button" id="cp-show-all">Ver todas (${f0(list.length)})</button></span>`;
-      const btnAll = $('#cp-show-all');
-      if (btnAll) {
-        btnAll.onclick = () => {
-          if ($('#cp-filter-limit')) $('#cp-filter-limit').value = 'all';
-          CPF.limit = 'all';
-          renderCompras();
-        };
-      }
-    } else {
-      pagerEl.innerHTML = `<span>Mostrando <b>${f0(list.length)}</b> compras públicas${hasFilter ? ' con los filtros activos' : ''} (${f1(fTotal / 1e6)} MM$).</span>` +
-        (list.length ? `<span class="note">Descarga el conjunto filtrado completo en CSV con el botón superior.</span>` : '');
-    }
-  }
-}
-
-window.applyLiveWorkspaceData = function(data) {
-  if (!data) return;
-  const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
-  if (dot) dot.style.background = 'var(--ok)';
-  if (txt) txt.textContent = 'Cartera e Indicadores Vivos (DIFOI)';
-
-  if (Array.isArray(data.cartera) && data.cartera.length) {
-    data.cartera.forEach(c => {
-      const key = (c.codTerr || '') + '|' + (c.codCtci || '');
-      const entry = CELL[key];
-      if (entry) {
-        entry.liveEstado = c.estadoGestion;
-        entry.liveMonto = c.presupuestoEstimadoM;
-        entry.liveResp = c.encargadoDifoi;
-        entry.liveEjecutor = c.ejecutor;
-        entry.liveFecha = c.fechaAct;
-      }
-    });
-    if (UI.view === 'cartera') {
-      renderKpis();
-      if (UI.t != null && UI.L != null) renderFicha();
-    }
-  }
-
-  if (data.comprasPublicas) {
-    LIVE_COMPRAS = data.comprasPublicas;
-    window.LIVE_COMPRAS = LIVE_COMPRAS;
-    const count = LIVE_COMPRAS.totalRegistros || (LIVE_COMPRAS.ultimasCompras ? LIVE_COMPRAS.ultimasCompras.length : 0);
-    const tabCp = $('#tab-cp-n');
-    if (tabCp) tabCp.textContent = `${count} OCs`;
-    if (UI.view === 'compras') renderCompras();
-  }
-  toast('Datos del radar actualizados');
-};
-
-// Al abrir se carga solo el resumen (cartera y totales). El detalle de compras, de varios MB, se pide al entrar a esa pestaña.
-let CP_FULL = false, CP_LOADING = false;
-async function syncRadarData(full) {
-  full = full === true || CP_FULL;
-  if (full) { if (CP_LOADING) return; CP_LOADING = true; }
-  const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
-  if (dot) dot.style.background = 'var(--sel)';
-  if (txt) txt.textContent = 'Cargando datos del radar…';
-
-  try {
-    let jsonRes = full ? null : await fetch('./datos_resumen.json?_t=' + Date.now()).catch(() => null);
-    if (!jsonRes || !jsonRes.ok) { full = true; jsonRes = await fetch('./datos_radar.json?_t=' + Date.now()); }
-    if (jsonRes.ok) {
-      let staticData = await jsonRes.json();
-      if (staticData && (staticData.cartera || staticData.comprasPublicas)) {
-        if (full) { CP_FULL = true; window.__LIVE_WORKSPACE_DATA__ = staticData; }
-        else {
-          const cp = staticData.comprasPublicas, tabCp = $('#tab-cp-n');
-          if (cp && cp.totalRegistros && tabCp) tabCp.textContent = `${cp.totalRegistros} OCs`;
-          staticData = { ...staticData, comprasPublicas: null };
-        }
-        window.applyLiveWorkspaceData(staticData);
-        if (dot) dot.style.background = 'var(--ok)';
-        if (txt) txt.textContent = 'Cartera e Indicadores FRPD';
-        return;
-      }
-    }
-    throw new Error('Formato de datos no reconocido');
-  } catch (err) {
-    console.warn('Carga de datos del radar no disponible:', err);
-    if (!window.__LIVE_WORKSPACE_DATA__) {
-      if (dot) dot.style.background = 'var(--muted)';
-      if (txt) txt.textContent = 'Modo local (Base de referencia)';
-    }
-  } finally { if (full) CP_LOADING = false; }
-}
-const syncLiveWorkspace = syncRadarData;
-
   update(false);
   setView(VIEWS.includes(h0) ? h0 : 'cartera');
-  if ($('#live-sync-badge')) $('#live-sync-badge').addEventListener('click', () => syncRadarData(UI.view === 'compras'));
-  if ($('#cp-refresh')) $('#cp-refresh').addEventListener('click', () => syncRadarData(true));
-  if ($('#cp-csv')) $('#cp-csv').addEventListener('click', exportComprasCSV);
-  if ($('#cp-filter-terr')) $('#cp-filter-terr').addEventListener('change', renderCompras);
-  if ($('#cp-filter-fecha')) $('#cp-filter-fecha').addEventListener('change', renderCompras);
-  if ($('#cp-filter-ret')) $('#cp-filter-ret').addEventListener('change', renderCompras);
-  if ($('#cp-filter-limit')) $('#cp-filter-limit').addEventListener('change', renderCompras);
-  
-  let cpQt;
-  if ($('#cp-filter-q')) {
-    $('#cp-filter-q').addEventListener('input', e => {
-      clearTimeout(cpQt);
-      cpQt = setTimeout(() => {
-        CPF.q = e.target.value;
-        renderCompras();
-      }, 160);
-    });
-  }
-
-  if ($('#cp-clear')) {
-    $('#cp-clear').addEventListener('click', () => {
-      CPF.q = '';
-      CPF.terr = '';
-      CPF.fecha = '';
-      CPF.ret = '';
-      CPF.limit = '100';
-      if ($('#cp-filter-q')) $('#cp-filter-q').value = '';
-      if ($('#cp-filter-terr')) $('#cp-filter-terr').value = '';
-      if ($('#cp-filter-fecha')) $('#cp-filter-fecha').value = '';
-      if ($('#cp-filter-ret')) $('#cp-filter-ret').value = '';
-      if ($('#cp-filter-limit')) $('#cp-filter-limit').value = '100';
-      renderCompras();
-    });
-  }
-  
-  if (window.__LIVE_WORKSPACE_DATA__) {
-    window.applyLiveWorkspaceData(window.__LIVE_WORKSPACE_DATA__);
-  } else {
-    syncLiveWorkspace();
-  }
-
 if (HAS_CLAUDE) {
-  window.claude.use('downloads').then(d => { DL = d; if (d) { $('#hb-csv').hidden = false; $('#exe-csv').hidden = false; $('#bx-csv').hidden = false; $('#ev-csv').hidden = false; $('#tb-csv').hidden = false; $('#cp-csv').hidden = false; const b = $('#fi-csv'); if (b && FICHA && FICHA.firms.length) { b.hidden = false; b.onclick = exportFirms; } const b2 = $('#fi-fcsv'); if (b2 && FICHA && FICHA.fin && FICHA.fin.length) { b2.hidden = false; b2.onclick = exportFin; } } }).catch(() => {});
+  window.claude.use('downloads').then(d => { DL = d; if (d) { $('#hb-csv').hidden = false; $('#exe-csv').hidden = false; $('#bx-csv').hidden = false; $('#ev-csv').hidden = false; $('#tb-csv').hidden = false; const b = $('#fi-csv'); if (b && FICHA && FICHA.firms.length) { b.hidden = false; b.onclick = exportFirms; } const b2 = $('#fi-fcsv'); if (b2 && FICHA && FICHA.fin && FICHA.fin.length) { b2.hidden = false; b2.onclick = exportFin; } } }).catch(() => {});
   window.claude.use('sample').then(s => { SAMPLE = s || null; wireClaude(); }).catch(() => { SAMPLE = null; wireClaude(); });
 }
 })();

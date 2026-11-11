@@ -57,15 +57,15 @@ R1 = {r['r'] for r in res1_out}
 C = lambda *ns: sorted(CIDX[U(n)] for n in ns)
 EXE = [
  # nombre, tipo, sub, comunas, base legal / habilitación, en Res.1, claves ANID, nota
- ('Universidad de La Frontera', 'pub', 'Universidad estatal', C('Temuco', 'Angol', 'Pucon', 'Padre Las Casas'), 'Art. 13: habilitada si su acreditación es de 4 años o más', False, ['FRONTERA'], 'Incluye BIOREN y CEBIOR'),
+ ('Universidad de La Frontera', 'pub', 'Universidad estatal', C('Temuco', 'Angol', 'Pucon', 'Padre Las Casas'), 'Art. 11 inc. 2°: habilitada si su acreditación es de 4 años o más', False, ['FRONTERA'], 'Incluye BIOREN y CEBIOR'),
  ('Universidad Católica de Temuco', 'priv', 'Universidad privada CRUCH', C('Temuco'), 'Art. 13 y nómina Res. 1/2026', '71918700-5', ['CATOLICA DE TEMUCO'], ''),
  ('Universidad Autónoma de Chile', 'priv', 'Universidad privada', C('Temuco'), 'Art. 13 y nómina Res. 1/2026', '71633300-0', ['AUTONOMA'], 'Casa matriz en Temuco según SII'),
  ('Universidad Santo Tomás', 'priv', 'Universidad privada', C('Temuco'), 'Art. 13 y nómina Res. 1/2026', '71551500-8', ['SANTO TOMAS'], 'CFT e IP Santo Tomás son entidades distintas y no figuran en la nómina'),
  ('Universidad Mayor', 'priv', 'Universidad privada', C('Temuco'), 'Art. 13 y nómina Res. 1/2026', '71500500-K', ['UNIVERSIDAD MAYOR'], ''),
  ('Pontificia Universidad Católica de Chile', 'priv', 'Universidad privada CRUCH', C('Villarrica', 'Temuco'), 'Art. 13 y nómina Res. 1/2026', '81698900-0', ['PONTIFICIA UNIVERSIDAD CATOLICA DE CHILE'], 'Campus Villarrica'),
  ('Instituto Profesional INACAP', 'priv', 'Instituto profesional', C('Temuco'), 'Art. 13 y nómina Res. 1/2026', '87152900-0', ['INACAP'], 'La Universidad Tecnológica y el CFT INACAP no figuran en la nómina'),
- ('Universidad Arturo Prat', 'pub', 'Universidad estatal', C('Victoria'), 'Art. 13: habilitada si su acreditación es de 4 años o más', False, ['ARTURO PRAT'], 'Sede Victoria'),
- ('CFT Estatal de La Araucanía', 'pub', 'CFT estatal', C('Lautaro'), 'Art. 13: habilitado si su acreditación es de 4 años o más', False, ['CFT DE LA REGION DE LA ARAUCANIA', 'CENTRO DE FORMACION TECNICA DE LA REGION DE LA ARAUCANIA'], ''),
+ ('Universidad Arturo Prat', 'pub', 'Universidad estatal', C('Victoria'), 'Art. 11 inc. 2°: habilitada si su acreditación es de 4 años o más', False, ['ARTURO PRAT'], 'Sede Victoria'),
+ ('CFT Estatal de La Araucanía', 'pub', 'CFT estatal', C('Lautaro'), 'Art. 11 inc. 2°: habilitado si su acreditación es de 4 años o más', False, ['CFT DE LA REGION DE LA ARAUCANIA', 'CENTRO DE FORMACION TECNICA DE LA REGION DE LA ARAUCANIA'], ''),
  ('Centro de Genómica Nutricional Agroacuícola (CGNA)', 'pub', 'Centro Regional ANID', C('Temuco'), 'Res. 33 n° 41: centros regionales del Programa Regional ANID', False, ['GENOMICA NUTRICIONAL', 'CGNA'], ''),
  ('INIA Carillanca', 'pub', 'Instituto tecnológico público', C('Vilcun'), 'Art. 11 y Res. 33 n° 23', False, ['INVESTIGACIONES AGROPECUARIAS', 'INIA'], ''),
  ('Fundación de Desarrollo Educacional y Tecnológico La Araucanía (FUDEA)', 'priv', 'Fundación', C('Temuco'), 'Nómina Res. 1/2026; debe concursar (art. 12)', '71195600-K', ['FUDEA'], 'Vinculada a la UFRO'),

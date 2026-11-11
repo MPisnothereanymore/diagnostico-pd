@@ -7,17 +7,14 @@ with open(html_path, 'r', encoding='utf-8') as f:
 print('HTML length:', len(html))
 
 selectors = [
-    'ipt-card', 'ipt-btn-map', 'ipt-btn-map-plad', 'ipt-btn-map-grd',
-    'ipt-btn-map-pladet', 'ipt-btn-map-paccc', 'ipt-btn-map-adi', 'ipt-btn-map-descont', 'ipt-btn-map-frpd',
-    'ipt-csv', 'ipt-f-ter', 'ipt-f-frpd', 'ipt-f-est', 'ipt-f-plad', 'ipt-f-grd',
-    'ipt-f-pladet', 'ipt-f-paccc', 'ipt-f-adi', 'ipt-f-descont', 'ipt-f-threat', 'ipt-f-reg',
-    'ipt-q', 'ipt-clear', 'ipt-tbl-wrap'
+    'tr-pick', 'tprof', 'tr-mapc', 'map', 'layers', 'if-card', 'tr-com', 'hb-scope', 'hab',
+    'ipt-card', 'ipt-sum', 'ipt-scope', 'ipt-csv', 'ipt-tbl-wrap'
 ]
 
 for s in selectors:
     assert f'id="{s}"' in html, f'Missing ID: {s}'
 
-print('All 24 element IDs verified in generated HTML!')
+print(f'All {len(selectors)} element IDs verified in generated HTML!')
 
 # Check that all 32 communes are in IPT_DATA
 matches = re.findall(r'\{ c:\s*(\d+),\s*com:\s*\'([^\']+)\'', html)
