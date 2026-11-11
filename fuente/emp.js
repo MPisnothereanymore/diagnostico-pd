@@ -42,6 +42,7 @@ facetsHost.addEventListener('change', e => {
   if (fc.k === 'rub' && UI.exAuto) UI.exDim = F.rub.size ? 'sub' : 'rub';
   if (fc.k === 'sub' && UI.exAuto) UI.exDim = F.sub.size ? 'act' : (F.rub.size ? 'sub' : 'rub');
   update();
+  const nb = facetsHost.querySelector(`input[data-fk="${fc.k}"][data-v="${el.dataset.v}"]`); if (nb) nb.focus({ preventScroll: true });
 });
 facetsHost.addEventListener('toggle', e => { const det = e.target; if (det.open && det.dataset.k) renderFacet(FACETS.find(f => f.k === det.dataset.k)); }, true);
 const facetCounts = {};
@@ -170,7 +171,7 @@ $('#rail-close').addEventListener('click', () => RAIL.classList.remove('open'));
 
 // ---- el grupo de empresas en una frase: actividad, lugar y tamaño ----
 // Los tres selectores escriben en los mismos filtros de la barra lateral (F); la barra queda para el detalle.
-const EB_TAM = { all: [], mipyme: [1, 2], micro: [1], peq: [2], mg: [3, 4] };
+const EB_TAM = { all: [], mipyme: [1, 2], micro: [1], peq: [2], mg: [3, 4], cv: [1, 2, 3, 4], sv: [0] };
 const sameSet = (s, a) => s.size === a.length && a.every(x => s.has(x));
 function ebVals() {
   const nR = F.rub.size, nS = F.sub.size, nA = F.act.size, nL = F.lin.size;
@@ -191,11 +192,12 @@ $('#eb-act').innerHTML = '<option value="all">cualquier actividad</option>'
 $('#eb-geo').innerHTML = '<option value="all">toda la región</option>'
   + `<optgroup label="Territorios ERD 2040">${TER.map((t, j) => `<option value="t:${j}">${esc(t.n)}</option>`).join('')}</optgroup>`
   + `<optgroup label="Comunas">${[...Array(NC).keys()].sort((a, b) => CN(a).localeCompare(CN(b), 'es')).map(c => `<option value="c:${c}">${esc(CN(c))}</option>`).join('')}</optgroup>`;
-$('#eb-tam').innerHTML = [['all', 'cualquier tamaño'], ['mipyme', 'micro y pequeña (MiPyME)'], ['micro', 'micro'], ['peq', 'pequeña'], ['mg', 'mediana y grande']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+$('#eb-tam').innerHTML = [['all', 'cualquier tamaño'], ['mipyme', 'micro y pequeña (MiPyME)'], ['micro', 'micro'], ['peq', 'pequeña'], ['mg', 'mediana y grande'], ['cv', 'cualquiera que informe ventas'], ['sv', 'sin ventas informadas']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
 function ebSync() {
   EB = ebVals(); ACTIVE_CHAIN = EB.act.startsWith('ch:') ? EB.act.slice(3) : null;
   const set = (id, v, lab) => { const s = $(id); let o = s.querySelector('option[value="x"]'); if (v === 'x' && !o) { o = document.createElement('option'); o.value = 'x'; o.textContent = lab; s.appendChild(o); } else if (v !== 'x' && o) o.remove(); s.value = v; };
-  set('#eb-act', EB.act, 'una selección a medida'); set('#eb-geo', EB.geo, 'varios lugares'); set('#eb-tam', EB.tam, 'varios tamaños');
+  set('#eb-act', EB.act, 'una selección a medida'); set('#eb-geo', EB.geo, 'varios lugares'); set('#eb-tam', EB.tam, 'otra combinación de tamaños');
+  $('#rail-close').textContent = `Ver ${f0(CTX.st.n)} ${CTX.st.n === 1 ? 'empresa' : 'empresas'}`;
   $('#eb-clear').hidden = !anyFilter();
 }
 const ebApply = id => { FP.preset = null; UI.exAuto = true; syncInputs(); update(); $(id).focus({ preventScroll: true }); };
@@ -252,26 +254,20 @@ let CHIPS = [];
 function renderCrumbs() {
   CHIPS = activeChips();
   const cov = { geo: EB.geo !== 'x', act: EB.act !== 'x', tam: EB.tam !== 'x' }, shown = CHIPS.map((c, i) => [c, i]).filter(([c]) => !cov[c[3]]);
-  $('#crumbs').innerHTML = !shown.length ? '' : '<span class="root">Además:</span>' + shown.map(([c, i]) => `<span class="chip${c[0] === 'a' ? '' : ' g'}"><span title="${esc(c[1])}">${esc(c[1])}</span><button type="button" data-chip="${i}" aria-label="Quitar filtro ${esc(c[1])}">×</button></span>`).join('');
+  $('#crumbs').innerHTML = !shown.length ? '' : `<span class="root">${EB.act === 'x' || EB.geo === 'x' || EB.tam === 'x' ? 'Filtros:' : 'Además:'}</span>` + shown.map(([c, i]) => `<span class="chip${c[0] === 'a' ? '' : ' g'}"><span title="${esc(c[1])}">${esc(c[1])}</span><button type="button" data-chip="${i}" aria-label="Quitar filtro ${esc(c[1])}">×</button></span>`).join('');
   $('#rail-n').textContent = shown.length ? `(${shown.length})` : '';
 }
-$('#crumbs').addEventListener('click', e => { const b = e.target.closest('button[data-chip]'); if (!b) return; CHIPS[+b.dataset.chip][2](); FP.preset = null; syncInputs(); update(); });
+$('#crumbs').addEventListener('click', e => { const b = e.target.closest('button[data-chip]'); if (!b) return; CHIPS[+b.dataset.chip][2](); FP.preset = null; syncInputs(); update(); ($('#crumbs button[data-chip]') || $('#rail-open')).focus({ preventScroll: true }); });
 
 // ---- recálculo global ----
 function update(render = true) {
   computeGeo();
   const M0 = mask();
-  const MAt = hasGeo() || hasLin() ? mask(new Set(['geo', 'lin'])) : M0;
   const MG = hasGeo() ? mask(new Set(['geo'])) : M0;
-  recomputeSII(MAt);
   const gl = geoList();
   CTX = { M0, MG, st: stats(M0), cg: comAgg(MG), ser: seriesAgg(true), serNG: seriesAgg(false), selCom: new Set(gl.length < NC ? gl : []), geoList: gl };
   CTX.popSel = gl.reduce((a, c) => a + POP[c], 0);
   computeFacetCounts(); renderFacets(); ebSync(); renderCrumbs();
-  // la ficha y el perfil siguen al territorio o lineamiento elegido cuando es uno solo
-  const ts = new Set(gl.map(c => TOF[c]));
-  if (hasGeo() && ts.size === 1) { UI.t = UI.ter = [...ts][0]; }
-  if (F.lin.size === 1) UI.L = [...F.lin][0];
   $('#count').innerHTML = `<b>${f0(CTX.st.n)}</b> de ${f0(N)} empresas`;
   $('#tab-emp-n').textContent = anyFilter() ? f0(CTX.st.n) : NF0.format(N);
   UI.ePage = 0;
@@ -281,13 +277,24 @@ function update(render = true) {
   else if (UI.view === 'territorios') { renderTerritorios(); DIRTY.territorios = false; }
   else if (UI.view === 'empresas') renderEmpresas();
 }
+let EMP_RET = null;   // vuelta a la ficha de Cartera desde la que se llegó
+function renderEmpFrom(focus) {
+  const el = $('#e-from'), r = EMP_RET; el.hidden = !r;
+  el.innerHTML = r ? `<p><b>Vienes de Cartera:</b> ficha ${esc(TER[r.t].n)} · ${LIN[r.L].k} ${esc(LSHORT[LIN[r.L].k])}.</p><div class="ct-ob"><button type="button" class="btn sm" id="e-back">Volver a la ficha</button><button type="button" class="btn sm" id="e-fromx">Quitar este aviso</button></div>` : '';
+  if (r && focus) el.focus({ preventScroll: true });
+}
+$('#e-from').addEventListener('click', e => {
+  if (e.target.closest('#e-back')) { const r = EMP_RET; EMP_RET = null; renderEmpFrom(); setView('cartera'); openFicha(r.t, r.L, r.from); window.scrollTo(0, r.sy || 0); }
+  else if (e.target.closest('#e-fromx')) { EMP_RET = null; renderEmpFrom(); $('#eb-act').focus({ preventScroll: true }); }
+});
 function openEmpresas(o) {
   clearFilters();   // se llega con un grupo limpio: los filtros anteriores no se arrastran
+  EMP_RET = o.ret || null;
   if (o.ter != null) F.ter.add(o.ter);
   if (o.lin != null) { F.lin.add(o.lin); UI.exDim = 'sub'; }
-  if (o.ctci) { F.ctci.clear(); [1, 2, 3, 4, 5].forEach(j => F.ctci.add(j)); UI.exDim = 'ctci'; }
+  if (o.ctci) { F.ctci.clear(); [1, 2, 3, 4, 5].forEach(j => F.ctci.add(j)); UI.exDim = 'sub'; }
   FP.preset = null; UI.exAuto = false; syncInputs(); update(false); setView('empresas');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0 }); renderEmpFrom(true);
 }
 
 // ================= EMPRESAS (vista Explorar de Tejido Empresarial) =================
@@ -389,19 +396,23 @@ function renderM1E() {
 }
 $('#e-m1-ind').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; UI.eM1 = b.dataset.k; renderM1E(); });
 function renderSumE() {
-  const s = CTX.st, R = refStats(), filt = anyFilter(), ts = tamStack(CTX.M0), gl = CTX.geoList, M = CTX.M0;
+  const s = CTX.st, R = refStats(), filt = anyFilter(), gl = CTX.geoList, M = CTX.M0;
+  if (!s.n) { $('#e-sum').classList.add('none'); $('#e-sum').innerHTML = '<div><p class="ct-lead"><b>0</b> empresas</p><ul class="ct-facts"><li>Ninguna empresa cumple estas condiciones. Cambia o quita algún filtro.</li></ul></div>'; return; }
+  $('#e-sum').classList.remove('none');
   let nV = 0; for (let i = 0; i < N; i++) if (M[i] && TAM[i] > 0) nV++;
-  const top = gl.length > 1 && s.n ? gl.map(c => [c, CTX.cg.n[c]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
-  const ref = R.same ? 'de las empresas de ese tipo en la región' : 'de la región';
+  const top = gl.length > 1 ? gl.map(c => [c, CTX.cg.n[c]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
+  const actL = EB.act !== 'all' && EB.act !== 'x' ? $('#eb-act').selectedOptions[0].textContent : '';
+  const grupo = !R.same ? '' : actL && EB.tam === 'all' && !CHIPS.some(c => !c[3]) ? `las empresas de ${actL}` : 'las empresas con los mismos filtros';
   const canFm = MX && ACTIVE_CHAIN && EB.geo.startsWith('t:');
-  const facts = !s.n ? ['Ninguna empresa cumple estas condiciones. Cambia la actividad, el lugar o el tamaño.'] : [
-    `<b>${f0(s.t)}</b> trabajadores dependientes${filt && R.t ? ` (${pc(s.t / R.t)} ${R.same ? 'de los de ese tipo de empresa en la región' : 'de la región'})` : ''}. <b>${f0(s.e)}</b> ${s.e === 1 ? 'empresa tiene' : 'empresas tienen'} trabajadores (${pc(s.e / s.n, 0)}).`,
-    `Por ventas: <b>${pc(ts.n[1] + ts.n[2], 0)}</b> micro y pequeñas, <b>${f0(s.mg)}</b> ${s.mg === 1 ? 'mediana o grande' : 'medianas y grandes'} y ${pc(ts.n[0], 0)} sin ventas informadas.${ACTIVE_CHAIN ? ` Con ventas informadas: <b>${f0(nV)}</b>, el conteo que usan Territorios y Formular para las cadenas.` : ''}`,
+  const inst = [s.sfl ? `<b>${f0(s.sfl)}</b> sin fines de lucro` : '', s.pub ? `<b>${f0(s.pub)}</b> del sector público` : ''].filter(Boolean);
+  const facts = [
+    !s.t ? 'Sin trabajadores dependientes.' : `<b>${f0(s.t)}</b> ${s.t === 1 ? 'trabajador dependiente' : 'trabajadores dependientes'}${filt && R.t ? ` (${pc(s.t / R.t)} ${R.same ? 'del empleo de ese mismo grupo en la región' : 'de la región'})` : ''}. <b>${f0(s.e)}</b> ${s.e === 1 ? 'empresa tiene' : 'empresas tienen'} trabajadores (${pc(s.e / s.n, 0)}).`,
+    EB.tam === 'all' ? (nV === s.n ? `Por ventas: ${s.n === 1 ? 'informa' : 'todas informan'} ventas` : `Por ventas: <b>${f0(nV)}</b> ${nV === 1 ? 'informa' : 'informan'} ventas`) + `${s.mg ? ` (${f0(s.mg)} ${s.mg === 1 ? 'mediana o grande' : 'medianas o grandes'})` : ''}${nV === s.n ? '.' : ` y <b>${f0(s.n - nV)}</b> no.`}${ACTIVE_CHAIN && nV !== s.n ? ` Territorios y Formular cuentan solo ${nV === 1 ? 'la que informa' : `las ${f0(nV)} que informan`} ventas.` : ''}` : '',
     top.length ? `Se concentran en ${top.map(([c, n]) => `<b>${esc(CN(c))}</b> ${pc(n / s.n, 0)}`).join(' · ')}.` : '',
-    s.sfl + s.pub ? `<b>${f0(s.sfl)}</b> sin fines de lucro y <b>${f0(s.pub)}</b> del sector público${s.nom ? `; <b>${f0(s.nom)}</b> en la nómina Res. 1/2026` : ''}.` : '',
+    inst.length || s.nom ? `${inst.join(' y ')}${inst.length ? '.' : ''}${s.nom ? ` <b>${f0(s.nom)}</b> ${s.nom === 1 ? 'habilitada' : 'habilitadas'} para postular como privada sin fines de lucro (Res. 1/2026).` : ''}` : '',
   ].filter(Boolean);
   $('#e-sum').innerHTML = `<div>
-      <p class="ct-lead"><b>${f0(s.n)}</b> ${s.n === 1 ? 'empresa' : 'empresas'}${filt ? ` · ${pc(R.n ? s.n / R.n : NaN)} ${ref}` : ' con casa matriz en La Araucanía · SII 2024'}</p>
+      <p class="ct-lead"><b>${f0(s.n)}</b> ${s.n === 1 ? 'empresa' : 'empresas'}${filt ? ` · ${pc(R.n ? s.n / R.n : NaN)} de ${R.same ? esc(grupo) + ' de la región' : 'la región'}` : ' y entidades con casa matriz en La Araucanía · SII 2024'}</p>
       <ul class="ct-facts">${facts.map(f => `<li>${f}</li>`).join('')}</ul>
       ${canFm ? '<div style="margin-top:12px"><button class="btn pri" type="button" id="e-fm">Formular con este territorio y cadena</button></div>' : ''}
     </div>
@@ -428,7 +439,8 @@ const METS = [
   { k: 'tpe', l: 'Trabajadores por empresa empleadora' }, { k: 'share', l: '% de la selección' },
   { k: 'pen', l: '% del grupo regional en la selección' }, { k: 'lq', l: 'Cociente de localización' },
 ];
-$('#ex-dim').innerHTML = DIMS.map(d => `<option value="${d.k}">${esc(d.l)}</option>`).join('');
+const EX_DIMS = ['rub', 'sub', 'act'];   // el resto de los cortes está en «Más filtros»
+$('#ex-dim').innerHTML = DIMS.filter(d => EX_DIMS.includes(d.k)).map(d => `<option value="${d.k}">${esc(d.l)}</option>`).join('');
 $('#ex-met').innerHTML = METS.map(m => `<option value="${m.k}">${esc(m.l)}</option>`).join('');
 $('#ex-dim').addEventListener('change', e => { UI.exDim = e.target.value; UI.exAuto = false; renderExplorer(); });
 $('#ex-met').addEventListener('change', e => { UI.exMet = e.target.value; renderExplorer(); });
@@ -454,6 +466,7 @@ function metricVal(met, j, A, all, tot) {
 }
 function fmtMet(met, v) { if (!isFinite(v)) return '–'; if (met === 'share' || met === 'pen') return pc(v, 1); if (met === 'lq') return f2(v); if (met === 'tpe') return f1(v); return f0(v); }
 function renderExplorer() {
+  if (!EX_DIMS.includes(UI.exDim)) UI.exDim = F.sub.size ? 'act' : F.rub.size || F.lin.size ? 'sub' : 'rub';
   $('#ex-dim').value = UI.exDim; $('#ex-met').value = UI.exMet; $('#ex-top').value = String(UI.exTop);
   $('#ex-view').textContent = UI.exTable ? 'Ver barras' : 'Ver tabla';
   const dim = DIMS.find(d => d.k === UI.exDim), met = UI.exMet;
@@ -481,15 +494,15 @@ function renderExplorer() {
   }
   const vals = idx.map(val); let mx = Math.max(...vals.filter(isFinite), met === 'lq' ? 1.2 : 0); if (!(mx > 0)) mx = 1;
   host.innerHTML = '<div class="bars">' + idx.map((j, r) => {
-    const v = vals[r], w = isFinite(v) ? Math.max(0, v / mx * 100) : 0, on = dim.on && dim.on(j), tag = dim.click ? 'button' : 'div';
+    const v = vals[r], w = isFinite(v) ? Math.max(0, v / mx * 100) : 0, on = dim.on && dim.on(j) && !(dim.k === 'sub' && ACTIVE_CHAIN), tag = dim.click ? 'button' : 'div';
     const ref = met === 'lq' ? `<u style="left:${(1 / mx * 100).toFixed(1)}%"></u>` : '';
-    return `<${tag} ${dim.click ? 'type="button"' : ''} class="brow${on ? ' on' : ''}${dim.click ? '' : ' static'}" data-j="${j}"><span class="bl">${esc(dim.lab(j))}</span><span class="bt"><i style="width:${w.toFixed(1)}%"></i>${ref}</span><span class="bv">${fmtMet(met, v)}</span></${tag}>`;
+    return `<${tag} ${dim.click ? 'type="button"' : ''} class="brow${on ? ' on' : ''}${dim.click ? '' : ' static'}" data-j="${j}"${dim.click ? ` aria-pressed="${!!on}"` : ''}><span class="bl">${esc(dim.lab(j))}</span><span class="bt"><i style="width:${w.toFixed(1)}%"></i>${ref}</span><span class="bv">${fmtMet(met, v)}</span></${tag}>`;
   }).join('') + '</div>';
   const bars = host.querySelector('.bars');
   const tipFor = (el, ev) => { const j = +el.dataset.j; showTip(ev, dim.lab(j), [[f0(A.n[j]), 'empresas'], [f0(A.t[j]), 'trabajadores'], [f0(A.e[j]), 'empresas empleadoras'], [pc(tot ? A.n[j] / tot : NaN), 'de la selección']], dim.click ? (dim.on && dim.on(j) ? 'Clic para quitar el filtro' : 'Clic para filtrar') : null); };
   bars.addEventListener('pointermove', e => { const el = e.target.closest('.brow'); if (el) tipFor(el, e); else hideTip(); });
   bars.addEventListener('pointerleave', hideTip);
-  if (dim.click) bars.addEventListener('click', e => { const el = e.target.closest('.brow'); if (!el) return; hideTip(); dim.click(+el.dataset.j); FP.preset = null; update(); });
+  if (dim.click) bars.addEventListener('click', e => { const el = e.target.closest('.brow'); if (!el) return; hideTip(); const j0 = el.dataset.j; dim.click(+j0); FP.preset = null; update(); const nb = UI.exDim === dim.k && $(`#ex-body .brow[data-j="${j0}"]`); (nb || $('#ex-dim')).focus({ preventScroll: true }); });
 }
 // evolución
 function lineChart(host, series, opts) {
@@ -528,7 +541,7 @@ function lineChart(host, series, opts) {
 function renderEvo() {
   const sr = CTX.ser, i0 = pIdx(), i0t = pIdxT(), idx = (a, k) => a.map(v => (a[k] > 0 && isFinite(v) ? v / a[k] * 100 : NaN)), host = $('#evo'), filt = anyFilter();
   $('#evo-leg').hidden = !filt; $('#evo-per').value = String(FP.p0); $('#f-per').value = String(FP.p0);
-  $('#evo-sub').textContent = (filt ? `Índice ${SY0 + i0} = 100 · ` : '') + `empresas ${pcs(gr(sr.n))} (${pLab()}) · trabajadores ${pcs(grT(sr.t))} (${pLabT()})`;
+  $('#evo-sub').textContent = 'Personas jurídicas en la nómina del SII de cada año' + (isFinite(gr(sr.n)) ? `: ${pcs(gr(sr.n))} en ${pLab()}` : '') + (isFinite(grT(sr.t)) ? `; sus trabajadores, ${pcs(grT(sr.t))} en ${pLabT()}` : '') + '. El aumento puede incluir negocios que ya existían y pasaron a operar como persona jurídica' + (sr.partial ? '; no aplica todos los filtros' : '') + '.';
   if (!(sr.n[i0] > 0)) { host.innerHTML = `<p class="note">Sin empresas en ${SY0 + i0} para esta selección; elige otro periodo de comparación.</p>`; $('#evo-note').textContent = ''; return; }
   host.innerHTML = '<div class="evo2"><div><div class="note">Empresas</div><div id="evo-a"></div></div><div><div class="note">Trabajadores dependientes</div><div id="evo-b"></div></div></div>';
   const mk = (sel, reg, k) => filt ? [{ name: 'Selección', vals: idx(sel, k), abs: sel, color: '#3987E5', fmt: f0, idx: true, label: true }, { name: 'Región', vals: idx(reg, k), abs: reg, color: '#8C979D', fmt: f0, idx: true }] : [{ name: 'Región', vals: sel, abs: sel, color: '#3987E5', fmt: f0, label: true }];
@@ -555,8 +568,8 @@ function renderTam() {
 }
 // tabla de empresas
 const TCOLS = [
-  { k: 'rz', l: 'Empresa', sort: 'rz' }, { k: 'com', l: 'Comuna', sort: 'com' }, { k: 'act', l: 'Rubro · actividad' }, { k: 'lin', l: 'Lin.' },
-  { k: 't', l: 'Trab.', sort: 't', r: true }, { k: 'tam', l: 'Tamaño', sort: 'tam' }, { k: 'sec', l: 'Sector · forma' }, { k: 'y', l: 'Inicio', sort: 'y', r: true }, { k: 'ct', l: 'CTCI' },
+  { k: 'rz', l: 'Empresa', sort: 'rz' }, { k: 'com', l: 'Comuna', sort: 'com' }, { k: 'act', l: 'Rubro · actividad' }, { k: 'lin', l: 'Lineamiento' },
+  { k: 't', l: 'Trab.', sort: 't', r: true }, { k: 'tam', l: 'Tamaño', sort: 'tam' }, { k: 'sec', l: 'Sector · forma' }, { k: 'y', l: 'Inicio', sort: 'y', r: true }, { k: 'ct', l: 'Tipo CTCI' },
 ];
 function sortedRows() {
   const m = CTX.M0, rows = []; for (let i = 0; i < N; i++) if (m[i]) rows.push(i);
@@ -565,18 +578,18 @@ function sortedRows() {
   return rows.sort(cmp);
 }
 const linCodes = i => LIN.filter((l, L) => LB[i] & (1 << L)).map(l => l.k);
-const PAGE = 25;
+const PAGE = 10;
 function renderTable() {
   const rows = sortedRows(), pages = Math.max(1, Math.ceil(rows.length / PAGE)); UI.ePage = Math.min(UI.ePage, pages - 1);
   const slice = rows.slice(UI.ePage * PAGE, UI.ePage * PAGE + PAGE);
-  $('#tb-sub').textContent = `${f0(rows.length)} empresas · ordena con los encabezados`;
-  const th = c => `<th scope="col" class="${c.r ? 'r' : ''}">${c.sort ? `<button type="button" data-sort="${c.sort}" ${UI.eSort === c.sort ? `aria-sort="${UI.eDir < 0 ? 'descending' : 'ascending'}"` : ''}>${esc(c.l)}${UI.eSort === c.sort ? (UI.eDir < 0 ? ' ↓' : ' ↑') : ''}</button>` : esc(c.l)}</th>`;
+  $('#tb-sub').textContent = `${f0(rows.length)} ${rows.length === 1 ? 'empresa' : 'empresas'} · ${PAGE} por página · ordena con los encabezados`;
+  const th = c => `<th scope="col" class="${c.r ? 'r' : ''}"${c.sort && UI.eSort === c.sort ? ` aria-sort="${UI.eDir < 0 ? 'descending' : 'ascending'}"` : ''}>${c.sort ? `<button type="button" data-sort="${c.sort}">${esc(c.l)}${UI.eSort === c.sort ? (UI.eDir < 0 ? ' ↓' : ' ↑') : ''}</button>` : esc(c.l)}</th>`;
   const body = slice.map(i => `<tr><td><strong style="font-weight:600">${esc(NAMES[i])}</strong>${NOM[i] ? ' <span class="pill ct" title="Figura en la Res. 1/2026">Nómina 2026</span>' : ''}<span class="sm mono">${RUT[i]}-${esc(DVS[i])}</span></td><td>${esc(CN(COM[i]))}<span class="sm">${esc(TER[TOF[COM[i]]].n)}</span></td><td>${esc(D.rubros[RUB[i]].l)}<span class="sm">${esc(D.acts[ACT[i]].l)}</span></td><td class="m">${linCodes(i).join(' ') || '–'}</td><td class="r m">${f0(TRAB[i])}</td><td>${TAMS[TAM[i]]}</td><td>${esc(SECTORS[SEC[i]])}<span class="sm">${esc(D.formas[FOR[i]])}</span></td><td class="r m">${YR[i] || '–'}${VIG[i] ? '' : '<span class="sm">Término de giro</span>'}</td><td>${CT[i] ? `<span class="pill ct">${esc(CTG[CT[i] - 1])}</span>` : ''}</td></tr>`).join('');
   $('#tb-wrap').innerHTML = `<table><thead><tr>${TCOLS.map(th).join('')}</tr></thead><tbody>${body || `<tr><td colspan="${TCOLS.length}" class="note">No hay empresas con estos filtros.</td></tr>`}</tbody></table>`;
   $('#tb-pager').innerHTML = `<span>${rows.length ? f0(UI.ePage * PAGE + 1) + '–' + f0(Math.min(rows.length, (UI.ePage + 1) * PAGE)) + ' de ' + f0(rows.length) : ''}</span><span style="display:flex;gap:6px"><button class="btn" type="button" data-pg="-1" ${UI.ePage ? '' : 'disabled'}>Anterior</button><button class="btn" type="button" data-pg="1" ${UI.ePage < pages - 1 ? '' : 'disabled'}>Siguiente</button></span>`;
 }
-$('#tb-wrap').addEventListener('click', e => { const b = e.target.closest('button[data-sort]'); if (!b) return; const k = b.dataset.sort; if (UI.eSort === k) UI.eDir *= -1; else { UI.eSort = k; UI.eDir = k === 'rz' || k === 'com' ? 1 : -1; } UI.ePage = 0; renderTable(); });
-$('#tb-pager').addEventListener('click', e => { const b = e.target.closest('button[data-pg]'); if (!b) return; UI.ePage += +b.dataset.pg; renderTable(); $('#tb-wrap').scrollIntoView({ block: 'nearest' }); });
+$('#tb-wrap').addEventListener('click', e => { const b = e.target.closest('button[data-sort]'); if (!b) return; const k = b.dataset.sort; if (UI.eSort === k) UI.eDir *= -1; else { UI.eSort = k; UI.eDir = k === 'rz' || k === 'com' ? 1 : -1; } UI.ePage = 0; renderTable(); const nb = $(`#tb-wrap button[data-sort="${k}"]`); if (nb) nb.focus({ preventScroll: true }); });
+$('#tb-pager').addEventListener('click', e => { const b = e.target.closest('button[data-pg]'); if (!b) return; UI.ePage += +b.dataset.pg; renderTable(); const nb = $(`#tb-pager button[data-pg="${b.dataset.pg}"]:not([disabled])`) || $('#tb-pager button:not([disabled])'); if (nb) nb.focus({ preventScroll: true }); });
 function exportSel() {
   const rows = sortedRows();
   const lines = [['RUT', 'DV', 'Razón social', 'Territorio ERD', 'Comuna', 'Sección CIIU', 'Rubro', 'Subrubro', 'Actividad económica', 'Lineamientos CTCI (aprox.)', 'Trabajadores dependientes 2024', 'Tramo de ventas', 'Tamaño según ventas', 'Sector', 'Forma jurídica', 'Año inicio', 'Vigente', 'Grupo CTCI (aprox.)', 'En nómina Res. 1/2026', 'Sucursales en La Araucanía']]
@@ -731,7 +744,7 @@ function renderStratMatrix() {
     STRAT_CHAINS.forEach((ch, chIdx) => {
       const val = tMatrix[t][chIdx];
       const cls = val > 0 ? 'val-cell' : 'zero';
-      h += `<td class="${cls}" data-t="${t}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(tName)}">${val > 0 ? f0(val) : '–'}</td>`;
+      h += `<td class="${cls}"${val > 0 ? ' tabindex="0" role="button"' : ''} data-t="${t}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(tName)}">${val > 0 ? f0(val) : '–'}</td>`;
     });
     h += `<td style="font-weight:700;color:var(--acc)">${f0(tTotals[t])}</td></tr>`;
 
@@ -743,7 +756,7 @@ function renderStratMatrix() {
         STRAT_CHAINS.forEach((ch, chIdx) => {
           const val = cMatrix[c][chIdx];
           const cls = val > 0 ? 'val-cell' : 'zero';
-          h += `<td class="${cls}" data-c="${c}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(cName)}">${val > 0 ? f0(val) : '–'}</td>`;
+          h += `<td class="${cls}"${val > 0 ? ' tabindex="0" role="button"' : ''} data-c="${c}" data-ch="${chIdx}" title="Filtrar ${esc(ch.n)} en ${esc(cName)}">${val > 0 ? f0(val) : '–'}</td>`;
         });
         h += `<td style="font-weight:600">${f0(cTotals[c])}</td></tr>`;
       });
@@ -807,6 +820,7 @@ if ($('#strat-matrix-wrap')) {
       if (SM_TAM_FILTER === 'micro') F.tam.add(1);
       else if (SM_TAM_FILTER === 'peq') F.tam.add(2);
       else if (SM_TAM_FILTER === 'mipyme') { F.tam.add(1); F.tam.add(2); }
+      else [1, 2, 3, 4].forEach(j => F.tam.add(j));   // «todas» en la matriz son las que informan ventas
 
       if (c != null) F.com.add(c);
       else if (t != null) F.ter.add(t);
@@ -843,10 +857,12 @@ function renderEmpresas() {
   if (!CTX) return;
   if (!DIRTY.empresas) return;
   DIRTY.empresas = false;
-  renderSumE(); renderTam(); renderM1E(); renderExplorer(); renderTable(); renderEvo();
+  renderSumE(); if (CTX.st.n) renderTam(); renderM1E(); renderExplorer(); renderTable(); renderEvo();
   if ($('#strat-matrix-card').open) renderStratMatrix();
   if ($('#e-hm-d').open) renderHeat();
 }
 $('#e-evo-d').addEventListener('toggle', e => { if (e.target.open) renderEvo(); });
 $('#strat-matrix-card').addEventListener('toggle', e => { if (e.target.open) renderStratMatrix(); });
+$('#strat-matrix-wrap').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('td.val-cell')) { e.preventDefault(); e.target.click(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && RAIL.classList.contains('open')) { RAIL.classList.remove('open'); $('#rail-open').setAttribute('aria-expanded', 'false'); $('#rail-open').focus({ preventScroll: true }); } });
 $('#e-hm-d').addEventListener('toggle', e => { if (e.target.open) renderHeat(); });

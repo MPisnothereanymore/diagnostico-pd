@@ -542,17 +542,23 @@ details.tr-lay>.layers{margin-top:10px}
 .mk-rule p b,.mk-rule li b{color:var(--ink);font-weight:600}
 .mk-sub{font-size:13.5px!important;line-height:1.5;color:var(--ink2)!important;max-width:110ch!important}.mk-sub b{color:var(--ink)}
 .mk-a8{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 32px;align-items:start}
-.mk-g h3{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);padding:12px 0 6px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.mk-g h3 span{font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px;white-space:nowrap}
+details.mk-g>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:12px 0 6px;border-bottom:1px solid var(--line2)}
+details.mk-g>summary::-webkit-details-marker{display:none}
+details.mk-g>summary h3{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+details.mk-g>summary span{color:var(--muted);font-size:12px;white-space:nowrap}
+details.mk-g:not([open])>summary span::after{content:" · ver";color:var(--acc)}
+details.mk-g>summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .mk-l{list-style:none;margin:0;padding:0}
-.mk-l li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.4;color:var(--ink)}
+.mk-l li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.4;color:var(--ink)}
 .mk-l li>b{font-family:var(--f-mono);font-weight:500;font-size:12px;color:var(--acc)}
-.mk-l li.zero>span:nth-child(2){color:var(--ink2)}
 .mk-l .u{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;max-width:190px}
-.mk-l .u i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;padding:1px 5px;border-radius:3px;background:var(--acc-soft);color:var(--acc)}
-.mk-l .u em{font-style:normal;font-size:11.5px;color:var(--sel);white-space:nowrap}
+.mk-l .u i,.mk-ll i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;padding:1px 5px;border-radius:3px;background:var(--acc-soft);color:var(--acc)}
+.mk-l .u em{font-style:normal;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.mk-ll{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 24px;font-size:13px;color:var(--ink2)}.mk-ll li{display:flex;gap:8px;align-items:baseline}.mk-ll i{flex:none}
+#mk-exe th:first-child,#mk-exe td:first-child,#mk-fin th:nth-child(2),#mk-fin td:nth-child(2){position:sticky;left:0;z-index:1;background:var(--surf)}
 @media (max-width:1100px){.mk-rules{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.mk-nums{grid-column:1/-1;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media (max-width:760px){.mk-rules,.mk-nums,.mk-a8{grid-template-columns:minmax(0,1fr)}.mk-l li{grid-template-columns:40px minmax(0,1fr)}.mk-l .u{grid-column:2;justify-content:flex-start;max-width:none}}
+@media (max-width:760px){.mk-rules,.mk-nums,.mk-a8{grid-template-columns:minmax(0,1fr)}.mk-l li{grid-template-columns:34px minmax(0,1fr)}.mk-l .u{grid-column:2;justify-content:flex-start;max-width:none}
+  #mk-go-exe,#v-marco details.ler>summary,details.mk-g>summary{min-height:40px;align-items:center}#mk-go-exe{display:inline-flex}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
 
@@ -643,10 +649,13 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .presets .btn{padding:5px 10px;font-size:12.5px}
 .presets .btn[aria-pressed="true"]{border-color:var(--acc);color:var(--acc);background:var(--acc-soft)}
 .eb{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;flex:1 1 100%;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
-.eb-t{font-size:15px;color:var(--ink2)}.eb .sel{font-size:14.5px;font-weight:600;color:var(--ink);min-width:0;max-width:min(100%,300px);border-color:var(--line2)}
-@media (max-width:640px){.eb{display:grid;grid-template-columns:auto minmax(0,1fr);padding:12px}.eb .sel{width:100%;max-width:none}.eb>.btn,.eb>.count{grid-column:1/-1;justify-self:start}}
+.eb-p{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%}.ct-sum.none{grid-template-columns:minmax(0,1fr)}
+.eb-t{font-size:15px;color:var(--ink2);white-space:nowrap}#eb-act{width:290px}#eb-geo{width:230px}#eb-tam{width:250px}.eb .sel{font-size:14.5px;font-weight:600;color:var(--ink);min-width:0;max-width:min(100%,300px);border-color:var(--line2)}
+@media (max-width:640px){.eb{display:grid;grid-template-columns:minmax(0,1fr);padding:12px}.eb-p{display:grid;grid-template-columns:96px minmax(0,1fr)}.eb .sel,#eb-act,#eb-geo,#eb-tam{width:100%;max-width:none}.eb>.btn{justify-self:start}
+  .brow{min-height:40px}.crumbs .chip button{min-width:32px;min-height:32px}#rail-close{position:sticky;bottom:0}
+  #tb-wrap th:first-child,#tb-wrap td:first-child{position:sticky;left:0;z-index:1;background:var(--surf)}#tb-wrap th:nth-child(n+7),#tb-wrap td:nth-child(n+7){display:none}}
 .crumbs:empty{display:none}
-#e-m1.lf{aspect-ratio:auto;height:min(62vh,540px)}#e-m1 .map-svg{max-height:62vh}
+#e-m1.lf{aspect-ratio:auto;height:min(56vh,480px,92vw)}#e-m1 .map-svg{max-height:62vh}
 .rail-btn{display:none}
 .work.collapsed .rail-btn{display:inline-flex}
 .only-narrow{display:none}
@@ -908,7 +917,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <div class="work" id="work">
   <aside class="rail" id="rail" aria-label="Filtros de empresas">
     <div class="rail-h"><b>Filtros de empresas</b><button class="btn sm" id="rail-hide" type="button" aria-label="Ocultar los filtros">Ocultar</button></div>
-    <p class="scope">El detalle de la frase de arriba: sector, rubro, subrubro, actividad, trabajadores, año de inicio y más. También filtran la base empresarial de las fichas de Cartera; Territorios usa siempre todas las empresas. Cada opción muestra cuántas empresas quedarían.</p>
+    <p class="scope">El detalle de la frase de arriba: sector, rubro, subrubro, actividad, trabajadores, año de inicio y más. Solo cambian esta pestaña: Cartera, Territorios y Formular usan siempre todas las empresas. Cada opción muestra cuántas empresas quedarían.</p>
     <label class="lbl" for="f-q">Buscar</label>
     <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
     <div id="facets"></div>
@@ -934,12 +943,9 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <div class="main" id="main">
     <div class="top" id="ftop">
       <div class="eb" id="eb" role="group" aria-label="Definir el grupo de empresas">
-        <span class="eb-t">Empresas de</span>
-        <select class="sel" id="eb-act" aria-label="Actividad: cadena, lineamiento o rubro"></select>
-        <span class="eb-t">en</span>
-        <select class="sel" id="eb-geo" aria-label="Lugar: territorio o comuna"></select>
-        <span class="eb-t">de</span>
-        <select class="sel" id="eb-tam" aria-label="Tamaño según ventas"></select>
+        <span class="eb-p"><span class="eb-t">Empresas de</span><select class="sel" id="eb-act" aria-label="Actividad: cadena, lineamiento o rubro"></select></span>
+        <span class="eb-p"><span class="eb-t">en</span><select class="sel" id="eb-geo" aria-label="Lugar: territorio o comuna"></select></span>
+        <span class="eb-p"><span class="eb-t">de</span><select class="sel" id="eb-tam" aria-label="Tamaño según ventas"></select></span>
         <button class="btn" id="rail-open" type="button" aria-controls="rail" aria-expanded="false">Más filtros <span id="rail-n"></span></button>
         <button class="btn" id="eb-clear" type="button" hidden>Limpiar</button>
         <div class="count" id="count" hidden></div>
@@ -1024,10 +1030,11 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Empresas ===== -->
   <section class="view" id="v-empresas" role="tabpanel" aria-labelledby="tab-empresas" hidden>
+    <div class="fm-from" id="e-from" tabindex="-1" hidden></div>
     <section class="card ct-sum" id="e-sum" aria-label="El grupo en cifras" aria-live="polite"></section>
     <div class="grid g-map">
       <section class="card">
-        <div class="card-h"><div><h2>Dónde están</h2><div class="sub" id="e-m1-sub">Pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
+        <div class="card-h"><div><h2>Dónde están</h2><div class="sub" id="e-m1-sub">Toca o pasa el cursor para ver cifras · clic para filtrar por comuna</div></div><div class="seg" id="e-m1-ind" role="group" aria-label="Indicador del mapa"></div></div>
         <div class="card-b">
           <div class="mapwrap" id="e-m1"></div>
           <div class="note" id="e-m1-note" style="margin-top:8px"></div>
@@ -1051,7 +1058,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
     </div>
     <section class="card">
       <div class="card-h"><div><h2>Quiénes son</h2><div class="sub" id="tb-sub"></div></div><div class="ctrls"><button class="btn pri" id="tb-csv" type="button" hidden>Exportar CSV</button></div></div>
-      <div class="tbl-wrap tall" id="tb-wrap"></div>
+      <div class="tbl-wrap" id="tb-wrap"></div>
       <div class="pager" id="tb-pager"></div>
     </section>
     <details class="card tr-det" id="e-evo-d">
@@ -1063,14 +1070,14 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       </div>
     </details>
     <details class="card tr-det" id="strat-matrix-card">
-      <summary class="card-h"><div><h2>Comparar: cadenas productivas por territorio</h2><div class="sub">Cuántas empresas de cada cadena hay en los 8 territorios y las 32 comunas.</div></div></summary>
+      <summary class="card-h"><div><h2>Comparar: cadenas productivas por territorio</h2><div class="sub">Cuántas empresas de cada cadena hay en los 8 territorios y las 32 comunas. Parte en micro y pequeñas; cámbialo en «Tamaño».</div></div></summary>
       <div class="tr-detb">
         <div class="ctrls">
           <label class="ctrl">Tamaño<select class="sel" id="sm-tam">
             <option value="mipyme" selected>Micro y pequeña (MiPyME)</option>
             <option value="micro">Solo micro (hasta 2.400 UF)</option>
             <option value="peq">Solo pequeña (2.400 a 25.000 UF)</option>
-            <option value="all">Todas, con ventas informadas o no</option>
+            <option value="all">Todas las que informan ventas (las que cuentan Territorios y Formular)</option>
           </select></label>
           <button class="btn" id="sm-toggle-com" type="button">Desplegar 32 comunas</button>
           <button class="btn pri" id="sm-csv" type="button">Exportar CSV</button>
@@ -1176,15 +1183,15 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <!-- ===== Marco normativo ===== -->
   <section class="view" id="v-marco" role="tabpanel" aria-labelledby="tab-marco" hidden>
     <section class="card">
-      <div class="card-h"><div><h2>Las reglas del FRPD en una página</h2><div class="sub">D.S. 1.699 de Hacienda (17 de junio de 2025). Monto 2026: Ley 21.796, total confirmado por DIFOI el 14 de octubre de 2026.</div></div></div>
+      <div class="card-h"><div><h2>Las reglas del FRPD en una página</h2><div class="sub">D.S. 1.699 de 2024 de Hacienda, publicado el 17 de junio de 2025. Monto 2026: Ley 21.796, total confirmado por DIFOI el 14 de octubre de 2026. Es un resumen: para citar, usa el texto del decreto.</div></div></div>
       <div class="card-b"><div class="mk-rules" id="mk-rules"></div></div>
     </section>
     <section class="card">
       <div class="card-h"><div><h2>Qué se puede financiar · art. 8</h2><div class="sub mk-sub" id="mk-a8-sub"></div></div></div>
-      <div class="card-b"><div class="mk-a8" id="mk-a8"></div><p class="note" style="margin-top:12px">A la derecha de cada categoría, las líneas de la cartera DIFOI que la usan (pasa el cursor para ver su nombre).</p></div>
+      <div class="card-b"><div class="mk-a8" id="mk-a8"></div><details class="ler" id="mk-lines" style="margin-top:12px"></details></div>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Con qué se alinea · Estrategia Regional de Desarrollo 2040</h2><div class="sub">Seis lineamientos estratégicos regionales (LER) y sus objetivos. El art. 8 pide que la inversión vaya en línea con la ERD, y cada línea de la cartera declara sus LER.</div></div></div>
+      <div class="card-h"><div><h2>Con qué se alinea · Estrategia Regional de Desarrollo 2040</h2><div class="sub">Los seis lineamientos de la ERD y sus objetivos. El art. 8 pide que la inversión vaya en línea con la ERD, las prioridades regionales de fomento productivo y la Política Regional de CTCI; cada línea de la cartera declara sus lineamientos de la ERD.</div></div></div>
       <div class="card-b" id="ler"></div>
     </section>
     <details class="card tr-det" id="mk-exe-d">
@@ -1195,7 +1202,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       </div>
     </details>
     <details class="card tr-det" id="mk-fin-d">
-      <summary class="card-h"><div><h2>Lo que ya se financia en la región · desde 2019</h2><div class="sub" id="mk-fin-sub"></div></div></summary>
+      <summary class="card-h"><div><h2>Lo que ya se postula o financia en la región · desde 2019</h2><div class="sub" id="mk-fin-sub"></div></div></summary>
       <div class="tr-detb"><div class="tbl-wrap" id="mk-fin"></div></div>
     </details>
   </section>

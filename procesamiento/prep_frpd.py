@@ -106,7 +106,7 @@ ART8 = [
    ('2b', 'Inversiones habilitantes que contribuyan a la descarbonización'),
    ('2c', 'Inversiones habilitantes para reducir o reutilizar desperdicios (economía circular) y tratar pasivos ambientales'),
    ('2d', 'Planificación territorial, plan de desarrollo logístico y planes estratégicos de energía regional (PEER)'),
-   ('2e', 'Gestión y operación de los Comités de Desarrollo Productivo y de CTCI regionales'),
+   ('2e', 'Mejora de gestión y operación de financiamiento para los Comités de Desarrollo Productivo y de CTCI regionales'),
    ('2f', 'Convenios para elaborar o actualizar la Estrategia Regional de Desarrollo'),
    ('2g', 'Bienes públicos y capacidades habilitantes (tecnológicas, institucionales y humanas) para el desarrollo productivo'),
    ('2h', 'Innovación pública con impacto en el ámbito productivo'),
@@ -126,14 +126,14 @@ GASTOS = [('i', 'Infraestructura y equipamiento científico para instituciones d
  ('vi', 'Traspaso de recursos a Centros Regionales ANID mediante convenio'),
  ('vii', 'Proyectos del Financiamiento Estructural I+D+i Universitario Territorial y de Frontera (MinCiencia)'),
  ('viii', 'Instrumentos de ANID en la región, desde formación de capacidades hasta centros tecnológicos'),
- ('ix', 'I+D y transferencia de Institutos Tecnológicos Públicos (INIA, ISP, SERNAGEOMIN, IFOP u otros)'),
+ ('ix', 'I+D y transferencia de Institutos Tecnológicos Públicos (el decreto nombra al Instituto de Desarrollo Agropecuario, ISP, SERNAGEOMIN, IFOP u otros)'),
  ('x', 'Instrumentos de CORFO que promueven I+D y transferencia tecnológica')]
 ART10 = ['Remuneraciones distintas de los gastos de administración del art. 9 (tope 5% del fondo)', 'Programas de empleo público', 'Programas de vivienda',
  'Compra o arriendo de vehículos, salvo que sean parte imprescindible de un proyecto del art. 8', 'Construcción o mejoramiento de espacios públicos que no formen parte de un proyecto del art. 8',
  'Congresos, seminarios, eventos masivos, conciertos y similares']
 EJEC = [('Instituciones públicas', 'Arts. 11 y 15', 'Habilitadas sin autorización adicional si tienen funciones de fomento productivo, desarrollo regional o investigación. Los municipios reciben transferencias del GORE.'),
- ('Educación superior', 'Arts. 11 y 13', 'Públicas acreditadas por 4 años o más quedan habilitadas; las privadas, además, deben estar en la resolución conjunta.'),
- ('Privadas sin fines de lucro', 'Arts. 12–14', 'Solo las incluidas en la resolución conjunta de las Subsecretarías de Economía y de CTCI (visada por DIPRES): 2 años o más de antigüedad, experiencia y sin prohibición de contratar con el Estado. Deben concursar.')]
+ ('Educación superior', 'Arts. 11 y 13', 'Las públicas acreditadas por 4 años o más quedan habilitadas (art. 11, inciso 2°); las privadas necesitan la misma acreditación y estar en la resolución conjunta (art. 13).'),
+ ('Instituciones privadas', 'Arts. 12–14', 'Solo las incluidas en la resolución conjunta anual de las Subsecretarías de Economía y de CTCI, visada por la Dirección de Presupuestos: 2 años o más de antigüedad, experiencia y sin prohibición de contratar con el Estado. Deben concursar, salvo cuando el concurso no proceda según la normativa vigente.')]
 
 # ---------------- cartera minuta FRPD ----------------
 LINES = [

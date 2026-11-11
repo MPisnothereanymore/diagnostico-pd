@@ -416,6 +416,7 @@ const VIEWS = ['cartera', 'bip', 'territorios', 'empresas', 'evid', 'formular', 
 const FIRMV = new Set(['empresas']);   // la barra de filtros de empresas solo se muestra en Empresas
 const rendered = {};
 function setView(v) {
+  if (EMP_RET && v !== 'empresas') { EMP_RET = null; renderEmpFrom(); }
   if (TR_RET && v !== (TR_RET.kind === 'bip' ? 'bip' : 'cartera')) TR_RET = null;
   UI.view = v;
   VIEWS.forEach(k => { const tb = $('#tab-' + k); tb.setAttribute('aria-selected', String(k === v)); tb.tabIndex = k === v ? 0 : -1; $('#v-' + k).hidden = k !== v; });
@@ -627,7 +628,7 @@ function renderFicha() {
   const ler = ln ? ln.ler : [];
   h += `<div class="fi-sec"><h3>Alineación con la ERD 2040</h3>${ler.length ? `<div class="pills">${ler.map(k => `<span class="pill"><b>LER ${k}</b>${esc(LERN[k])}</span>`).join('')}</div>` : ''}
     <p class="quote">${esc(T.obj)}</p><p class="note">Objetivo del territorio ${esc(T.nOficial || T.n)} en la ERD${T.k === 'TPLC' ? ' (resumen; ver texto completo en la ERD, tabla 29)' : ''}.</p></div>`;
-  h += `<div class="fi-sec"><h3>Base empresarial · SII 2024</h3>${hasAttr() ? `<p class="note warn">Calculada con los filtros de empresas: ${esc(filterText(true))}.</p>` : ''}<div class="stats">
+  h += `<div class="fi-sec"><h3>Base empresarial · SII 2024</h3><div class="stats">
       <div class="stat"><div class="l">Empresas</div><div class="v">${f0(cN[t][L])}</div><div class="s">${pc(cN[t][L] / tN[t])} del territorio</div></div>
       <div class="stat"><div class="l">Trabajadores</div><div class="v">${f0(cT[t][L])}</div><div class="s">${f0(c10[t][L])} empresas con 10 o más</div></div>
       <div class="stat"><div class="l">Cociente de localización</div><div class="v">${f2(lq)}</div><div class="s">${f2(lqt)} en trabajadores</div></div></div>
@@ -718,8 +719,8 @@ function renderFicha() {
   $$('#ficha [data-line]').forEach(b => b.addEventListener('click', () => selectLine(b.dataset.line)));
   $('#fi-bip').addEventListener('click', () => openBip({ t, L, cat: 'frpd' }));
   $('#fi-ev').addEventListener('click', () => openEvid({ t, g: EVL[Lk].map(k => EVK[k].g)[0] }));
-  $('#fi-of').addEventListener('click', () => openEmpresas({ ter: t, ctci: true }));
-  $('#fi-emp').addEventListener('click', () => openEmpresas({ ter: t, lin: L }));
+  $('#fi-of').addEventListener('click', () => openEmpresas({ ter: t, ctci: true, ret: { t, L, sy: scrollY, from: FI_FROM } }));
+  $('#fi-emp').addEventListener('click', () => openEmpresas({ ter: t, lin: L, ret: { t, L, sy: scrollY, from: FI_FROM } }));
   if (DL) { $('#fi-csv').hidden = !firms.length; $('#fi-csv').addEventListener('click', exportFirms); $('#fi-fcsv').hidden = !FICHA.fin.length; $('#fi-fcsv').addEventListener('click', exportFin); }
   wireClaude();
 }
@@ -1521,20 +1522,24 @@ function renderMarco() {
   const piso = FRPD_2026 * 0.25, adm = FRPD_2026 * 0.05;
   $('#mk-rules').innerHTML = `
     <div class="mk-nums">
-      <div class="mk-rule"><span class="a">Art. 7 · mínimo para CTCI</span><b class="v">25 %</b><p>del fondo debe ir al N°3 (investigación científica y tecnológica). En 2026 son unos <b>${f0(piso)} MM$</b> de ${f0(FRPD_2026)} MM$. Bajarlo requiere solicitud a Hacienda.</p></div>
+      <div class="mk-rule"><span class="a">Art. 7 · mínimo para investigación</span><b class="v">25 %</b><p>del fondo debe ir a investigación científica y tecnológica (el N°3 del art. 8). En 2026 son unos <b>${f0(piso)} MM$</b> de ${f0(FRPD_2026)} MM$. Bajarlo requiere solicitud a Hacienda.</p></div>
       <div class="mk-rule"><span class="a">Art. 9 · tope de administración</span><b class="v">5 %</b><p>del fondo como máximo para gastos de administración: unos <b>${f0(adm)} MM$</b> en 2026.</p></div>
     </div>
-    <div class="mk-rule"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p>Tampoco iniciativas sin un objeto directo productivo, de desarrollo regional o de CTCI.</p></div>
+    <div class="mk-rule"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><p>Nada que no tenga por <b>objeto directo</b> el fomento de actividades productivas, el desarrollo regional o la investigación científica y tecnológica. El decreto da estos ejemplos:</p><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
     <div class="mk-rule"><span class="a">Arts. 11 a 15</span><h3>Quién puede ejecutar</h3><ul>${FR.ejec.map(e => `<li><b>${esc(e.n)}</b> (${esc(e.a)}): ${esc(e.d)}</li>`).join('')}</ul><div><button type="button" class="linkbtn" id="mk-go-exe">Ver las ${f0(EXE.length)} instituciones con sede en la región</button></div></div>`;
   // art. 8: categorías y el uso que les da la cartera
   const grpUnused = FR.art8.map(g => ({ g, un: g.items.filter(it => !used[it.k]) }));
-  const sinTxt = grpUnused.filter(x => x.un.length).map(x => (x.un.length === x.g.items.length ? `todo el N°${x.g.k}` : x.un.map(it => it.k).join(', '))).join('; ');
-  $('#mk-a8-sub').innerHTML = `La cartera usa <b>${nA8} de ${A8KEYS.length}</b> categorías del art. 8 y <b>${nG} de ${FR.gastos.length}</b> tipos de gasto del N°3. <b>${nC} de ${LINES.length}</b> líneas tienen componente N°3 y pueden contar para el mínimo de 25 %.${sinTxt ? ` Sin línea: ${esc(sinTxt)}.` : ''}`;
-  const item = (key, code, name) => { const u = used[key] || []; return `<li class="${u.length ? '' : 'zero'}"><b>${code}</b><span>${esc(name)}</span><span class="u">${u.length ? u.map(k => `<i title="${esc(LINE[k].n)}">${k}</i>`).join('') : '<em>sin línea</em>'}</span></li>`; };
-  const group = (title, n, rows) => `<section class="mk-g"><h3>${esc(title)} <span>${n}</span></h3><ul class="mk-l">${rows}</ul></section>`;
-  const gHtml = FR.art8.map(g => group(`N°${g.k} · ${g.n}`, `${g.items.filter(it => used[it.k]).length} de ${g.items.length} con línea`, g.items.map(it => item(it.k, it.k, it.n)).join('')));
+  const code = k => k.slice(1).replace('.', ' ');   // letra dentro de su numeral, como en el decreto y en Formular («N°3 b ii»)
+  const sinTxt = grpUnused.filter(x => x.un.length).map(x => (x.un.length === x.g.items.length ? `todo el N°${x.g.k}` : `N°${x.g.k} ${x.un.map(it => code(it.k)).join(', ')}`)).join('; ');
+  const sinA8 = LINES.filter(ln => !ln.a8.length && !ln.g.length).map(ln => ln.k);
+  $('#mk-a8-sub').innerHTML = `Todo lo listado es financiable. «Sin línea» solo indica que la cartera DIFOI aún no lo usa: hoy usa <b>${nA8} de ${A8KEYS.length}</b> categorías y <b>${nG} de ${FR.gastos.length}</b> tipos de gasto de investigación.${sinTxt ? ` Sin línea: ${esc(sinTxt)}.` : ''} <b>${nC} de ${LINES.length}</b> líneas tienen componente de investigación (N°3) y pueden contar para el mínimo de 25 %.`;
+  const item = (key, code, name) => { const u = used[key] || []; return `<li><b>${code}</b><span>${esc(name)}</span><span class="u">${u.length ? u.map(k => `<i title="${esc(LINE[k].n)}">${k}</i>`).join('') : '<em>sin línea</em>'}</span></li>`; };
+  const wide = innerWidth > 760;   // en teléfono cada numeral parte plegado, con su conteo a la vista
+  const group = (title, n, rows) => `<details class="mk-g"${wide ? ' open' : ''}><summary><h3>${esc(title)}</h3><span>${n}</span></summary><ul class="mk-l">${rows}</ul></details>`;
+  const gHtml = FR.art8.map(g => group(`N°${g.k} · ${g.n}`, `${g.items.filter(it => used[it.k]).length} de ${g.items.length} con línea`, g.items.map(it => item(it.k, code(it.k), it.n)).join('')));
   const gastos = group('Gastos financiables dentro del N°3', `${nG} de ${FR.gastos.length} con línea`, FR.gastos.map(gs => item('g' + gs.k, gs.k, gs.n)).join(''));
   $('#mk-a8').innerHTML = `<div>${gHtml.slice(0, 2).join('')}</div><div>${gHtml.slice(2).join('')}${gastos}</div>`;
+  $('#mk-lines').innerHTML = `<summary><b>Líneas</b><span>Qué es cada código de línea de la cartera</span><small>${LINES.length} líneas</small></summary><ul class="mk-ll">${LINES.map(ln => `<li><i>${ln.k}</i>${esc(ln.n)}</li>`).join('')}</ul>${sinA8.length ? `<p class="note">${esc(listY(sinA8))} no ${sinA8.length === 1 ? 'declara' : 'declaran'} ninguna categoría del art. 8.</p>` : ''}`;
   // lo que ya se financia
   const grp = (f) => { const o = []; for (let i = 0; i < NFN; i++) if (f(i)) o.push(i); return o; };
   const isB = g => i => FN_S[i] === S_BIP && fnG(i) === g;
@@ -1551,20 +1556,19 @@ function renderMarco() {
     ['–', 'Agua potable rural (fuera del ámbito productivo)', 'BIP · APR y servicios sanitarios rurales', grp(isB('apr'))],
   ];
   const mxF = Math.max(...FROWS.map(r => sumM(r[3])));
-  $('#mk-fin').innerHTML = `<table><thead><tr><th>Art. 8</th><th>Categoría</th><th>Fuente</th><th class="r">N°</th><th class="r">MM$</th><th style="min-width:160px">Monto (escala logarítmica)</th><th>Mayores</th></tr></thead><tbody>` +
+  $('#mk-fin').innerHTML = `<table><thead><tr><th>Art. 8</th><th>Categoría</th><th>Fuente</th><th class="r">N°</th><th class="r">MM$</th><th>Mayores</th></tr></thead><tbody>` +
     FROWS.map(([k, n, src, ix]) => { const v = sumM(ix), top = [...ix].sort(byAmt).slice(0, 2); return `<tr><td class="m" style="color:${used[k] || k.startsWith('N') ? 'var(--acc)' : 'var(--sel)'}">${k}</td><td>${esc(n)}${k !== '–' && !k.startsWith('N') && !used[k] ? '<span class="sm" style="color:var(--sel)">sin línea en la cartera FRPD</span>' : ''}</td><td>${esc(src)}</td><td class="m r">${f0(ix.length)}</td><td class="m r">${f0(v)}</td>
-      <td><div style="height:10px;background:var(--surf2);border-radius:2px"><div style="height:10px;border-radius:2px;background:var(--data);width:${v ? Math.log10(1 + v) / Math.log10(1 + mxF) * 100 : 0}%"></div></div></td>
       <td><span class="sm" style="color:var(--ink2)">${top.map(i => esc(FN_N[i].slice(0, 70)) + (isFinite(FN_M[i]) ? ` (${f0(FN_M[i])})` : '')).join('<br>')}</span></td></tr>`; }).join('') + '</tbody></table>' +
     '<p class="note" style="margin-top:10px">BIP: iniciativas postuladas 2019–2027 (FNDR, sectoriales y mixtas), última postulación de cada código; monto = costo total de la etapa postulada, no lo gastado. Tres montos BIP con valores imposibles se dejaron sin monto. ANID: fallos 2019–2026 con región de ejecución La Araucanía. CORFO: proyectos InnovaChile adjudicados 2019–2026 (DataInnovación); en Ley I+D se usa el monto certificado.</p>';
   const via = FROWS[3][3], fom = FROWS[0][3], ene = FROWS[4][3];
-  $('#mk-fin-sub').textContent = `ANID, CORFO InnovaChile e iniciativas BIP agrupadas según la categoría del art. 8 a la que se parecen. Las categorías sin línea en la cartera no están vacías: se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. Sirve para no duplicar.`;
+  $('#mk-fin-sub').textContent = `ANID y CORFO adjudicados, e iniciativas BIP postuladas (no necesariamente financiadas), agrupados según la categoría del art. 8 a la que se parecen. Las categorías sin línea en la cartera tienen actividad por otras vías: se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. Sirve para no duplicar.`;
   // ejecutores
   const isIES = x => /Universidad|Instituto profesional|CFT/.test(x.sub);
   const topL = x => x.an.L.map((v, j) => [v, j]).filter(z => z[0] > 0).sort((p, q) => q[0] - p[0]).slice(0, 3).map(([v, j]) => `${LIN[j].k} ${v}`).join(' · ') || '–';
-  $('#mk-exe').innerHTML = `<table><thead><tr><th>Institución</th><th>Habilitación</th><th>Nómina 2026</th><th>Acreditación</th><th class="r">ANID 2019–26</th><th class="r">MM$</th><th>Lineamientos (proyectos ANID)</th></tr></thead><tbody>` +
+  $('#mk-exe').innerHTML = `<table><thead><tr><th>Institución</th><th>Habilitación</th><th>Nómina 2026</th><th>Acreditación (verificar en CNA)</th><th class="r">ANID 2019–26</th><th class="r">MM$</th><th>Lineamientos (proyectos ANID)</th></tr></thead><tbody>` +
     EXE.map(x => `<tr><td style="min-width:220px"><b style="font-weight:600">${esc(x.n)}</b><span class="sm">${esc(x.sub)} · ${esc(x.c.map(CN).join(', '))}${x.note ? ' · ' + esc(x.note) : ''}</span></td><td style="min-width:200px"><span class="sm" style="color:var(--ink2)">${esc(x.base)}</span></td>
       <td>${x.r1 ? '<span class="pill ct">Sí</span>' : x.t === 'pub' ? '<span class="pill">No aplica</span>' : '<span class="pill warn">No</span>'}</td>
-      <td>${isIES(x) ? '<span class="pill warn" title="El art. 13 exige 4 años o más">Verificar en CNA</span>' : '<span class="sm">No aplica</span>'}</td>
+      <td>${isIES(x) ? '<span class="sm" style="color:var(--sel)">4 años o más: por verificar</span>' : '<span class="sm">No aplica</span>'}</td>
       <td class="m r">${x.an.n ? f0(x.an.n) + `<span class="sm">${x.an.apl} aplicada</span>` : '–'}</td><td class="m r">${x.an.m ? f0(x.an.m) : '–'}</td><td class="m">${topL(x)}</td></tr>`).join('') + '</tbody></table>' +
     `<div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Sedes privadas de educación superior que no figuran en la nómina del primer llamado 2026</span><div class="tchips">${EXENO.map(x => `<span class="tchip" title="${esc(CN(x.c))}">${esc(x.n)}</span>`).join('')}</div>
       <p class="note">${esc(FR.res1Meta.segundo)} Fuente de la nómina: ${esc(FR.res1Meta.fuente)}.</p></div>
@@ -2007,7 +2011,7 @@ function buildPrompt() {
     lineamiento_CTCI: `${Lk} ${LIN[L].n}`,
     entrada_cartera: ln ? { linea: `${ln.k} ${ln.n}`, bloque: BLOQ[ln.b], madurez: `${e.m} de 3 (${MADT[e.m]})`, que_financia: ln.que, evidencia_minuta: ln.ev,
       categorias_art8: ln.a8.map(k => `${k}: ${A8[k].n}`), gastos_N3: ln.g.map(k => `${k}: ${GASTO[k]}`), aporta_piso_CTCI_25: isCTCI(ln), LER: ln.ler.map(k => `LER ${k} ${LERN[k]}`) } : 'Sin entrada en la cartera para esta celda',
-    filtros_de_empresas_aplicados: hasAttr() ? filterText(true) : 'ninguno (todas las empresas con casa matriz en la región)',
+    filtros_de_empresas_aplicados: 'ninguno (todas las empresas con casa matriz en la región)',
     oferta_de_conocimiento_CTCI_en_el_territorio: FICHA.of ? Object.fromEntries([1, 2, 3, 4, 5].map(j => [CTG[j - 1], { empresas: FICHA.of.n[j], trabajadores: FICHA.of.w[j] }])) : undefined,
     base_empresarial_SII_2024: { empresas: cN[t][L], porcentaje_del_territorio: +(cN[t][L] / tN[t] * 100).toFixed(1), trabajadores: cT[t][L], empresas_10_o_mas_trabajadores: c10[t][L],
       cociente_localizacion_empresas: +lqN(t, L).toFixed(2), cociente_localizacion_trabajadores: +lqT(t, L).toFixed(2), periodo_crecimiento: pLab(), crecimiento_empresas_pct: +(gr(serC[t][L]) * 100).toFixed(0), crecimiento_region_mismo_lineamiento_pct: +(gr(serR[L]) * 100).toFixed(0),
