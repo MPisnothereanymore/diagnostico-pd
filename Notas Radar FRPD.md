@@ -270,6 +270,13 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 | Viviendas sin energía | por 1.000 hab. | Ocho comunas registran exactamente 50 (posible piso de la fuente) |
 | Antenas | por 100 km² | Decretos 1997–2020; no reflejan la cobertura actual |
 
+## Ajustes de lectura (11 de noviembre de 2026)
+- **Encabezado.** Una línea de propósito; el detalle del contenido pasó al pie, antes de las fuentes.
+- **Filtros BIP.** Quedan visibles la búsqueda, el tipo de inversión, el territorio y la categoría. Comuna, lineamiento, año, etapa, financiamiento y RATE están tras «Más filtros». Los filtros activos se muestran como etiquetas que se quitan con un clic.
+- **Notas de los mapas.** Las notas largas muestran su primera frase y pliegan el resto.
+- **Íconos.** Se quitaron los emojis de botones, listas, cadenas y guías.
+- **Unidades.** Los encabezados de los CSV dicen «miles de $» en vez de «M$», para no confundirlos con los MM$ de la pantalla. Los valores no cambian.
+
 ## Tipo de inversión (11 de noviembre de 2026)
 - **Filtro.** En la pestaña Iniciativas BIP, el filtro «Tipo de inversión» es de selección múltiple y tiene cinco opciones: infraestructura (2.921), conservación de infraestructura (1.249), equipamiento y vehículos (378), programas (576) y estudios básicos (75). Cada botón muestra cuántas iniciativas quedan con los demás filtros.
 - **Criterio.** Se parte de la tipología oficial del BIP (`TIP_CLAVE`: 791 proyecto, 792 programa, 793 estudio básico). Los proyectos se separan por el proceso con que parte su nombre, según la norma de nombres del SNI (proceso + objeto + localización):

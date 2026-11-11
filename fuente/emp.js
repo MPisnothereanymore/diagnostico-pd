@@ -77,13 +77,13 @@ function renderFacet(fc) {
   }).join('') + (more ? `<div class="fmore">${f0(more)} más · escribe para buscar</div>` : '') + (idx.length ? '' : '<div class="fmore">Sin coincidencias</div>');
 }
 const STRAT_CHAINS = [
-  { id: 'agro', n: 'Cadena Agroalimentaria', icon: '🌾', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'Apoyo agrícola (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472)' },
-  { id: 'for', n: 'Forestal y Madera', icon: '🌲', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310)' },
-  { id: 'tur', n: 'Turismo y Experiencias', icon: '🏔️', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932)' },
-  { id: 'ebtc', n: 'I+D y Base Tecnológica (EBTC)', icon: '🔬', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), software (J620, J631)' },
-  { id: 'ene', n: 'Energía y Climatización', icon: '⚡', subs: [71, 72, 73, 46, 51], desc: 'Generación ERNC (hidro, solar, eólica), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279)' },
-  { id: 'const', n: 'Construcción e Instalaciones', icon: '🏗️', subs: [81, 82, 85, 86, 87], desc: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439)' },
-  { id: 'circ', n: 'Economía Circular', icon: '♻️', subs: [70, 74, 77, 78, 79, 204], desc: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952)' }
+  { id: 'agro', n: 'Cadena Agroalimentaria', icon: '', subs: [0, 26, 24, 23, 21, 91, 96], desc: 'Apoyo agrícola (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472)' },
+  { id: 'for', n: 'Forestal y Madera', icon: '', subs: [6, 10, 11, 12, 16, 47, 56], desc: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310)' },
+  { id: 'tur', n: 'Turismo y Experiencias', icon: '', subs: [117, 119, 121, 164, 178, 194, 197], desc: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932)' },
+  { id: 'ebtc', n: 'I+D y Base Tecnológica (EBTC)', icon: '', subs: [156, 157, 154, 58, 36, 125, 133], desc: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), software (J620, J631)' },
+  { id: 'ene', n: 'Energía y Climatización', icon: '', subs: [71, 72, 73, 46, 51], desc: 'Generación ERNC (hidro, solar, eólica), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279)' },
+  { id: 'const', n: 'Construcción e Instalaciones', icon: '', subs: [81, 82, 85, 86, 87], desc: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439)' },
+  { id: 'circ', n: 'Economía Circular', icon: '', subs: [70, 74, 77, 78, 79, 204], desc: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952)' }
 ];
 let ACTIVE_CHAIN = null;
 
@@ -114,7 +114,7 @@ function renderStratFacet() {
     h += `<label class="fi${isSel ? ' on' : ''}${cnt === 0 && !isSel ? ' zero' : ''}" style="cursor:pointer;padding:4px 6px;margin-bottom:2px" title="${esc(ch.desc)}">
       <input type="checkbox" data-chain="${ch.id}" ${isSel ? 'checked' : ''}>
       <span class="t">
-        <span><b>${ch.icon}</b> ${esc(ch.n)}</span>
+        <span>${esc(ch.n)}</span>
         <span class="bar"><i style="width:${pct}%"></i></span>
       </span>
       <span class="c">${f0(cnt)}</span>
@@ -178,13 +178,13 @@ const PRESETS = [
   { k: 'tur', g: 'Vistas rápidas', l: 'Alojamiento y comidas', fn: () => { F.rub.add(RIDX('I')); UI.exDim = 'sub'; } },
 
   // Lentes Estratégicos (Cadenas Productivas Clave)
-  { k: 'lens-agro', g: 'Cadenas Estratégicas', l: '🌾 Cadena Agroalimentaria', title: 'Apoyo agrícola y poscosecha (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472) · 3.189 MiPyMEs', fn: () => { [0, 26, 24, 23, 21, 91, 96].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-for', g: 'Cadenas Estratégicas', l: '🌲 Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-tur', g: 'Cadenas Estratégicas', l: '🏔️ Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: '🔬 I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-ene', g: 'Cadenas Estratégicas', l: '⚡ Energía y Climatización', title: 'Generación ERNC (hidro, eólica, solar), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279) · 53 MiPyMEs (80 empresas)', fn: () => { [71, 72, 73, 46, 51].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-const', g: 'Cadenas Estratégicas', l: '🏗️ Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-circ', g: 'Cadenas Estratégicas', l: '♻️ Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-agro', g: 'Cadenas Estratégicas', l: 'Cadena Agroalimentaria', title: 'Apoyo agrícola y poscosecha (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472) · 3.189 MiPyMEs', fn: () => { [0, 26, 24, 23, 21, 91, 96].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-for', g: 'Cadenas Estratégicas', l: 'Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-tur', g: 'Cadenas Estratégicas', l: 'Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: 'I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-ene', g: 'Cadenas Estratégicas', l: 'Energía y Climatización', title: 'Generación ERNC (hidro, eólica, solar), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279) · 53 MiPyMEs (80 empresas)', fn: () => { [71, 72, 73, 46, 51].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-const', g: 'Cadenas Estratégicas', l: 'Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
+  { k: 'lens-circ', g: 'Cadenas Estratégicas', l: 'Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
 
   ...LIN.map((l, L) => ({ k: 'L' + L, g: 'Lineamiento', l: `${l.k} ${LSHORT[l.k]}`, title: l.n, fn: () => { F.lin.add(L); UI.exDim = 'sub'; } })),
   { k: 'nom', g: 'FRPD', l: 'En nómina Res. 1/2026', title: 'Instituciones privadas sin fines de lucro habilitadas para el primer llamado FRPD 2026 con casa matriz en la región', fn: () => { F.nom = true; UI.exDim = 'com'; } },
@@ -215,7 +215,7 @@ function activeChips() {
   F.rub.forEach(j => out.push(['a', D.rubros[j].l, () => F.rub.delete(j)]));
   if (ACTIVE_CHAIN) {
     const ch = STRAT_CHAINS.find(c => c.id === ACTIVE_CHAIN);
-    if (ch) out.push(['a', `${ch.icon} ${ch.n}`, () => { ACTIVE_CHAIN = null; clearFilters(); syncInputs(); update(); }]);
+    if (ch) out.push(['a', ch.n, () => { ACTIVE_CHAIN = null; clearFilters(); syncInputs(); update(); }]);
   } else {
     F.sub.forEach(j => out.push(['a', D.subs[j].l, () => F.sub.delete(j)]));
   }
@@ -705,7 +705,7 @@ function renderStratMatrix() {
   let h = `<table class="strat-tbl"><thead><tr>
     <th style="min-width:180px">Territorio / Comuna</th>`;
   STRAT_CHAINS.forEach(ch => {
-    h += `<th title="${esc(ch.desc)}" style="min-width:115px">${ch.icon} ${esc(ch.n)}</th>`;
+    h += `<th title="${esc(ch.desc)}" style="min-width:115px">${esc(ch.n)}</th>`;
   });
   h += `<th style="min-width:90px;font-weight:700">Total</th></tr></thead><tbody>`;
 
