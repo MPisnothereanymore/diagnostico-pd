@@ -275,6 +275,10 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Filtros BIP.** Quedan visibles la búsqueda, el tipo de inversión, el territorio y la categoría. Comuna, lineamiento, año, etapa, financiamiento y RATE están tras «Más filtros». Los filtros activos se muestran como etiquetas que se quitan con un clic.
 - **Notas de los mapas.** Las notas largas muestran su primera frase y pliegan el resto.
 - **Íconos.** Se quitaron los emojis de botones, listas, cadenas y guías.
+- **Pestañas.** Agrupadas en Inversión (Cartera, Iniciativas BIP, Compras Públicas), Diagnóstico (Territorios, Empresas, Evidencia territorial) y Formulación (Marco normativo, Simulador). «Territorios e infraestructura» pasó a llamarse «Territorios». En pantallas de menos de 900 px los rótulos de grupo se ocultan.
+- **Mapa BIP.** El botón «Ocultar mapa» lo pliega para llegar a la tabla, y el navegador recuerda la elección.
+- **Perfil de territorio.** Las cifras quedan arriba, y las seis secciones siguientes son plegables. Parte abierta solo la de especialización, y el estado se mantiene al cambiar de territorio.
+- **Capas de Territorios.** Agrupadas en Referencias, Transporte y conectividad, y Servicios y equipamiento.
 - **Unidades.** Los encabezados de los CSV dicen «miles de $» en vez de «M$», para no confundirlos con los MM$ de la pantalla. Los valores no cambian.
 
 ## Tipo de inversión (11 de noviembre de 2026)

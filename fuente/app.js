@@ -418,7 +418,7 @@ function locator(ti, extra) {
 }
 
 // ================= vistas =================
-const VIEWS = ['cartera', 'territorios', 'empresas', 'evid', 'marco', 'bip', 'simulador', 'compras'];
+const VIEWS = ['cartera', 'bip', 'compras', 'territorios', 'empresas', 'evid', 'marco', 'simulador'];
 const FIRMV = new Set(['cartera', 'territorios', 'empresas']);
 const rendered = {};
 function setView(v) {
@@ -1265,7 +1265,10 @@ function initMap() {
   $('#m-lin').innerHTML = LIN.map((l, i) => `<option value="${i}">${l.k} · ${esc(LSHORT[l.k])}</option>`).join('');
   $('#m-ind').addEventListener('change', e => { UI.mInd = e.target.value; renderMapOnly(); });
   $('#m-lin').addEventListener('change', e => { UI.mLin = +e.target.value; renderMapOnly(); });
-  $('#layers').insertAdjacentHTML('beforeend', LAYERS.map(l => `<label><input type="checkbox" data-layer="${l.k}"${UI.layers.has(l.k) ? ' checked' : ''}>${l.sw ? `<span class="k${l.sw === 'h' ? ' h' : l.line ? ' l' : ''}" style="${l.sw === 'h' ? '' : l.line ? `border-color:${l.sw.startsWith('--') ? `var(${l.sw})` : l.sw}` : `background:var(${l.sw})`}"></span>` : ''}${esc(l.l)}</label>`).join(''));
+  const lyItem = l => `<label><input type="checkbox" data-layer="${l.k}"${UI.layers.has(l.k) ? ' checked' : ''}>${l.sw ? `<span class="k${l.sw === 'h' ? ' h' : l.line ? ' l' : ''}" style="${l.sw === 'h' ? '' : l.line ? `border-color:${l.sw.startsWith('--') ? `var(${l.sw})` : l.sw}` : `background:var(${l.sw})`}"></span>` : ''}${esc(l.l)}</label>`;
+  const LGRP = [['Referencias', ['tl', 'cl', 'rez']], ['Transporte y conectividad', ['rut', 'erd', 'pue', 'port', 'aer']], ['Servicios y equipamiento', ['elec', 'ssr', 'ant', 'ies']]];
+  const lyIn = new Set(LGRP.flatMap(g => g[1])), lyRest = LAYERS.filter(l => !lyIn.has(l.k));
+  $('#layers').insertAdjacentHTML('beforeend', LGRP.map(([g, ks]) => `<div class="lgrp"><b>${g}</b>${ks.map(k => LAYERS.find(l => l.k === k)).filter(Boolean).map(lyItem).join('')}</div>`).join('') + (lyRest.length ? `<div class="lgrp"><b>Otras</b>${lyRest.map(lyItem).join('')}</div>` : ''));
   $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); }));
   MAP.setLayers(UI.layers);
 }
@@ -1283,6 +1286,7 @@ function renderMapNote() {
   if (UI.mInd.startsWith('ev:')) { const e = EVK[UI.mInd.slice(3)]; n.push(EVSRC[e.g].map(k => CX.meta[k]).join(' ')); if (e.k === 'inu') n.push('Una comuna sin zonas puede estar fuera del área estudiada.'); }
   setNote($('#m-note'), n.join(' '), 'Más notas de las capas activas');
 }
+const TP_OPEN = new Set(['Especialización por lineamiento']);
 function renderTprof() {
   const ti = UI.ter, T = TER[ti];
   const ents = ENT.filter(e => e.t === T.k);
@@ -1329,6 +1333,12 @@ function renderTprof() {
       <div class="tchips">${ents.map(e => `<button type="button" class="tchip m${e.m}" data-c="${e.c}" style="background:none;cursor:pointer" title="${esc(LINE[e.l].n)} · madurez ${e.m}">${e.c} ${e.l}</button>`).join('')}</div>
       <p class="note">Clic en una entrada para abrir su ficha en la cartera.</p></div>
   </div>`;
+  for (const d of [...$('#tprof .prof').children]) {
+    const lb = d.firstElementChild; if (!lb || !lb.classList.contains('lbl')) continue;
+    const key = lb.textContent.replace(/\s*\(.*\)\s*$/, ''), det = document.createElement('details'), sum = document.createElement('summary'), body = document.createElement('div');
+    det.className = 'psec'; det.open = TP_OPEN.has(key); sum.appendChild(lb); while (d.firstChild) body.appendChild(d.firstChild); det.append(sum, body); d.replaceWith(det);
+    det.addEventListener('toggle', () => { if (det.open) TP_OPEN.add(key); else TP_OPEN.delete(key); });
+  }
   $('#tp-bip').addEventListener('click', () => openBip({ t: ti }));
   $('#tp-ev').addEventListener('click', () => openEvid({ t: ti }));
   $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { UI.t = ti; UI.L = LIDX[b.dataset.c]; setView('cartera'); renderMatrix(); renderFicha(); $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
@@ -1911,6 +1921,9 @@ function bxInitControls() {
   bind('bx-t', 't', 1); bind('bx-c', 'c', 1); bind('bx-cat', 'cat'); bind('bx-l', 'L', 1); bind('bx-y', 'y', 1); bind('bx-e', 'e', 1); bind('bx-fin', 'fin'); bind('bx-r', 'r', 1);
   let qt; $('#bx-q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { BXF.q = e.target.value; BXF.page = 0; BXF.open.clear(); renderBip(); }, 180); });
   $('#bx-clear').addEventListener('click', () => { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }); BXF.open.clear(); $('#bx-q').value = ''; renderBip(); });
+  const mt = $('#bx-mtog'), setMin = v => { $('#bx-mapc').classList.toggle('min', v); mt.textContent = v ? 'Mostrar mapa' : 'Ocultar mapa'; mt.setAttribute('aria-expanded', String(!v)); try { localStorage.setItem('radar-bxmap-min', v ? '1' : ''); } catch (e) {} };
+  mt.addEventListener('click', () => setMin(!$('#bx-mapc').classList.contains('min')));
+  try { if (localStorage.getItem('radar-bxmap-min')) setMin(true); } catch (e) {}
   $('#bx-more-b').addEventListener('click', () => { const m = $('#bx-more'); m.hidden = !m.hidden; renderBip(); });
   $('#bx-act').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; const k = b.dataset.k; BXF[k] = BX_DEF[k]; BXF.page = 0; BXF.open.clear(); renderBip(); });
   if (BX_TIV.length) $('#bx-ti').addEventListener('click', e => { const b = e.target.closest('button[data-ti]'); if (!b) return; const t = +b.dataset.ti; if (BXF.ti.has(t)) BXF.ti.delete(t); else BXF.ti.add(t); BXF.page = 0; BXF.open.clear(); renderBip(); });

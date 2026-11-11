@@ -56,7 +56,13 @@ p{margin:0}
 .brand b{display:block;font-size:17px;font-weight:600;letter-spacing:-.005em}
 .brand span{font-size:12.5px;color:var(--muted)}
 .hdr .meta{font-size:12px;color:var(--muted);text-align:right;max-width:520px}
-.tabs{display:flex;align-items:flex-end;gap:2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs{display:flex;align-items:flex-end;gap:0 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabg{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tabg-l{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 14px}
+.tabg-b{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px}
+.tabg .tab{padding:9px 12px}
+.tabg-l{padding:0 12px}
+@media(max-width:900px){.tabg,.tabg-b{display:contents}.tabg-l{display:none}.tabs{gap:2px}}
 .tab{border:0;background:none;color:var(--ink2);padding:10px 14px;font-size:14px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:center}
 .tab small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--acc)}
@@ -249,7 +255,19 @@ td.good{color:var(--ok)}
 .legend b{color:var(--ink);font-weight:600;font-size:12px;flex-basis:100%}
 .legend .row{display:flex;align-items:center;gap:7px}
 .legend .sw{width:16px;height:10px;border-radius:2px;flex:none}
-.layers{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px;border:0;margin:0;padding:0}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 22px;border:0;margin:0;padding:0}
+.layers legend{grid-column:1/-1}
+.lgrp{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lgrp>b{font-size:11.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:4px}
+#bx-mapc.min .card-b,#bx-mapc.min .seg{display:none}
+.psec{border-top:1px solid var(--line);padding-top:10px}
+.psec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.psec>summary::-webkit-details-marker{display:none}
+.psec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+.psec[open]>summary::after{content:"–"}
+.psec>summary:hover .lbl{color:var(--ink)}
+.psec>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.psec>div{display:flex;flex-direction:column;gap:7px;margin-top:9px}
 .layers legend{padding:0;margin-bottom:6px}
 .layers label{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--ink2)}
 .layers input{accent-color:var(--acc);margin:0;width:14px;height:14px;flex:none}
@@ -692,14 +710,20 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <p class="meta">Diagnóstico regional para formular iniciativas financiables por el FRPD: dónde están las brechas, qué se ha financiado y qué permite la norma.</p>
   </header>
   <nav class="tabs" role="tablist" aria-label="Vistas">
-    <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
-    <button class="tab" role="tab" id="tab-territorios" aria-controls="v-territorios" aria-selected="false" type="button">Territorios e infraestructura</button>
-    <button class="tab" role="tab" id="tab-empresas" aria-controls="v-empresas" aria-selected="false" type="button">Empresas <small id="tab-emp-n"></small></button>
-    <button class="tab" role="tab" id="tab-evid" aria-controls="v-evid" aria-selected="false" type="button">Evidencia territorial</button>
-    <button class="tab" role="tab" id="tab-marco" aria-controls="v-marco" aria-selected="false" type="button">Marco normativo</button>
-    <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
-    <button class="tab" role="tab" id="tab-simulador" aria-controls="v-simulador" aria-selected="false" type="button">Simulador</button>
-    <button class="tab" role="tab" id="tab-compras" aria-controls="v-compras" aria-selected="false" type="button">Compras Públicas <small id="tab-cp-n">ChileCompra</small></button>
+    <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Inversión</span><div class="tabg-b" role="presentation">
+      <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
+      <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
+      <button class="tab" role="tab" id="tab-compras" aria-controls="v-compras" aria-selected="false" type="button">Compras Públicas <small id="tab-cp-n">ChileCompra</small></button>
+    </div></div>
+    <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Diagnóstico</span><div class="tabg-b" role="presentation">
+      <button class="tab" role="tab" id="tab-territorios" aria-controls="v-territorios" aria-selected="false" type="button">Territorios</button>
+      <button class="tab" role="tab" id="tab-empresas" aria-controls="v-empresas" aria-selected="false" type="button">Empresas <small id="tab-emp-n"></small></button>
+      <button class="tab" role="tab" id="tab-evid" aria-controls="v-evid" aria-selected="false" type="button">Evidencia territorial</button>
+    </div></div>
+    <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Formulación</span><div class="tabg-b" role="presentation">
+      <button class="tab" role="tab" id="tab-marco" aria-controls="v-marco" aria-selected="false" type="button">Marco normativo</button>
+      <button class="tab" role="tab" id="tab-simulador" aria-controls="v-simulador" aria-selected="false" type="button">Simulador</button>
+    </div></div>
   </nav>
 
   <div class="work" id="work">
@@ -1310,7 +1334,7 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
     <section class="card" id="bx-mapc">
       <div class="card-h">
         <div><h2>Mapa de iniciativas por comuna y territorio</h2><div class="sub" id="bx-msub">Pasa el cursor para ver cifras · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla</div></div>
-        <div class="ctrls"><div class="seg" id="bx-mlev" role="group" aria-label="Nivel del mapa"></div><div class="seg" id="bx-mmet" role="group" aria-label="Medida del mapa"></div><div class="seg" id="bx-mpts" role="group" aria-label="Obras georreferenciadas"></div></div>
+        <div class="ctrls"><div class="seg" id="bx-mlev" role="group" aria-label="Nivel del mapa"></div><div class="seg" id="bx-mmet" role="group" aria-label="Medida del mapa"></div><div class="seg" id="bx-mpts" role="group" aria-label="Obras georreferenciadas"></div><button class="btn" id="bx-mtog" type="button" aria-expanded="true">Ocultar mapa</button></div>
       </div>
       <div class="card-b">
         <div class="grid g-bxm">
@@ -1863,7 +1887,7 @@ function locator(ti, extra) {
 }
 
 // ================= vistas =================
-const VIEWS = ['cartera', 'territorios', 'empresas', 'evid', 'marco', 'bip', 'simulador', 'compras'];
+const VIEWS = ['cartera', 'bip', 'compras', 'territorios', 'empresas', 'evid', 'marco', 'simulador'];
 const FIRMV = new Set(['cartera', 'territorios', 'empresas']);
 const rendered = {};
 function setView(v) {
@@ -2710,7 +2734,10 @@ function initMap() {
   $('#m-lin').innerHTML = LIN.map((l, i) => `<option value="${i}">${l.k} · ${esc(LSHORT[l.k])}</option>`).join('');
   $('#m-ind').addEventListener('change', e => { UI.mInd = e.target.value; renderMapOnly(); });
   $('#m-lin').addEventListener('change', e => { UI.mLin = +e.target.value; renderMapOnly(); });
-  $('#layers').insertAdjacentHTML('beforeend', LAYERS.map(l => `<label><input type="checkbox" data-layer="${l.k}"${UI.layers.has(l.k) ? ' checked' : ''}>${l.sw ? `<span class="k${l.sw === 'h' ? ' h' : l.line ? ' l' : ''}" style="${l.sw === 'h' ? '' : l.line ? `border-color:${l.sw.startsWith('--') ? `var(${l.sw})` : l.sw}` : `background:var(${l.sw})`}"></span>` : ''}${esc(l.l)}</label>`).join(''));
+  const lyItem = l => `<label><input type="checkbox" data-layer="${l.k}"${UI.layers.has(l.k) ? ' checked' : ''}>${l.sw ? `<span class="k${l.sw === 'h' ? ' h' : l.line ? ' l' : ''}" style="${l.sw === 'h' ? '' : l.line ? `border-color:${l.sw.startsWith('--') ? `var(${l.sw})` : l.sw}` : `background:var(${l.sw})`}"></span>` : ''}${esc(l.l)}</label>`;
+  const LGRP = [['Referencias', ['tl', 'cl', 'rez']], ['Transporte y conectividad', ['rut', 'erd', 'pue', 'port', 'aer']], ['Servicios y equipamiento', ['elec', 'ssr', 'ant', 'ies']]];
+  const lyIn = new Set(LGRP.flatMap(g => g[1])), lyRest = LAYERS.filter(l => !lyIn.has(l.k));
+  $('#layers').insertAdjacentHTML('beforeend', LGRP.map(([g, ks]) => `<div class="lgrp"><b>${g}</b>${ks.map(k => LAYERS.find(l => l.k === k)).filter(Boolean).map(lyItem).join('')}</div>`).join('') + (lyRest.length ? `<div class="lgrp"><b>Otras</b>${lyRest.map(lyItem).join('')}</div>` : ''));
   $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); }));
   MAP.setLayers(UI.layers);
 }
@@ -2728,6 +2755,7 @@ function renderMapNote() {
   if (UI.mInd.startsWith('ev:')) { const e = EVK[UI.mInd.slice(3)]; n.push(EVSRC[e.g].map(k => CX.meta[k]).join(' ')); if (e.k === 'inu') n.push('Una comuna sin zonas puede estar fuera del área estudiada.'); }
   setNote($('#m-note'), n.join(' '), 'Más notas de las capas activas');
 }
+const TP_OPEN = new Set(['Especialización por lineamiento']);
 function renderTprof() {
   const ti = UI.ter, T = TER[ti];
   const ents = ENT.filter(e => e.t === T.k);
@@ -2774,6 +2802,12 @@ function renderTprof() {
       <div class="tchips">${ents.map(e => `<button type="button" class="tchip m${e.m}" data-c="${e.c}" style="background:none;cursor:pointer" title="${esc(LINE[e.l].n)} · madurez ${e.m}">${e.c} ${e.l}</button>`).join('')}</div>
       <p class="note">Clic en una entrada para abrir su ficha en la cartera.</p></div>
   </div>`;
+  for (const d of [...$('#tprof .prof').children]) {
+    const lb = d.firstElementChild; if (!lb || !lb.classList.contains('lbl')) continue;
+    const key = lb.textContent.replace(/\s*\(.*\)\s*$/, ''), det = document.createElement('details'), sum = document.createElement('summary'), body = document.createElement('div');
+    det.className = 'psec'; det.open = TP_OPEN.has(key); sum.appendChild(lb); while (d.firstChild) body.appendChild(d.firstChild); det.append(sum, body); d.replaceWith(det);
+    det.addEventListener('toggle', () => { if (det.open) TP_OPEN.add(key); else TP_OPEN.delete(key); });
+  }
   $('#tp-bip').addEventListener('click', () => openBip({ t: ti }));
   $('#tp-ev').addEventListener('click', () => openEvid({ t: ti }));
   $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { UI.t = ti; UI.L = LIDX[b.dataset.c]; setView('cartera'); renderMatrix(); renderFicha(); $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
@@ -3356,6 +3390,9 @@ function bxInitControls() {
   bind('bx-t', 't', 1); bind('bx-c', 'c', 1); bind('bx-cat', 'cat'); bind('bx-l', 'L', 1); bind('bx-y', 'y', 1); bind('bx-e', 'e', 1); bind('bx-fin', 'fin'); bind('bx-r', 'r', 1);
   let qt; $('#bx-q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { BXF.q = e.target.value; BXF.page = 0; BXF.open.clear(); renderBip(); }, 180); });
   $('#bx-clear').addEventListener('click', () => { Object.assign(BXF, { q: '', t: -1, c: -1, cat: '', L: -1, y: 0, e: -1, fin: '', r: -1, ti: new Set(), page: 0 }); BXF.open.clear(); $('#bx-q').value = ''; renderBip(); });
+  const mt = $('#bx-mtog'), setMin = v => { $('#bx-mapc').classList.toggle('min', v); mt.textContent = v ? 'Mostrar mapa' : 'Ocultar mapa'; mt.setAttribute('aria-expanded', String(!v)); try { localStorage.setItem('radar-bxmap-min', v ? '1' : ''); } catch (e) {} };
+  mt.addEventListener('click', () => setMin(!$('#bx-mapc').classList.contains('min')));
+  try { if (localStorage.getItem('radar-bxmap-min')) setMin(true); } catch (e) {}
   $('#bx-more-b').addEventListener('click', () => { const m = $('#bx-more'); m.hidden = !m.hidden; renderBip(); });
   $('#bx-act').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; const k = b.dataset.k; BXF[k] = BX_DEF[k]; BXF.page = 0; BXF.open.clear(); renderBip(); });
   if (BX_TIV.length) $('#bx-ti').addEventListener('click', e => { const b = e.target.closest('button[data-ti]'); if (!b) return; const t = +b.dataset.ti; if (BXF.ti.has(t)) BXF.ti.delete(t); else BXF.ti.add(t); BXF.page = 0; BXF.open.clear(); renderBip(); });
