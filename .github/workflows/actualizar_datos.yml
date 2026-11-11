@@ -1,9 +1,8 @@
 name: Sincronización Diaria de Datos Radar FRPD
 
+# Actualización diaria APAGADA el 11-nov-2026: el tablero ya no usa compras públicas ni datos_*.json.
+# Queda solo la ejecución manual. El ticket de ChileCompra se lee del secreto del repositorio, nunca de este archivo.
 on:
-  schedule:
-    # Corre todos los días a las 09:00 UTC (06:00 AM hora de Chile)
-    - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
       dias_atras:
@@ -28,7 +27,7 @@ jobs:
 
       - name: Actualizar datos de Cartera y Compras Públicas
         env:
-          CHILECOMPRA_TICKET: ${{ secrets.CHILECOMPRA_TICKET || '2EBB5BBD-F89B-4173-A1F0-D360D98635D4' }}
+          CHILECOMPRA_TICKET: ${{ secrets.CHILECOMPRA_TICKET }}
           DIAS_ATRAS: ${{ github.event.inputs.dias_atras || '1' }}
         run: |
           python actualizar_datos.py

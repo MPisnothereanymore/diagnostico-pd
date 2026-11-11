@@ -28,10 +28,14 @@ Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edg
 |---|---|
 | `head.html` | Estilos (CSS) y estructura de las pestañas |
 | `app.js` | Lógica principal: Cartera, Territorios, Evidencia territorial, Marco normativo, Iniciativas BIP y borrador con Claude |
-| `emp.js` | Barra lateral de filtros de empresas y pestaña Empresas, adaptadas del tablero Tejido Empresarial |
+| `infra.js` | Infraestructura habilitante por cadena productiva (matriz de la pestaña Territorios y sus seis dimensiones de brecha) |
+| `formular.js` | Pestaña Formular: recorrido del Paso 0 al cuadre con el art. 8 y la estrategia |
+| `emp.js` | Pestaña Empresas (frase de actividad, lugar y tamaño; resumen; mapa; barras; tabla) y barra lateral «Más filtros». Sus filtros solo cambian esa pestaña |
 | `pack_frpd6.b64` | Paquete de datos (JSON comprimido con gzip y codificado en base64) |
 | `obras_geocgr.b64` | Capa opcional de obras georreferenciadas de Geo-CGR para el mapa de iniciativas BIP (paso 7). Si no está, el tablero funciona sin ella |
+| `matriz_estrategica.b64` | Matriz art. 8 × ERD y PRFP para la pestaña Formular (paso 8). Si no está, Formular avisa que falta |
 | `build.py` | Une todo y genera el HTML |
+| `verify.py` | Comprobación rápida del HTML generado (se ejecuta desde la carpeta principal) |
 
 Después de editar, ejecuta en una terminal, dentro de la carpeta `fuente`:
 
@@ -65,6 +69,10 @@ python build.py
 ```
 
 **Obras de Geo-CGR (paso 7).** Para traer obras nuevas, ejecuta `python -X utf8 prep_geocgr.py --descargar` desde un computador con acceso a www.contraloria.cl. El script consulta las 32 comunas desde el 01/01/2019 hasta la fecha, reemplaza el JSON de `DB Araucania/GeoCGR/` y regenera la capa; luego vuelve a ejecutar `build.py`. Requiere `pyproj` y `shapely`, que se instalan con geopandas. La carpeta `GeoCGR` también tiene un GeoPackage (`geocgr_araucania_2019_2026.gpkg`, capas de puntos y líneas) para revisar las obras en QGIS.
+
+**Matriz estratégica (paso 8).** `prep_matriz.py` arma `fuente/matriz_estrategica.b64` desde la matriz de trabajo DIFOI (ítems del art. 8 cruzados con acciones de la ERD y la PRFP).
+
+**Actualización diaria apagada.** El flujo `.github/workflows/actualizar_datos.yml` y `actualizar_datos.py` traían compras públicas a `datos_radar.json` y `datos_resumen.json`. El tablero ya no usa esos archivos; el flujo quedó solo con ejecución manual y el ticket de ChileCompra se lee del secreto del repositorio.
 
 **Rutas.** Los scripts leen los datos originales desde `C:/Users/mpooley/Documents/DB Araucania/`. Si esa carpeta cambia de lugar, reemplaza esa ruta al inicio de cada script.
 

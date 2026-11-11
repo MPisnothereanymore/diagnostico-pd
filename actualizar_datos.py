@@ -19,7 +19,7 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # Ticket oficial de Mercado Público (configurable por GitHub Secret o valor por defecto)
-TICKET_CHILECOMPRA = os.environ.get("CHILECOMPRA_TICKET", "2EBB5BBD-F89B-4173-A1F0-D360D98635D4")
+TICKET_CHILECOMPRA = os.environ.get("CHILECOMPRA_TICKET", "")   # sin valor por defecto: el ticket no se guarda en el repositorio
 BASE_URL_CHILECOMPRA = "https://api.mercadopublico.cl/servicios/v1/publico/ordenesdecompra.json"
 
 # Catálogo oficial de compradores de La Araucanía (GORE + 32 Municipalidades)
