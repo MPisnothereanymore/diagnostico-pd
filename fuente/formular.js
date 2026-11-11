@@ -54,12 +54,11 @@ function renderFormular() {
   if (!MX) { $('#fm-body').hidden = true; $('#fm-none').hidden = false; return; }
   if (!rendered.formular) { fmInit(); rendered.formular = true; }
   $('#fm-t').value = FMU.t; $('#fm-ch').value = FMU.ch;
+  const noCh = FMU.ch < 0;
+  $('#fm-body').classList.toggle('nochain', noCh); $('#fm-ch').classList.toggle('warn', noCh);
+  if (noCh) { fmFrom(); $('#fm-st').innerHTML = '<span>Elige una cadena productiva para ver el recorrido.</span>'; return; }
   const x = fmCtx(), st = IF_ST[x.cell.st];
-  const fr = FMU.from, fb = $('#fm-from');
-  fb.hidden = !fr;
-  if (fr) fb.innerHTML = `<p><b>Vienes de Cartera:</b> ${fr.line ? `${esc(fr.line)} ${esc(LINE[fr.line].n)} · ` : ''}${esc(TER[fr.t].n)}${fr.L != null ? ` · ${LIN[fr.L].k} ${esc(LSHORT[LIN[fr.L].k])}` : ''}.</p>
-    <p class="note">Cartera se organiza por lineamiento CTCI y Formular por cadena productiva, así que las cifras de empresas de esta pestaña son de la cadena, no del lineamiento. ${fr.ch ? 'Quedó elegida la cadena más cercana: cámbiala si no corresponde.' : 'Este lineamiento no tiene una cadena equivalente: elige abajo la que corresponda.'}${fr.line && fmLineItems(fr.line).length ? ' El ítem del art. 8 quedó en el primero que la minuta asigna a la línea.' : ''}</p>
-    <div class="ct-ob"><button type="button" class="btn sm" id="fm-back">Volver a Cartera</button><button type="button" class="btn sm" id="fm-fromx">Quitar este aviso</button></div>`;
+  fmFrom();
   $('#fm-st').innerHTML = `<span class="ifc ${x.cell.st}">${st.l}</span><span>${esc(st.d)} ${f0(x.st.n)} empresas · cociente de localización ${f2(x.cell.lq)}.</span>`;
   // 1 · cuadre
   const sug = [...new Set([...x.cell.gaps.map(g => FM_A8[g.d.a8]).filter(Boolean), 'N°1 b', 'N°1 g'])];
@@ -132,6 +131,15 @@ function fmExe(x) {
     <p class="note">Instituciones con sede o casa matriz en la región que el D.S. 1.699 habilita (arts. 11 a 15); las privadas, solo si están en la nómina anual y por concurso. Las de educación superior deben acreditar 4 años o más: verificar en la CNA.</p>
     <p class="fm-a10 ${a10.length ? 'fm-al' : 'note'}">${a10.length ? `Alerta del art. 10 en las acciones elegidas: ${esc(a10.join('; '))}. Exige un objeto directo productivo, de desarrollo regional o de CTCI.` : 'Art. 10: sin alertas en las acciones elegidas. Quedan fuera remuneraciones, empleo público, vivienda, vehículos no imprescindibles, espacios públicos ajenos y eventos.'}</p>`;
 }
+function fmFrom() {
+  const fr = FMU.from, fb = $('#fm-from');
+  fb.hidden = !fr; if (!fr) return;
+  const ln = fr.line ? LINE[fr.line] : null;
+  const donde = ln && fr.noEnt ? (ln.terr === 'REGIONAL' ? 'alcance regional: elige el territorio que corresponda' : `prevista en la minuta para ${lineScope(ln)}; quedó ${TER[fr.t].n}`) : TER[fr.t].n + (fr.L != null ? ` · ${LIN[fr.L].k} ${LSHORT[LIN[fr.L].k]}` : '');
+  fb.innerHTML = `<p><b>Vienes de Cartera:</b> ${ln ? `${esc(ln.k)} ${esc(ln.n)} · ` : ''}${esc(donde)}.</p>
+    <p class="note">Cartera se organiza por lineamiento CTCI y Formular por cadena productiva, así que las cifras de empresas de esta pestaña son de la cadena, no del lineamiento. ${fr.ch ? 'Quedó elegida la cadena más cercana: cámbiala si no corresponde.' : 'Este origen no tiene una cadena equivalente: elige la que corresponda.'}${ln && fmLineItems(ln.k).length ? ` El ítem del art. 8 quedó en el primero ${isCTCI(ln) ? 'del N°3 ' : ''}que la minuta asigna a la línea.` : ''}</p>
+    <div class="ct-ob"><button type="button" class="btn sm" id="fm-back">Volver a Cartera</button><button type="button" class="btn sm" id="fm-fromx">Quitar este aviso</button></div>`;
+}
 function fmBen(x) { $('#fm-ben-n').innerHTML = FMU.ben && +FMU.ben > x.obj.n ? '<span class="warnmk">Supera la población objetivo.</span>' : 'atención efectiva de cada año; define el criterio de priorización'; }
 function fmActs() {
   const box = $('#fm-acts'), it = fmItem();
@@ -184,7 +192,7 @@ function fmFicha() { $('#fm-ficha').textContent = fmFichaText(); }
 function fmInit() {
   MX._acc = MX.acc.split('\n');
   $('#fm-t').innerHTML = TER.map((t, i) => `<option value="${i}">${esc(t.n)}</option>`).join('');
-  $('#fm-ch').innerHTML = STRAT_CHAINS.map((c, i) => `<option value="${i}">${esc(c.n)}</option>`).join('');
+  $('#fm-ch').innerHTML = '<option value="-1">Elige una cadena…</option>' + STRAT_CHAINS.map((c, i) => `<option value="${i}">${esc(c.n)}</option>`).join('');
   const reset = () => { FMU.probEd = false; FMU.propEd = false; FMU.exp.clear(); FMU.expAll.clear(); };
   $('#fm-t').addEventListener('change', e => { FMU.t = +e.target.value; FMU.from = null; reset(); renderFormular(); });
   $('#fm-ch').addEventListener('change', e => { FMU.ch = +e.target.value; reset(); renderFormular(); });
@@ -202,7 +210,7 @@ function fmInit() {
   $('#fm-rub').addEventListener('change', e => { const k = e.target.dataset.k; if (!k) return; FMU.sc[k] = +e.target.value || 0; fmRub(); fmFicha(); });
   $('#v-formular').addEventListener('click', e => {
     const b = e.target.closest('button[data-bip]'), xb = e.target.closest('button[data-x]'), xa = e.target.closest('button[data-xall]');
-    if (e.target.closest('#fm-back')) { const fr = FMU.from; setView('cartera'); window.scrollTo({ top: 0 }); if (fr && fr.L != null) openFicha(fr.t, fr.L); return; }
+    if (e.target.closest('#fm-back')) { ctBack(FMU.from); return; }
     if (e.target.closest('#fm-fromx')) { FMU.from = null; renderFormular(); $('#fm-t').focus(); return; }
     const tog = (s, k) => { if (s.has(k)) s.delete(k); else s.add(k); };
     if (b) openBip({ t: FMU.t, cat: b.dataset.bip, ti: new Set(b.dataset.ti ? b.dataset.ti.split(',').map(Number) : []) });
@@ -222,7 +230,7 @@ function fmInit() {
   });
 }
 // from: de dónde se llega (Cartera): { t, L, line, ch }. Con una línea, se preselecciona su primer ítem del art. 8 según la minuta.
-const fmLineItems = k => { const ln = LINE[k]; return [...ln.a8.map(a => 'N°' + a[0] + ' ' + a.slice(1).replace('.', ' ')), ...ln.g.map(g => 'N°3 gasto ' + g)].map(key => MX.items.findIndex(it => it.k === key)).filter(i => i >= 0); };
+const fmLineItems = k => { const ln = LINE[k]; return [...ln.a8.map(a => 'N°' + a[0] + ' ' + a.slice(1).replace('.', ' ')), ...ln.g.map(g => 'N°3 gasto ' + g)].sort((a, b) => b.startsWith('N°3') - a.startsWith('N°3')).map(key => MX.items.findIndex(it => it.k === key)).filter(i => i >= 0); };
 function fmOpen(t, ch, from) {
   FMU.t = t; if (ch != null) FMU.ch = ch; FMU.probEd = false; FMU.propEd = false; FMU.from = from || null;
   if (MX && from && from.line) { const its = fmLineItems(from.line); if (its.length) { FMU.item = its[0]; FMU.acts = new Set(); FMU.all = false; } }

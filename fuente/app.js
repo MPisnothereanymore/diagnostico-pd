@@ -495,7 +495,7 @@ function renderBoard() {
       <div class="ct-rn"><h4>${esc(ln.n)}</h4><p class="ct-meta">${esc(lin)}${lineIsInv(ln) ? '' : ' · encargo de levantamiento'}${isCTCI(ln) ? '' : ' · <span title="Sin ítems ni tipos de gasto del N°3 del art. 8: no cuenta para el mínimo de 25%">sin componente N°3</span>'}${ln.terr === 'REGIONAL' && !es.length ? ' · alcance regional' : ''}${scopeDiff(ln, es) ? ` · <span class="warnmk">la minuta la prevé para ${esc(lineScope(ln))}</span>` : ''}</p></div>
       <div class="ct-ter">${es.length ? es.map(e => `<button type="button" class="ct-t${UI.fOpen && UI.t === TIDX[e.t] && UI.L === LIDX[e.c] ? ' on' : ''}" data-t="${TIDX[e.t]}" data-l="${LIDX[e.c]}" aria-label="${ln.k} ${esc(ln.n)}, ${esc(TER[TIDX[e.t]].n)}: evidencia ${MADS[e.m]}. Abrir ficha" title="${esc(TER[TIDX[e.t]].n)} · ${e.c} · evidencia ${MADS[e.m]}">${mDots(e.m)}${TSHORT[e.t]}<span aria-hidden="true">›</span></button>`).join('')
         : `<p class="ct-meta">Sin entradas territoriales. Ubicada según la madurez de la línea en la minuta: ${esc(ln.mad)} de 3.</p>`}</div>
-      <div class="ct-ra">${j === 0 || !es.length ? `<button type="button" class="btn sm" data-fml="${ln.k}">Formular</button>` : ''}<button type="button" class="linkbtn" data-more="${ln.k}" aria-expanded="${more}">Qué financia</button></div>
+      <div class="ct-ra">${j === 0 ? `<button type="button" class="btn sm" data-fml="${ln.k}">Formular</button>` : ''}<button type="button" class="linkbtn" data-more="${ln.k}" aria-expanded="${more}">Qué financia</button></div>
       ${more ? `<div class="ct-rm"><p>${esc(ln.que)}</p><p><b>Evidencia de la minuta.</b> ${esc(ln.ev)}</p></div>` : ''}</div>`;
   };
   $('#ct-board').innerHTML = grp.map((ls, j) => `<section class="ct-grp" aria-label="${CT_GRP[j][0]}"><div class="ct-gh"><h3>${CT_GRP[j][0]} <span>${pl(ls.length, 'línea', 'líneas')}</span></h3><p>${CT_GRP[j][1]}</p></div>${ls.map(ln => row(ln, j)).join('') || '<p class="note">Ninguna línea en este grupo.</p>'}</section>`).join('');
@@ -520,39 +520,52 @@ function renderMatrix() {
     + '<p class="note">El cociente de localización compara el peso del lineamiento en las empresas del territorio con su peso en la región (1,00 = igual; SII 2024). La asignación de subrubros a lineamientos es un supuesto provisional. Una combinación sin entrada no es una brecha por sí sola: revisa su ficha.</p>';
 }
 // Formular desde la cartera: lleva el territorio, la línea y sus ítems del art. 8. La cadena solo se fija si el lineamiento tiene una equivalente.
-function ctFormular(t, L, line) {
+function ctFormular(t, L, line, org) {
+  const back = { sy: scrollY, ficha: UI.fOpen, fiFrom: FI_FROM, sel: null, ...org };
   closeFicha(true);
   const j = L == null ? -1 : STRAT_CHAINS.findIndex(c => c.id === CT_L2CH[LIN[L].k]);
-  fmOpen(t, j >= 0 ? j : null, { t, L, line: line || null, ch: j >= 0 });
+  fmOpen(t, j, { t, L, line: line || null, ch: j >= 0, back, noEnt: !!(org && org.noEnt) });
 }
 function ctFormularLine(k) {
   const ln = LINE[k], e = lineEnts(ln).sort((a, b) => b.m - a.m)[0];
   const t = e ? TIDX[e.t] : TIDX[ln.terr.split(',')[0]] ?? FMU.t, L = e ? LIDX[e.c] : LIDX[ln.ctci.find(c => LSHORT[c])] ?? null;
-  ctFormular(t, L, k);
+  ctFormular(t, L, k, { sel: `#ct-board button[data-fml="${k}"]`, ficha: false, noEnt: !e });
+}
+// vuelve desde Formular al punto de partida: misma altura de página, mismo botón y la ficha solo si se salió desde ella
+function ctBack(fr) {
+  const bk = fr.back || {};
+  setView('cartera');
+  if (bk.ficha && fr.L != null) openFicha(fr.t, fr.L, bk.fiFrom);
+  window.scrollTo(0, bk.sy || 0);
+  const el = !bk.ficha && bk.sel && $(bk.sel); if (el) el.focus({ preventScroll: true });
 }
 // ficha lateral: se abre al elegir un territorio o una celda y no ocupa espacio mientras está cerrada
 let FI_FROM = null;
 const fiWide = () => innerWidth >= 1280;   // con pantalla ancha el contenido se reacomoda y la ficha no tapa nada
-function openFicha(t, L, from) {
+function openFicha(t, L, from, top0) {
   const e = CELL[TER[t].k + '|' + LIN[L].k];
   UI.t = t; UI.L = L; UI.ter = t; UI.line = e ? e.l : null; UI.fOpen = true; FI_FROM = from || null;
   $('#v-cartera').classList.add('fopen');
   renderBoard(); renderMatrix(); renderFicha();
   const f = $('#ficha'); f.hidden = false; f.scrollTop = 0; f.focus({ preventScroll: true });
-  const b = FI_FROM && $(`${FI_FROM} [data-t="${t}"][data-l="${L}"]`); if (b && fiWide()) b.scrollIntoView({ block: 'nearest' });
+  const b = FI_FROM && $(`${FI_FROM} [data-t="${t}"][data-l="${L}"]`);
+  if (b && top0 != null) scrollBy(0, b.getBoundingClientRect().top - top0); else if (b && fiWide()) b.scrollIntoView({ block: 'nearest' });
 }
 function closeFicha(quiet) {
   if (!UI.fOpen) return;
+  const sel = FI_FROM && `${FI_FROM} [data-t="${UI.t}"][data-l="${UI.L}"]`, b0 = sel && $(sel), top0 = b0 ? b0.getBoundingClientRect().top : null;
   UI.fOpen = false; $('#ficha').hidden = true; $('#v-cartera').classList.remove('fopen'); renderBoard(); renderMatrix();
-  const b = !quiet && FI_FROM && $(`${FI_FROM} [data-t="${UI.t}"][data-l="${UI.L}"]`); if (b) { b.focus({ preventScroll: true }); b.scrollIntoView({ block: 'nearest' }); }
+  const b = sel && $(sel); if (!b) return;
+  if (top0 != null) scrollBy(0, b.getBoundingClientRect().top - top0);
+  if (!quiet) b.focus({ preventScroll: true });
 }
 $('#v-cartera').addEventListener('click', ev => {
   if (ev.target.closest('#ficha')) return;
   const fm = ev.target.closest('button[data-fm]'), fl = ev.target.closest('button[data-fml]'), mo = ev.target.closest('button[data-more]'), b = ev.target.closest('button[data-t][data-l]');
-  if (fm) { const [t, L] = fm.dataset.fm.split(',').map(Number); ctFormular(t, L); }
+  if (fm) { const [t, L] = fm.dataset.fm.split(',').map(Number); ctFormular(t, L, null, { sel: `#ct-opp button[data-fm="${t},${L}"]`, ficha: false }); }
   else if (fl) ctFormularLine(fl.dataset.fml);
   else if (mo) { const k = mo.dataset.more; if (CT_MORE.has(k)) CT_MORE.delete(k); else CT_MORE.add(k); renderBoard(); const n = $(`#ct-board button[data-more="${k}"]`); if (n) n.focus({ preventScroll: true }); }
-  else if (b) openFicha(+b.dataset.t, +b.dataset.l, '#' + b.closest('#ct-board, #mx, #ct-opp').id);
+  else if (b) openFicha(+b.dataset.t, +b.dataset.l, '#' + b.closest('#ct-board, #mx, #ct-opp').id, b.getBoundingClientRect().top);
 });
 // en pantallas angostas la ficha tapa el contenido: un clic fuera de ella (que no sea en un botón) la cierra
 document.addEventListener('click', ev => { if (UI.fOpen && UI.view === 'cartera' && !fiWide() && !ev.target.closest('#ficha') && !ev.target.closest('button')) closeFicha(); });
@@ -600,11 +613,11 @@ function renderFicha() {
       <div class="pills"><span class="pill">Bloque ${ln.b} · ${esc(BLOQ[ln.b])}</span><span class="mad"><span class="dots">${[1, 2, 3].map(i => `<i class="${i <= e.m ? 'on' : ''}"></i>`).join('')}</span>Madurez ${e.m}: ${esc(MADT[e.m].toLowerCase())}</span></div>
       <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p><div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular en este territorio</button></div></div>`;
     const ct = isCTCI(ln);
-    h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Aporta al piso CTCI del 25 % (art. 7)</span>' : '<span class="pill">No aporta al piso CTCI</span>'}</div>
+    h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Tiene componente N°3: puede contar para el mínimo de 25% (art. 7)</span>' : '<span class="pill">Sin componente N°3: no cuenta para el mínimo de 25%</span>'}</div>
       <div class="hab" style="grid-template-columns:auto minmax(0,1fr)">${ln.a8.map(k => `<span class="x" style="text-align:left;color:var(--acc)">${k}</span><span class="n">${esc(A8[k].n)}</span>`).join('')}${ln.g.map(k => `<span class="x" style="text-align:left;color:var(--acc)">gasto ${k}</span><span class="n">${esc(GASTO[k])}</span>`).join('')}</div>
       ${!ln.a8.length && !ln.g.length ? '<p class="note">La minuta no asigna categoría del art. 8: es un encargo de levantamiento.</p>' : ''}</div>`;
   } else {
-    h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>La cartera no tiene entrada para esta combinación. La base empresarial del territorio en el lineamiento está <strong>${lqBand(LQ0[t][L])} promedio regional</strong> (cociente ${f2(LQ0[t][L])} con todas las empresas; 1,00 = igual a la región).</p>
+    h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>La cartera no tiene entrada para esta combinación. La base empresarial del territorio en el lineamiento ${lq2(LQ0[t][L]) >= 0.9 && lq2(LQ0[t][L]) < 1.1 ? 'es' : 'está'} <strong>${lqBand(LQ0[t][L])} promedio regional</strong> (cociente ${f2(LQ0[t][L])} con todas las empresas; 1,00 = igual a la región).</p>
       ${others.length ? `<p>Líneas de ${Lk} en otros territorios: ${others.map(l => `<button type="button" class="linkbtn" data-line="${l.k}">${l.k}</button> ${esc(l.n)}`).join(' · ')}.</p>` : ''}<div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular aquí</button></div></div>`;
   }
   const ler = ln ? ln.ler : [];

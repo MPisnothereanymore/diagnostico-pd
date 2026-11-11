@@ -300,6 +300,20 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
   - El tablero ya no lee `datos_radar.json`: solo `datos_resumen.json`, para el estado de la cartera.
   - Pendiente al publicar en GitHub: decidir si se apaga la actualización diaria (`actualizar_datos.py` y su flujo), que solo descargaba compras.
 
+## Exploración: pestaña Cartera reformulada (11 de noviembre de 2026, sin publicar en GitHub)
+- **Tres preguntas en orden.** Resumen (líneas, entradas y su evidencia), «Qué tenemos y qué tan listo está» y «Dónde falta».
+- **Resumen.** Barra con las entradas según la madurez de su evidencia. Tres datos: cuántas entradas tienen componente N°3, el FRPD 2026 (MM$ 21.111, Ley 21.796) con su mínimo de 25% y cuántas combinaciones no tienen entrada. La cartera no tiene montos por línea y el resumen lo dice.
+- **Líneas agrupadas por evidencia.** Tres grupos: evidencia levantada en todas sus entradas, en algunas y en ninguna.
+  - Las líneas sin entradas (L-02 y L-03) se ubican por la madurez de la línea en la minuta.
+  - Si la minuta prevé la línea para otros territorios que los de sus entradas, la fila lo avisa (L-01, L-02 y L-14).
+  - Cada territorio es un botón que abre la ficha. «Formular» aparece solo en el primer grupo.
+- **Dónde falta.** Matriz territorio × lineamiento: las celdas con entrada muestran los puntos de madurez y las vacías, el cociente de localización. Se listan las combinaciones sin entrada con texto neutro (sobre, similar o bajo el promedio regional). La regla usa el cociente redondeado a dos decimales, con todas las empresas (`LQ0`), para que los filtros de Empresas no cambien esta pestaña.
+- **Ficha lateral.** Se abre al hacer clic. Desde 1.280 px de ancho el contenido se reacomoda; bajo eso, un clic fuera la cierra. Quedan a la vista la entrada y el encaje en el D.S. 1.699; el resto va plegado, con las tres secciones de empresas fusionadas.
+- **Paso a Formular.** Lleva la línea, el territorio y el primer ítem del N°3 que la minuta asigna a la línea. Si el lineamiento no tiene cadena equivalente (L1 y L2), Formular pide elegirla antes de mostrar cifras. «Volver a Cartera» regresa al punto de partida.
+- **Eliminado.** El bloque «Gestión viva» y la carga de `datos_resumen.json`: los estados, montos y responsables eran datos de relleno (confirmado por Mario). También salieron de esta pestaña el panel de filtros de empresas, las vistas rápidas, los cinco indicadores, los 14 filtros, el selector de color y la tabla de líneas.
+- **Revisión.** Dos ciclos de evaluación con un agente independiente; se aplicaron sus hallazgos de corrección, disposición y accesibilidad.
+- **Pie de página.** Plegado en «Contenido, fuentes y supuestos» en todas las pestañas.
+
 ## Rendimiento (11 de noviembre de 2026)
 - **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
 - **Marcas en canvas.** Las obras de Geo-CGR y los puntos de infraestructura de Territorios se dibujan en canvas y no como elementos SVG, con las mismas fichas y clics.
