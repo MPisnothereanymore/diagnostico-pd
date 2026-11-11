@@ -27,7 +27,7 @@ Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edg
 | Archivo | Contenido |
 |---|---|
 | `head.html` | Estilos (CSS) y estructura de las pestañas |
-| `app.js` | Lógica principal: Cartera, Territorios, Evidencia territorial, Marco normativo, Iniciativas BIP, Simulador y borrador con Claude |
+| `app.js` | Lógica principal: Cartera, Territorios, Evidencia territorial, Marco normativo, Iniciativas BIP y borrador con Claude |
 | `emp.js` | Barra lateral de filtros de empresas y pestaña Empresas, adaptadas del tablero Tejido Empresarial |
 | `pack_frpd6.b64` | Paquete de datos (JSON comprimido con gzip y codificado en base64) |
 | `obras_geocgr.b64` | Capa opcional de obras georreferenciadas de Geo-CGR para el mapa de iniciativas BIP (paso 7). Si no está, el tablero funciona sin ella |
@@ -80,6 +80,5 @@ python build.py
 
 - Correspondencia entre subrubros SII y lineamientos L1–L6. Un subrubro puede contar en más de un lineamiento. Además, L4 está dominado por instaladores eléctricos.
 - Clasificación de proyectos ANID, CORFO y BIP por palabras clave del título.
-- Ponderadores del simulador.
 
 El detalle de fuentes, fechas de corte y advertencias está en el pie del tablero y en `Notas Radar FRPD.md`.

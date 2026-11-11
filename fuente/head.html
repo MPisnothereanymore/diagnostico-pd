@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
 <style>
 /* Layout: consola oscura de decisión. Barra superior con pestañas; cada vista es una mesa de trabajo:
-   matriz territorio × lineamiento con ficha lateral, mapa con capas de infraestructura, marco normativo y simulador.
+   matriz territorio × lineamiento con ficha lateral, mapa con capas de infraestructura, marco normativo y recorrido de formulación.
    Datos en azul, selección en ámbar, acento de interfaz verde agua; brechas en rojo apagado. Tema oscuro único, elegido a propósito
    para dar continuidad con el tablero Tejido Empresarial. */
 :root{
@@ -102,7 +102,6 @@ p{margin:0}
 .grid{display:grid;gap:16px;align-items:start}
 .g-cart{grid-template-columns:minmax(0,1.32fr) minmax(360px,1fr)}
 .g-terr{grid-template-columns:minmax(0,1.45fr) minmax(330px,1fr)}
-.g-sim{grid-template-columns:minmax(300px,.8fr) minmax(0,1.6fr)}
 .g-ev{grid-template-columns:minmax(0,.95fr) minmax(0,1.2fr)}
 table.heat td{padding:5px 8px;font-size:11.5px;border-bottom:1px solid var(--bg)}
 table.heat th{padding:7px 6px;font-size:10px;white-space:normal;min-width:46px;letter-spacing:.02em}
@@ -404,30 +403,7 @@ details.ler ol{margin:8px 0 0;padding-left:44px;font-size:13px;line-height:1.55;
 details.ler ol li{margin:3px 0}
 details.ler ol li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:11.5px;margin-right:6px}
 
-/* simulador */
-.simf{display:flex;flex-direction:column;gap:14px;padding:16px}
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:12.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
-.field label b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
-.field input[type=range]{width:100%;accent-color:var(--acc)}
 .inp{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--ink);font-family:var(--f-mono)}
-.wts{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
-.checks{display:flex;flex-direction:column;gap:6px}
-.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink2)}
-.check i{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700;margin-top:1px}
-.check.ok i{background:var(--ok-soft);color:var(--ok)}
-.check.no i{background:var(--bad-soft);color:var(--bad)}
-.split{display:flex;height:30px;border-radius:5px;overflow:hidden;gap:2px}
-.split span{display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;min-width:0}
-.allo{display:flex;flex-direction:column;gap:4px}
-.arow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 92px 96px;gap:10px;align-items:center;font-size:12.5px;padding:3px 0}
-.arow .n{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.arow .b{height:16px;position:relative;background:var(--surf2);border-radius:3px}
-.arow .b i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--data)}
-.arow .b u{position:absolute;left:0;top:0;bottom:0;border-radius:3px 0 0 3px;background:var(--acc)}
-.arow .x{font-family:var(--f-mono);font-size:12px;text-align:right}
-.arow .x small{display:block;color:var(--muted);font-size:10.5px}
-.arow.h{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 
 /* BIP */
 .srch{flex:1 1 260px;min-width:0;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink)}
@@ -637,7 +613,8 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .fm-ta textarea:focus-visible,.fm-fun input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 .fm-cnt{font-size:12px;color:var(--ink2)}.fm-cnt b{font-family:var(--f-mono);font-weight:500;color:var(--ok)}.fm-cnt b.over{color:var(--bad)}.fm-cnt ul{margin:4px 0 0;padding-left:18px;color:var(--sel)}
 .fm-h4{grid-template-columns:minmax(0,1fr) auto auto auto!important}
-section.card{scroll-margin-top:12px}.fm-flash{outline:2px solid var(--sel);outline-offset:2px;transition:outline-color .4s}.fm-al{margin:0;font-size:12.5px;color:var(--sel)}#fm-exe p{margin:0 0 6px;font-size:13px;color:var(--ink2)}#fm-exe b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+@media (max-width:640px){.fm-h4{grid-template-columns:auto minmax(0,1fr) auto!important}.fm-h4>.n{grid-column:1/-1;margin-top:8px}.fm-h4>.h{display:none}.fm-h4>.x:nth-of-type(4n+2){text-align:left}}
+.fm-in{grid-column:1/-1;padding:10px 12px;margin:0 0 6px;background:var(--surf2);border:1px solid var(--line);border-radius:6px}.fm-in .oblist{max-height:340px;overflow-y:auto;scrollbar-width:thin;padding-right:4px}.fm-inb{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.fm-inb:empty{display:none}.fm-exl{margin:0 0 10px}.fm-exl li{border-left-color:var(--acc)}.fm-al{margin:0;font-size:12.5px;color:var(--sel)}#fm-exe p{margin:0 0 6px;font-size:13px;color:var(--ink2)}#fm-exe b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
 .fm-rub{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 14px;margin-top:6px}
 .fm-rub label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--ink2)}.fm-rub small{color:var(--muted);margin-right:auto;padding-left:4px}
 .fm-tot{margin:10px 0 0;font-size:13px;color:var(--ink2)}.fm-tot b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:16px}
@@ -730,7 +707,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:1100px){
-  .g-cart,.g-terr,.g-sim,.g-ev{grid-template-columns:minmax(0,1fr)}
+  .g-cart,.g-terr,.g-ev{grid-template-columns:minmax(0,1fr)}
   .ficha{position:static;max-height:none}
   .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
@@ -742,8 +719,6 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   .cards{grid-template-columns:minmax(0,1fr)}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hdr .meta{text-align:left}
-  .arow{grid-template-columns:minmax(0,104px) minmax(0,1fr) 78px;}
-  .arow .x:last-child{display:none}
   .fi-h .loc{width:64px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -766,7 +741,6 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Inversión</span><div class="tabg-b" role="presentation">
       <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
       <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
-      <button class="tab" role="tab" id="tab-compras" aria-controls="v-compras" aria-selected="false" type="button">Compras Públicas <small id="tab-cp-n">ChileCompra</small></button>
     </div></div>
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Diagnóstico</span><div class="tabg-b" role="presentation">
       <button class="tab" role="tab" id="tab-territorios" aria-controls="v-territorios" aria-selected="false" type="button">Territorios</button>
@@ -776,7 +750,6 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Formulación</span><div class="tabg-b" role="presentation">
       <button class="tab" role="tab" id="tab-formular" aria-controls="v-formular" aria-selected="false" type="button">Formular</button>
       <button class="tab" role="tab" id="tab-marco" aria-controls="v-marco" aria-selected="false" type="button">Marco normativo</button>
-      <button class="tab" role="tab" id="tab-simulador" aria-controls="v-simulador" aria-selected="false" type="button">Simulador</button>
     </div></div>
   </nav>
 
@@ -1470,113 +1443,10 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
     </section>
   </section>
 
-  <!-- ===== Simulador ===== -->
-  <section class="view" id="v-simulador" role="tabpanel" aria-labelledby="tab-simulador" hidden>
-    <div class="grid g-sim">
-      <section class="card">
-        <div class="card-h"><div><h2>Supuestos</h2><div class="sub">El monto es un ejemplo: reemplázalo por el marco presupuestario del año.</div></div></div>
-        <div class="simf" id="simf"></div>
-      </section>
-      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
-        <section class="card">
-          <div class="card-h"><div><h2>Distribución del fondo</h2><div class="sub" id="sim-sub"></div></div></div>
-          <div class="card-b" style="display:flex;flex-direction:column;gap:14px"><div id="sim-split"></div><div class="checks" id="sim-checks"></div></div>
-        </section>
-        <section class="card">
-          <div class="card-h"><div><h2>Asignación territorial indicativa</h2><div class="sub">Monto territorial repartido según los ponderadores. En verde agua, la parte que corresponde a investigación científica y tecnológica (N°3).</div></div></div>
-          <div class="card-b"><div class="allo" id="sim-allo"></div><p class="note" id="sim-note" style="margin-top:10px"></p></div>
-        </section>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Compras Públicas (ChileCompra) ===== -->
-  <section class="view" id="v-compras" role="tabpanel" aria-labelledby="tab-compras" hidden>
-    <div class="kpis" id="compras-kpis">
-      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
-        <div class="lbl">Gasto público monitoreado (M$)</div>
-        <div class="v num" id="cp-total-monto" style="font-size:24px;font-weight:700;color:var(--ink)">–</div>
-        <div class="note" id="cp-total-regs">Órdenes de compra registradas</div>
-      </div>
-      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
-        <div class="lbl">Retención regional</div>
-        <div class="v num" id="cp-ret-pct" style="font-size:24px;font-weight:700;color:var(--ok)">–</div>
-        <div class="note" id="cp-ret-monto">Adjudicado a proveedores de La Araucanía</div>
-      </div>
-      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
-        <div class="lbl">Fuga de gasto público</div>
-        <div class="v num" id="cp-fuga-pct" style="font-size:24px;font-weight:700;color:var(--bad)">–</div>
-        <div class="note">Fuga a Santiago y otras regiones</div>
-      </div>
-      <div class="stat" style="background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px">
-        <div class="lbl">Fuente y Estado</div>
-        <div class="v" id="cp-live-status" style="font-size:16px;font-weight:600;color:var(--acc);margin-top:4px">API ChileCompra</div>
-        <div class="note" id="cp-live-time">Monitoreo autónomo diario</div>
-      </div>
-    </div>
-
-    <div class="fbar" id="cp-f" role="group" aria-label="Filtros de compras públicas">
-      <input class="srch" id="cp-filter-q" type="search" placeholder="Buscar por licitación, proveedor, código OC u organismo…" autocomplete="off" aria-label="Buscar compras">
-      <label class="ctrl">Territorio ERD<select class="sel" id="cp-filter-terr">
-        <option value="">Todos los territorios (ERD 2040)</option>
-        <option value="TPLC">Temuco – Padre Las Casas</option>
-        <option value="NAH">Nahuelbuta</option>
-        <option value="COS">Costa Araucanía</option>
-        <option value="MNO">Malleco Norte</option>
-        <option value="VCE">Valle Central</option>
-        <option value="CSU">Cautín Sur</option>
-        <option value="AND">Araucanía Andina</option>
-        <option value="LAC">Araucanía Lacustre</option>
-      </select></label>
-      <label class="ctrl">Fecha<select class="sel" id="cp-filter-fecha">
-        <option value="">Todas las fechas</option>
-      </select></label>
-      <label class="ctrl">Retención regional<select class="sel" id="cp-filter-ret">
-        <option value="">Todas las compras</option>
-        <option value="local">Solo adjudicación local (Araucanía)</option>
-        <option value="fuga">Solo fuga externa (Santiago / otras)</option>
-      </select></label>
-      <label class="ctrl">Desplegar<select class="sel" id="cp-filter-limit">
-        <option value="50">50 compras</option>
-        <option value="100" selected>100 compras</option>
-        <option value="250">250 compras</option>
-        <option value="500">500 compras</option>
-        <option value="all">Todas las compras</option>
-      </select></label>
-      <button class="btn clear" id="cp-clear" type="button">Quitar filtros</button>
-    </div>
-
-    <section class="card">
-      <div class="card-h">
-        <div>
-          <h2>Monitoreo Diario de Compras Públicas · La Araucanía</h2>
-          <div class="sub">Compras públicas y órdenes de compra del GORE Araucanía y de los 32 municipios de la región capturadas vía API ChileCompra. Permite mapear fuga de gasto y oportunidades para proveedores locales.</div>
-        </div>
-        <div class="ctrls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <button class="btn pri" id="cp-csv" type="button" title="Descargar compras filtradas en formato CSV">Exportar CSV</button>
-          <button class="btn" id="cp-refresh" type="button" title="Refrescar y sincronizar datos">Refrescar datos</button>
-        </div>
-      </div>
-      <div class="tbl-wrap" id="compras-table" style="max-height:650px;overflow-y:auto"></div>
-      <div class="pager" id="cp-pager"></div>
-      <p class="note" style="padding:0 16px 8px">Fuente: API Mercado Público (ChileCompra), órdenes de compra emitidas para el GORE La Araucanía y las 32 municipalidades de la región. La adjudicación local corresponde a proveedores con domicilio tributario registrado en la Región de La Araucanía.</p>
-      <div style="padding:0 16px 16px">
-        <details class="guide-det">
-          <summary class="guide-sum">¿Cómo leer el monitoreo de compras y fuga de gasto?</summary>
-          <div class="guide-b">
-            <div><b>Retención regional (Verde):</b> Presupuesto público que queda en manos de empresas con domicilio tributario en La Araucanía. Estimula el encadenamiento y empleo local.</div>
-            <div><b>Fuga de gasto público (Rojo):</b> Monto adjudicado a proveedores fuera de la región (principalmente Región Metropolitana).</div>
-            <div><b>Oportunidad estratégica FRPD:</b> Señala los rubros donde existe suficiente masa crítica de MiPyMEs locales pero los municipios siguen comprando afuera, justificando iniciativas de fomento de proveedores regionales.</div>
-          </div>
-        </details>
-      </div>
-    </section>
-  </section>
-
   </div>
   </div>
   <footer class="foot" id="foot">
-    <b>Contenido.</b> Cartera DIFOI (14 líneas, 42 entradas), territorios ERD, empresas SII 2024, condiciones habilitantes, financiamiento existente (ANID, CORFO, BIP), ejecutores habilitados, evidencia territorial y explorador de empresas con filtros. <b>Fuentes.</b> D.S. N° 1.699 de 2024 (Hacienda), reglamento del FRPD, Ley N° 21.591. Estrategia Regional de Desarrollo La Araucanía 2040. Cartera y líneas: Minuta DIFOI de líneas de inversión FRPD (sept. 2026, documento de trabajo). Empresas: SII, nómina de personas jurídicas, año comercial 2024 y serie 2005–2024 (casa matriz en la región; trabajadores dependientes asignados a la casa matriz). Población: INE, Censo 2024. Infraestructura y territorio (base regional GORE): territorios ERD 2040, red vial comunal, puentes, SAIDI 2022, viviendas sin energía, antenas autorizadas (decretos 1997–2020), subestaciones y líneas de transmisión (CEN), servicios sanitarios rurales (DOH, act. dic-2025), bocatomas (CNR), embalses (DOH), sedes de educación superior (Mineduc 2020), obras portuarias (DOP), aeródromos, pasos fronterizos, inversión pública 2010–2022 y zonas de rezago. <b>Financiamiento existente:</b> ANID, Base de Datos Histórica de Proyectos Adjudicados (corte 31-12-2025, fallos 2019–2026, región de ejecución La Araucanía); CORFO, portafolio InnovaChile vía API DataInnovación (adjudicados 2019–2026); MDSF, Banco Integrado de Proyectos vía BIDAT (iniciativas postuladas 2019–2027, montos en MM$ = millones de pesos). <b>Obras georreferenciadas:</b> Contraloría General de la República, Geo-CGR (contratos de obra adjudicados desde 2019 en las 32 comunas, con las coordenadas que registra cada servicio; descarga del 06-11-2026), vinculadas a las iniciativas por código BIP. <b>Ejecutores:</b> nómina de instituciones privadas sin fines de lucro, Res. N° 1 de 23-feb-2026 (Subsecretaría de Economía y EMT, primer llamado 2026; transcripción del anexo de las bases FRPD 2026 del GORE Antofagasta) y Res. Ex. N° 33 de 2024; presencia regional según nómina SII de empresas y sucursales; acreditación por verificar en la CNA. <b>Evidencia territorial:</b> MDSF, estimaciones comunales SAE 2022 de pobreza por ingresos, pobreza multidimensional e inseguridad alimentaria; INE, Censo 2024 (manzanas y entidades rurales: población perteneciente a pueblos indígenas y origen del agua de la vivienda); CONADI, comunidades indígenas registradas; MMA, ARClim (indicadores climáticos comunales, presente y cambio proyectado bajo SSP2-4.5); CONAF, incendios forestales temporada 2024-25; GORE, estudio PROT de amenaza de inundación (cobertura parcial); INE, VIII Censo Agropecuario y Forestal 2021 (resultados comunales del visor geográfico); Subdere, SINIM 2024; Banco Central de Chile, PIB regional por actividad y PIB por habitante (referencia 2018). <b>Empresas y filtros:</b> la pestaña Empresas y la barra de filtros reproducen el explorador del tablero Tejido Empresarial sobre la misma base SII; los filtros recalculan la matriz, los cocientes, las fichas, los perfiles territoriales y las exportaciones (el simulador y la evidencia territorial no cambian). Sector según la clasificación del SII; nómina Res. 1/2026 cruzada por RUT con las empresas con casa matriz en la región. <b>Supuestos provisionales:</b> la correspondencia entre subrubros SII y lineamientos L1–L6 y la clasificación de proyectos por palabras clave son aproximaciones del equipo, a validar por DIFOI; los ponderadores del simulador no están reglados.
+    <b>Contenido.</b> Cartera DIFOI (14 líneas, 42 entradas), territorios ERD, empresas SII 2024, condiciones habilitantes, financiamiento existente (ANID, CORFO, BIP), ejecutores habilitados, evidencia territorial y explorador de empresas con filtros. <b>Fuentes.</b> D.S. N° 1.699 de 2024 (Hacienda), reglamento del FRPD, Ley N° 21.591. Estrategia Regional de Desarrollo La Araucanía 2040. Cartera y líneas: Minuta DIFOI de líneas de inversión FRPD (sept. 2026, documento de trabajo). Empresas: SII, nómina de personas jurídicas, año comercial 2024 y serie 2005–2024 (casa matriz en la región; trabajadores dependientes asignados a la casa matriz). Población: INE, Censo 2024. Infraestructura y territorio (base regional GORE): territorios ERD 2040, red vial comunal, puentes, SAIDI 2022, viviendas sin energía, antenas autorizadas (decretos 1997–2020), subestaciones y líneas de transmisión (CEN), servicios sanitarios rurales (DOH, act. dic-2025), bocatomas (CNR), embalses (DOH), sedes de educación superior (Mineduc 2020), obras portuarias (DOP), aeródromos, pasos fronterizos, inversión pública 2010–2022 y zonas de rezago. <b>Financiamiento existente:</b> ANID, Base de Datos Histórica de Proyectos Adjudicados (corte 31-12-2025, fallos 2019–2026, región de ejecución La Araucanía); CORFO, portafolio InnovaChile vía API DataInnovación (adjudicados 2019–2026); MDSF, Banco Integrado de Proyectos vía BIDAT (iniciativas postuladas 2019–2027, montos en MM$ = millones de pesos). <b>Obras georreferenciadas:</b> Contraloría General de la República, Geo-CGR (contratos de obra adjudicados desde 2019 en las 32 comunas, con las coordenadas que registra cada servicio; descarga del 06-11-2026), vinculadas a las iniciativas por código BIP. <b>Ejecutores:</b> nómina de instituciones privadas sin fines de lucro, Res. N° 1 de 23-feb-2026 (Subsecretaría de Economía y EMT, primer llamado 2026; transcripción del anexo de las bases FRPD 2026 del GORE Antofagasta) y Res. Ex. N° 33 de 2024; presencia regional según nómina SII de empresas y sucursales; acreditación por verificar en la CNA. <b>Evidencia territorial:</b> MDSF, estimaciones comunales SAE 2022 de pobreza por ingresos, pobreza multidimensional e inseguridad alimentaria; INE, Censo 2024 (manzanas y entidades rurales: población perteneciente a pueblos indígenas y origen del agua de la vivienda); CONADI, comunidades indígenas registradas; MMA, ARClim (indicadores climáticos comunales, presente y cambio proyectado bajo SSP2-4.5); CONAF, incendios forestales temporada 2024-25; GORE, estudio PROT de amenaza de inundación (cobertura parcial); INE, VIII Censo Agropecuario y Forestal 2021 (resultados comunales del visor geográfico); Subdere, SINIM 2024; Banco Central de Chile, PIB regional por actividad y PIB por habitante (referencia 2018). <b>Empresas y filtros:</b> la pestaña Empresas y la barra de filtros reproducen el explorador del tablero Tejido Empresarial sobre la misma base SII; los filtros recalculan la matriz, los cocientes, las fichas, los perfiles territoriales y las exportaciones (la evidencia territorial no cambia). Sector según la clasificación del SII; nómina Res. 1/2026 cruzada por RUT con las empresas con casa matriz en la región. <b>Supuestos provisionales:</b> la correspondencia entre subrubros SII y lineamientos L1–L6 y la clasificación de proyectos por palabras clave son aproximaciones del equipo, a validar por DIFOI.
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>

@@ -295,6 +295,10 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
   - *Salida:* una ficha en texto para copiar o descargar.
 - **Matriz estratégica.** `procesamiento/prep_matriz.py` (paso 8) lee `07_MATRIZ_ESTRATEGICA.md` y `07_ACCIONES_ERD_PRFP.csv` de la carpeta DIFOI y genera `fuente/matriz_estrategica.b64`: 35 ítems y 638 acciones, 467 con ítem. No incluye la cartera en formulación, las prioridades ni la hoja de ruta.
 - **Hoja de ruta.** `01_HOJA_DE_RUTA.md` está sin efecto desde el 14-oct-2026, así que el recorrido no asigna etapas.
+- **Detalle en la misma pantalla.** En Formular, «Ver» abre bajo cada fila las iniciativas BIP, los proyectos ANID y CORFO o las entradas de la cartera, de mayor a menor monto. Los ejecutores con presencia en el territorio se listan en el paso 4 y un botón despliega los del resto de la región.
+- **Pestañas eliminadas.** Se quitaron Compras Públicas y el Simulador (decisión de Mario, 11-nov-2026); las notas anteriores que los mencionan quedan como historial.
+  - El tablero ya no lee `datos_radar.json`: solo `datos_resumen.json`, para el estado de la cartera.
+  - Pendiente al publicar en GitHub: decidir si se apaga la actualización diaria (`actualizar_datos.py` y su flujo), que solo descargaba compras.
 
 ## Rendimiento (11 de noviembre de 2026)
 - **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
@@ -343,7 +347,6 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 ## Supuestos provisionales (a validar por DIFOI)
 - Correspondencia entre subrubros SII y lineamientos L1–L6.
 - Clasificación de proyectos por palabras clave.
-- Ponderadores del simulador.
 - Lista de ejecutores públicos: incluye solo las instituciones con actividad o sede verificada en la región.
 - Indicadores municipales de territorio y región: promedios ponderados por población.
 

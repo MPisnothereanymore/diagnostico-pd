@@ -41,10 +41,10 @@ dist.mkdir(exist_ok=True)
 # versión artefacto: el servicio de artefactos agrega el documento envolvente
 (H / 'radar_frpd_artefacto.html').write_text(head + scripts, encoding='utf-8')
 
-# Copiar datos_radar.json a dist si existe
-datos_src = H.parent / 'datos_radar.json'
+# Estado vivo de la cartera: copiar datos_resumen.json a dist si existe
+datos_src = H.parent / 'datos_resumen.json'
 if datos_src.exists():
-    (dist / 'datos_radar.json').write_text(datos_src.read_text(encoding='utf-8'), encoding='utf-8')
+    (dist / 'datos_resumen.json').write_text(datos_src.read_text(encoding='utf-8'), encoding='utf-8')
 
 print('Listo:', H.parent / 'Radar FRPD Araucanía.html', f'({len(local) / 1e6:.1f} MB)')
 print('Listo para GitHub Pages y Netlify:', dist / 'index.html')
