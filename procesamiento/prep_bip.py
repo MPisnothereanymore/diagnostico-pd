@@ -56,6 +56,19 @@ out = {
     'd': '\n'.join(desc),
     'catv': catv, 'insv': insv, 'finv': finv, 'etv': etv, 'ratev': ratev,
 }
+# tipo de inversión: tipología oficial del BIP (TIP_CLAVE 791 proyecto, 792 programa, 793 estudio básico) y, en los proyectos,
+# el proceso con que parte el nombre (norma de nombres del SNI: proceso + objeto + localización)
+TIV = ['Infraestructura', 'Conservación de infraestructura', 'Equipamiento y vehículos', 'Programas', 'Estudios básicos']
+def tipo_inv(tip, nombre):
+    t = str(tip).split('.')[0]
+    if t == '792': return 3
+    if t == '793': return 4
+    proc = U(str(nombre)).strip().split(' ')[0]
+    if proc == 'CONSERVACION': return 1
+    if proc in ('ADQUISICION', 'EQUIPAMIENTO'): return 2
+    return 0
+out['ti'] = [tipo_inv(t, n) for t, n in zip(last.TIP_CLAVE, last.EBI_NOMBRE)]
+out['tiv'] = TIV
 # historial (todas las postulaciones), montos en M$ (miles de pesos)
 H = {k: [] for k in ['i', 'y', 'e', 's', 't', 'a', 'g', 'r', 'x']}
 def num(v): return None if pd.isna(v) else int(round(v))
@@ -73,6 +86,7 @@ print('iniciativas', len(last), 'postulaciones', len(b), 'filas atípicas', flag
 xx = pd.DataFrame({'i': H['i'], 'x': H['x'], 's': H['s'], 't': H['t']}); xx = xx[xx.x == 1]
 for i, g in xx.groupby('i'): print('  atípico', out['code'][i], catv[out['cat'][i]], last.EBI_NOMBRE.iloc[i][:60], g.t.max() / 1000, g.s.max() / 1000)
 print(pd.Series([catv[c] for c in out['cat']]).value_counts().to_string())
+print(pd.Series([TIV[t] for t in out['ti']]).value_counts().to_string())
 D['FRPD']['bip'] = out
 js = json.dumps(D, ensure_ascii=False, separators=(',', ':'))
 b64 = base64.b64encode(gzip.compress(js.encode(), 9)).decode()

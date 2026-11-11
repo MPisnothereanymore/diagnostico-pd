@@ -270,6 +270,15 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 | Viviendas sin energía | por 1.000 hab. | Ocho comunas registran exactamente 50 (posible piso de la fuente) |
 | Antenas | por 100 km² | Decretos 1997–2020; no reflejan la cobertura actual |
 
+## Tipo de inversión (11 de noviembre de 2026)
+- **Filtro.** En la pestaña Iniciativas BIP, el filtro «Tipo de inversión» es de selección múltiple y tiene cinco opciones: infraestructura (2.921), conservación de infraestructura (1.249), equipamiento y vehículos (378), programas (576) y estudios básicos (75). Cada botón muestra cuántas iniciativas quedan con los demás filtros.
+- **Criterio.** Se parte de la tipología oficial del BIP (`TIP_CLAVE`: 791 proyecto, 792 programa, 793 estudio básico). Los proyectos se separan por el proceso con que parte su nombre, según la norma de nombres del SNI (proceso + objeto + localización):
+  - «Conservación» se clasifica como conservación de infraestructura.
+  - «Adquisición» y «Equipamiento» se clasifican como equipamiento y vehículos.
+  - Construcción, mejoramiento, reposición, ampliación, habilitación, normalización, instalación, restauración y reparación se clasifican como infraestructura.
+- **Coincidencia con el nombre.** La tipología oficial coincide en las 5.199 iniciativas con la que se deduce del nombre, e incluye «Saneamiento» y «Recuperación» entre los programas. Ninguna iniciativa cambia de tipología entre postulaciones.
+- **Datos.** `prep_bip.py` (paso 5) agrega los campos `ti` y `tiv` al paquete. En `pack_frpd6.b64` se agregaron con el mismo cálculo sobre `bip_araucania_2019_2027.csv`, sin volver a correr el paso 6.
+
 ## Obras georreferenciadas (Geo-CGR, 6 de noviembre de 2026)
 - **Fuente.** Contraloría, Geo-CGR, consulta pública por comuna (`api/comunas/{CUT}/newobras`) para las 32 comunas, con obras adjudicadas entre el 01/01/2019 y el 06/11/2026. Descargada con QGIS desde el computador de DIFOI, porque el espacio de trabajo de Claude no tiene acceso al sitio.
 - **Cifras.** 3.232 registros, que corresponden a 3.019 obras distintas por expediente. 2.982 traen coordenadas, de las cuales 2.933 caen en la comuna declarada y 49 en otra (revisión en QGIS contra Comunal.shp: 3.003 en la comuna declarada, 17 a menos de 1 km y 27 en otra, ninguna fuera de la región). La capa tiene 5.245 puntos y 787 líneas.
