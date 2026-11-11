@@ -11,7 +11,7 @@ function comAgg(m) {
   return { n, t, e, ct, mg };
 }
 const REG = stats(ALL), COMALL = comAgg(ALL);
-Object.assign(UI, { eM1: 'dens', exDim: 'rub', exMet: 'n', exTop: 12, exTable: false, exAuto: true, eSort: 't', eDir: -1, ePage: 0, hmMet: 'lqn', hmCol: 'lin' });
+Object.assign(UI, { eM1: 'n', exDim: 'rub', exMet: 'n', exTop: 12, exTable: false, exAuto: true, eSort: 't', eDir: -1, ePage: 0, hmMet: 'lqn', hmCol: 'lin' });
 let CTX = null;
 const DIRTY = { cartera: false, territorios: false, empresas: true };
 
@@ -163,64 +163,83 @@ function syncInputs() { if (!F.q) $('#f-q').value = ''; $('#f-y0').value = F.y0 
 $('#f-reset').addEventListener('click', () => { clearFilters(); FP.preset = 'all'; UI.exDim = 'rub'; UI.exAuto = true; syncInputs(); update(); });
 const WORK = $('#work'), RAIL = $('#rail');
 const narrow = () => matchMedia('(max-width:1060px)').matches;
-$('#rail-open').addEventListener('click', () => { if (narrow()) RAIL.classList.add('open'); else WORK.classList.remove('collapsed'); });
-$('#rail-hide').addEventListener('click', () => { if (narrow()) RAIL.classList.remove('open'); else WORK.classList.add('collapsed'); });
+$('#rail-open').addEventListener('click', () => { if (narrow()) RAIL.classList.toggle('open'); else WORK.classList.toggle('collapsed'); const op = narrow() ? RAIL.classList.contains('open') : !WORK.classList.contains('collapsed'); $('#rail-open').setAttribute('aria-expanded', String(op)); if (op) $('#f-q').focus({ preventScroll: true }); });
+WORK.classList.add('collapsed');
+$('#rail-hide').addEventListener('click', () => { if (narrow()) RAIL.classList.remove('open'); else WORK.classList.add('collapsed'); $('#rail-open').setAttribute('aria-expanded', 'false'); $('#rail-open').focus({ preventScroll: true }); });
 $('#rail-close').addEventListener('click', () => RAIL.classList.remove('open'));
 
-// ---- atajos ----
-const PRESETS = [
-  { k: 'all', g: 'Vistas rápidas', l: 'Toda la región', fn: () => {} },
-  { k: 'ctci', g: 'Vistas rápidas', l: 'Oferta CTCI', fn: () => { [1, 2, 3, 4, 5].forEach(j => F.ctci.add(j)); UI.exDim = 'ctci'; } },
-  { k: 'dem', g: 'Vistas rápidas', l: 'Demanda potencial de innovación', fn: () => { ['A', 'B', 'C', 'D', 'E'].forEach(k => F.rub.add(RIDX(k))); F.sec.add(0); [2, 3, 4].forEach(j => F.tb.add(j)); UI.exDim = 'sub'; } },
-  { k: 'new', g: 'Vistas rápidas', l: 'Emprendimientos 2020+', fn: () => { F.y0 = 2020; F.sec.add(0); UI.exDim = 'rub'; } },
-  { k: 'agro', g: 'Vistas rápidas', l: 'Silvoagropecuario', fn: () => { F.rub.add(RIDX('A')); UI.exDim = 'sub'; } },
-  { k: 'manu', g: 'Vistas rápidas', l: 'Manufactura', fn: () => { F.rub.add(RIDX('C')); UI.exDim = 'sub'; } },
-  { k: 'tur', g: 'Vistas rápidas', l: 'Alojamiento y comidas', fn: () => { F.rub.add(RIDX('I')); UI.exDim = 'sub'; } },
-
-  // Lentes Estratégicos (Cadenas Productivas Clave)
-  { k: 'lens-agro', g: 'Cadenas Estratégicas', l: 'Cadena Agroalimentaria', title: 'Apoyo agrícola y poscosecha (A016), agroindustria (C103, C105, C106, C107) y comercio de alimentos (G463, G472) · 3.189 MiPyMEs', fn: () => { [0, 26, 24, 23, 21, 91, 96].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-for', g: 'Cadenas Estratégicas', l: 'Forestal y Madera', title: 'Silvicultura, extracción de madera, aserraderos, tableros y muebles (A021-024, C161, C162, C310) · 929 MiPyMEs', fn: () => { [6, 10, 11, 12, 16, 47, 56].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-tur', g: 'Cadenas Estratégicas', l: 'Turismo y Experiencias', title: 'Alojamientos, restaurantes, operadores turísticos y servicios recreativos (I551, I561, N791, R931, R932) · 2.402 MiPyMEs', fn: () => { [117, 119, 121, 164, 178, 194, 197].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-ebtc', g: 'Cadenas Estratégicas', l: 'I+D y Base Tecnológica (EBTC)', title: 'Investigación y desarrollo experimental (M721, M722), laboratorios (M712), biofarma (C210), sensores y software (J620, J631) · 331 MiPyMEs', fn: () => { [156, 157, 154, 58, 36, 125, 133].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-ene', g: 'Cadenas Estratégicas', l: 'Energía y Climatización', title: 'Generación ERNC (hidro, eólica, solar), transmisión, distribución, gas, vapor, climatización y equipos eléctricos (D351, D352, D353, C271, C279) · 53 MiPyMEs (80 empresas)', fn: () => { [71, 72, 73, 46, 51].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-const', g: 'Cadenas Estratégicas', l: 'Construcción e Instalaciones', title: 'Edificación, ingeniería civil, instalaciones eléctricas y terminaciones (F410, F421, F432, F433, F439) · 3.065 MiPyMEs', fn: () => { [81, 82, 85, 86, 87].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-  { k: 'lens-circ', g: 'Cadenas Estratégicas', l: 'Economía Circular', title: 'Gestión y valorización de residuos, chatarra, reciclaje y reparación (E381, E383, C331, S952) · 423 MiPyMEs', fn: () => { [70, 74, 77, 78, 79, 204].forEach(s => F.sub.add(s)); F.tam.add(1); F.tam.add(2); UI.exDim = 'sub'; } },
-
-  ...LIN.map((l, L) => ({ k: 'L' + L, g: 'Lineamiento', l: `${l.k} ${LSHORT[l.k]}`, title: l.n, fn: () => { F.lin.add(L); UI.exDim = 'sub'; } })),
-  { k: 'nom', g: 'FRPD', l: 'En nómina Res. 1/2026', title: 'Instituciones privadas sin fines de lucro habilitadas para el primer llamado FRPD 2026 con casa matriz en la región', fn: () => { F.nom = true; UI.exDim = 'com'; } },
-];
-{
-  let h = '', g0 = null;
-  PRESETS.forEach(p => { if (p.g !== g0) { h += `${g0 ? '</div>' : ''}<div class="pgrp"><span class="lbl">${esc(p.g)}</span>`; g0 = p.g; } h += `<button class="btn" type="button" data-p="${p.k}" aria-pressed="false"${p.title ? ` title="${esc(p.title)}"` : ''}>${esc(p.l)}</button>`; });
-  $('#presets').innerHTML = h + '</div>';
+// ---- el grupo de empresas en una frase: actividad, lugar y tamaño ----
+// Los tres selectores escriben en los mismos filtros de la barra lateral (F); la barra queda para el detalle.
+const EB_TAM = { all: [], mipyme: [1, 2], micro: [1], peq: [2], mg: [3, 4] };
+const sameSet = (s, a) => s.size === a.length && a.every(x => s.has(x));
+function ebVals() {
+  const nR = F.rub.size, nS = F.sub.size, nA = F.act.size, nL = F.lin.size;
+  let act = 'x';
+  if (!nR && !nS && !nA && !nL) act = 'all';
+  else if (nS && !nR && !nA && !nL) { const ch = STRAT_CHAINS.find(c => sameSet(F.sub, c.subs)); if (ch) act = 'ch:' + ch.id; }
+  else if (nL === 1 && !nR && !nS && !nA) act = 'L:' + [...F.lin][0];
+  else if (nR === 1 && !nS && !nA && !nL) act = 'r:' + [...F.rub][0];
+  const geo = !F.ter.size && !F.com.size ? 'all' : F.ter.size === 1 && !F.com.size ? 't:' + [...F.ter][0] : F.com.size === 1 && !F.ter.size ? 'c:' + [...F.com][0] : 'x';
+  const tam = Object.keys(EB_TAM).find(k => sameSet(F.tam, EB_TAM[k])) || 'x';
+  return { act, geo, tam };
 }
-$('#presets').addEventListener('click', e => {
-  const b = e.target.closest('button[data-p]'); if (!b) return;
-  const keepGeo = { ter: new Set(F.ter), com: new Set(F.com) };
-  clearFilters(); F.ter = keepGeo.ter; F.com = keepGeo.com; UI.exAuto = true;
-  const p = PRESETS.find(x => x.k === b.dataset.p);
-  if (p.k.startsWith('lens-')) ACTIVE_CHAIN = p.k.replace('lens-', '');
-  p.fn(); FP.preset = p.k; syncInputs(); update();
-  if (p.k !== 'all') toast('Vista aplicada: ' + p.l + (hasGeo() ? ' (se mantiene el territorio elegido)' : ''));
+let EB = { act: 'all', geo: 'all', tam: 'all' };
+$('#eb-act').innerHTML = '<option value="all">cualquier actividad</option>'
+  + `<optgroup label="Cadenas productivas">${STRAT_CHAINS.map(c => `<option value="ch:${c.id}" title="${esc(c.desc)}">${esc(c.n.replace(/^Cadena /, ''))}</option>`).join('')}</optgroup>`
+  + `<optgroup label="Lineamientos CTCI">${LIN.map((l, L) => `<option value="L:${L}">${l.k} ${esc(LSHORT[l.k])}</option>`).join('')}</optgroup>`
+  + `<optgroup label="Rubros (sección CIIU)">${D.rubros.map((r, j) => `<option value="r:${j}">${esc(r.l)}</option>`).join('')}</optgroup>`;
+$('#eb-geo').innerHTML = '<option value="all">toda la región</option>'
+  + `<optgroup label="Territorios ERD 2040">${TER.map((t, j) => `<option value="t:${j}">${esc(t.n)}</option>`).join('')}</optgroup>`
+  + `<optgroup label="Comunas">${[...Array(NC).keys()].sort((a, b) => CN(a).localeCompare(CN(b), 'es')).map(c => `<option value="c:${c}">${esc(CN(c))}</option>`).join('')}</optgroup>`;
+$('#eb-tam').innerHTML = [['all', 'cualquier tamaño'], ['mipyme', 'micro y pequeña (MiPyME)'], ['micro', 'micro'], ['peq', 'pequeña'], ['mg', 'mediana y grande']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+function ebSync() {
+  EB = ebVals(); ACTIVE_CHAIN = EB.act.startsWith('ch:') ? EB.act.slice(3) : null;
+  const set = (id, v, lab) => { const s = $(id); let o = s.querySelector('option[value="x"]'); if (v === 'x' && !o) { o = document.createElement('option'); o.value = 'x'; o.textContent = lab; s.appendChild(o); } else if (v !== 'x' && o) o.remove(); s.value = v; };
+  set('#eb-act', EB.act, 'una selección a medida'); set('#eb-geo', EB.geo, 'varios lugares'); set('#eb-tam', EB.tam, 'varios tamaños');
+  $('#eb-clear').hidden = !anyFilter();
+}
+const ebApply = id => { FP.preset = null; UI.exAuto = true; syncInputs(); update(); $(id).focus({ preventScroll: true }); };
+$('#eb-act').addEventListener('change', e => {
+  const v = e.target.value; if (v === 'x') return;
+  F.rub.clear(); F.sub.clear(); F.act.clear(); F.lin.clear(); UI.exDim = v === 'all' ? 'rub' : 'sub';
+  if (v.startsWith('ch:')) STRAT_CHAINS.find(c => c.id === v.slice(3)).subs.forEach(s => F.sub.add(s));
+  else if (v.startsWith('L:')) F.lin.add(+v.slice(2));
+  else if (v.startsWith('r:')) F.rub.add(+v.slice(2));
+  ebApply('#eb-act');
+});
+$('#eb-geo').addEventListener('change', e => {
+  const v = e.target.value; if (v === 'x') return;
+  F.ter.clear(); F.com.clear();
+  if (v.startsWith('t:')) F.ter.add(+v.slice(2)); else if (v.startsWith('c:')) F.com.add(+v.slice(2));
+  ebApply('#eb-geo');
+});
+$('#eb-tam').addEventListener('change', e => { const v = e.target.value; if (v === 'x') return; F.tam.clear(); EB_TAM[v].forEach(j => F.tam.add(j)); ebApply('#eb-tam'); });
+$('#eb-clear').addEventListener('click', () => { clearFilters(); FP.preset = 'all'; UI.exDim = 'rub'; UI.exAuto = true; syncInputs(); update(); $('#eb-act').focus({ preventScroll: true }); });
+// de Empresas a Formular (territorio y cadena elegidos), con vuelta al mismo punto
+function empBack(fr) { const bk = fr.back || {}; setView('empresas'); window.scrollTo(0, bk.sy || 0); const el = bk.sel && $(bk.sel); if (el) el.focus({ preventScroll: true }); }
+$('#e-sum').addEventListener('click', e => {
+  if (!e.target.closest('#e-fm')) return;
+  const t = +EB.geo.slice(2), ci = STRAT_CHAINS.findIndex(c => c.id === ACTIVE_CHAIN);
+  fmOpen(t, ci, { src: 'emp', t, ci, L: null, line: null, ch: true, back: { sy: scrollY, sel: '#e-fm' } });
 });
 
 // ---- migas (filtros activos) ----
 function activeChips() {
   const out = [];
-  F.ter.forEach(j => out.push(['g', TER[j].n, () => F.ter.delete(j)]));
-  F.com.forEach(j => out.push(['g', CN(j), () => F.com.delete(j)]));
-  F.lin.forEach(j => out.push(['l', `${LIN[j].k} ${LSHORT[LIN[j].k]}`, () => F.lin.delete(j)]));
+  F.ter.forEach(j => out.push(['g', TER[j].n, () => F.ter.delete(j), 'geo']));
+  F.com.forEach(j => out.push(['g', CN(j), () => F.com.delete(j), 'geo']));
+  F.lin.forEach(j => out.push(['l', `${LIN[j].k} ${LSHORT[LIN[j].k]}`, () => F.lin.delete(j), 'act']));
   F.sec.forEach(j => out.push(['a', SECTORS[j], () => F.sec.delete(j)]));
   F.ctci.forEach(j => out.push(['a', 'CTCI: ' + ctLab(j), () => F.ctci.delete(j)]));
-  F.rub.forEach(j => out.push(['a', D.rubros[j].l, () => F.rub.delete(j)]));
+  F.rub.forEach(j => out.push(['a', D.rubros[j].l, () => F.rub.delete(j), 'act']));
   if (ACTIVE_CHAIN) {
     const ch = STRAT_CHAINS.find(c => c.id === ACTIVE_CHAIN);
-    if (ch) out.push(['a', ch.n, () => { ACTIVE_CHAIN = null; clearFilters(); syncInputs(); update(); }]);
+    if (ch) out.push(['a', ch.n, () => { F.sub.clear(); }, 'act']);
   } else {
-    F.sub.forEach(j => out.push(['a', D.subs[j].l, () => F.sub.delete(j)]));
+    F.sub.forEach(j => out.push(['a', D.subs[j].l, () => F.sub.delete(j), 'act']));
   }
-  F.act.forEach(j => out.push(['a', D.acts[j].l, () => F.act.delete(j)]));
-  F.tam.forEach(j => out.push(['a', TAMS[j], () => F.tam.delete(j)]));
+  F.act.forEach(j => out.push(['a', D.acts[j].l, () => F.act.delete(j), 'act']));
+  F.tam.forEach(j => out.push(['a', TAMS[j], () => F.tam.delete(j), 'tam']));
   F.tb.forEach(j => out.push(['a', TBS[j] + (j ? ' trabajadores' : ''), () => F.tb.delete(j)]));
   if (F.nom) out.push(['a', 'En nómina Res. 1/2026', () => { F.nom = false; }]);
   if (F.y0 != null || F.y1 != null) out.push(['a', 'Inicio ' + (F.y0 ?? '…') + '–' + (F.y1 ?? '…'), () => { F.y0 = F.y1 = null; }]);
@@ -232,9 +251,9 @@ function filterText(attrOnly) { return activeChips().filter(c => !attrOnly || c[
 let CHIPS = [];
 function renderCrumbs() {
   CHIPS = activeChips();
-  $('#crumbs').innerHTML = '<span class="root">La Araucanía</span>' + CHIPS.map((c, i) => `<span class="sep">/</span><span class="chip${c[0] === 'a' ? '' : ' g'}"><span title="${esc(c[1])}">${esc(c[1])}</span><button type="button" data-chip="${i}" aria-label="Quitar filtro ${esc(c[1])}">×</button></span>`).join('');
-  $$('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === FP.preset)));
-  $('#rail-n').textContent = CHIPS.length ? `(${CHIPS.length})` : '';
+  const cov = { geo: EB.geo !== 'x', act: EB.act !== 'x', tam: EB.tam !== 'x' }, shown = CHIPS.map((c, i) => [c, i]).filter(([c]) => !cov[c[3]]);
+  $('#crumbs').innerHTML = !shown.length ? '' : '<span class="root">Además:</span>' + shown.map(([c, i]) => `<span class="chip${c[0] === 'a' ? '' : ' g'}"><span title="${esc(c[1])}">${esc(c[1])}</span><button type="button" data-chip="${i}" aria-label="Quitar filtro ${esc(c[1])}">×</button></span>`).join('');
+  $('#rail-n').textContent = shown.length ? `(${shown.length})` : '';
 }
 $('#crumbs').addEventListener('click', e => { const b = e.target.closest('button[data-chip]'); if (!b) return; CHIPS[+b.dataset.chip][2](); FP.preset = null; syncInputs(); update(); });
 
@@ -248,7 +267,7 @@ function update(render = true) {
   const gl = geoList();
   CTX = { M0, MG, st: stats(M0), cg: comAgg(MG), ser: seriesAgg(true), serNG: seriesAgg(false), selCom: new Set(gl.length < NC ? gl : []), geoList: gl };
   CTX.popSel = gl.reduce((a, c) => a + POP[c], 0);
-  computeFacetCounts(); renderFacets(); renderCrumbs();
+  computeFacetCounts(); renderFacets(); ebSync(); renderCrumbs();
   // la ficha y el perfil siguen al territorio o lineamiento elegido cuando es uno solo
   const ts = new Set(gl.map(c => TOF[c]));
   if (hasGeo() && ts.size === 1) { UI.t = UI.ter = [...ts][0]; }
@@ -263,7 +282,7 @@ function update(render = true) {
   else if (UI.view === 'empresas') renderEmpresas();
 }
 function openEmpresas(o) {
-  F.ter.clear(); F.com.clear(); F.lin.clear();
+  clearFilters();   // se llega con un grupo limpio: los filtros anteriores no se arrastran
   if (o.ter != null) F.ter.add(o.ter);
   if (o.lin != null) { F.lin.add(o.lin); UI.exDim = 'sub'; }
   if (o.ctci) { F.ctci.clear(); [1, 2, 3, 4, 5].forEach(j => F.ctci.add(j)); UI.exDim = 'ctci'; }
@@ -369,17 +388,24 @@ function renderM1E() {
     : ind === 'g' && CTX.serNG.partial ? 'El crecimiento no considera los filtros de actividad, búsqueda, año de inicio, vigencia ni nómina.' : (hasGeo() ? 'Las comunas filtradas se marcan en ámbar; el mapa muestra todas para comparar. Las líneas gruesas son los territorios ERD.' : 'Las líneas gruesas son los límites de los territorios ERD 2040.');
 }
 $('#e-m1-ind').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; UI.eM1 = b.dataset.k; renderM1E(); });
-function renderKpisE() {
-  const s = CTX.st, sr = CTX.ser, g = gr(sr.n), gR = gr(SREG.n), R = refStats(), filt = anyFilter();
-  const k = [
-    ['Empresas', f0(s.n), filt ? pc(s.n / R.n) + ' de la región' + (R.same ? ' (mismo filtro)' : '') + (isFinite(g) ? ' · ' + pcs(g) + ' desde ' + (SY0 + pIdx()) + (sr.partial ? '*' : '') : '') : pcs(gR) + ' desde ' + (SY0 + pIdx())],
-    ['Trabajadores dependientes', f0(s.t), filt ? pc(R.t ? s.t / R.t : NaN) + ' de la región' + (R.same ? ' (mismo filtro)' : '') : pcs(grT(SREG.t)) + ' desde ' + (SY0 + pIdxT())],
-    ['Empresas empleadoras', f0(s.e), pc(s.n ? s.e / s.n : NaN) + ' de la selección'],
-    ['Medianas y grandes', f0(s.mg), pc(s.n ? s.mg / s.n : NaN) + ' · región ' + pc(R.n ? R.mg / R.n : NaN)],
-    ['Empresas CTCI (aprox.)', f0(s.ct), pc(s.n ? s.ct / s.n : NaN) + ' · región ' + pc(R.n ? R.ct / R.n : NaN)],
-    ['Sin fines de lucro y públicas', f0(s.sfl + s.pub), `${f0(s.sfl)} sin fines de lucro · ${f0(s.pub)} públicas${s.nom ? ` · ${s.nom} en nómina` : ''}`],
-  ];
-  $('#e-kpis').innerHTML = k.map(([l, v, sub]) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`).join('');
+function renderSumE() {
+  const s = CTX.st, R = refStats(), filt = anyFilter(), ts = tamStack(CTX.M0), gl = CTX.geoList, M = CTX.M0;
+  let nV = 0; for (let i = 0; i < N; i++) if (M[i] && TAM[i] > 0) nV++;
+  const top = gl.length > 1 && s.n ? gl.map(c => [c, CTX.cg.n[c]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
+  const ref = R.same ? 'de las empresas de ese tipo en la región' : 'de la región';
+  const canFm = MX && ACTIVE_CHAIN && EB.geo.startsWith('t:');
+  const facts = !s.n ? ['Ninguna empresa cumple estas condiciones. Cambia la actividad, el lugar o el tamaño.'] : [
+    `<b>${f0(s.t)}</b> trabajadores dependientes${filt && R.t ? ` (${pc(s.t / R.t)} ${R.same ? 'de los de ese tipo de empresa en la región' : 'de la región'})` : ''}. <b>${f0(s.e)}</b> ${s.e === 1 ? 'empresa tiene' : 'empresas tienen'} trabajadores (${pc(s.e / s.n, 0)}).`,
+    `Por ventas: <b>${pc(ts.n[1] + ts.n[2], 0)}</b> micro y pequeñas, <b>${f0(s.mg)}</b> ${s.mg === 1 ? 'mediana o grande' : 'medianas y grandes'} y ${pc(ts.n[0], 0)} sin ventas informadas.${ACTIVE_CHAIN ? ` Con ventas informadas: <b>${f0(nV)}</b>, el conteo que usan Territorios y Formular para las cadenas.` : ''}`,
+    top.length ? `Se concentran en ${top.map(([c, n]) => `<b>${esc(CN(c))}</b> ${pc(n / s.n, 0)}`).join(' · ')}.` : '',
+    s.sfl + s.pub ? `<b>${f0(s.sfl)}</b> sin fines de lucro y <b>${f0(s.pub)}</b> del sector público${s.nom ? `; <b>${f0(s.nom)}</b> en la nómina Res. 1/2026` : ''}.` : '',
+  ].filter(Boolean);
+  $('#e-sum').innerHTML = `<div>
+      <p class="ct-lead"><b>${f0(s.n)}</b> ${s.n === 1 ? 'empresa' : 'empresas'}${filt ? ` · ${pc(R.n ? s.n / R.n : NaN)} ${ref}` : ' con casa matriz en La Araucanía · SII 2024'}</p>
+      <ul class="ct-facts">${facts.map(f => `<li>${f}</li>`).join('')}</ul>
+      ${canFm ? '<div style="margin-top:12px"><button class="btn pri" type="button" id="e-fm">Formular con este territorio y cadena</button></div>' : ''}
+    </div>
+    <div><span class="lbl">Estructura por tamaño · según ventas anuales (tramos SII)</span><div id="tam" style="margin-top:8px"></div></div>`;
 }
 // explorador
 const DIMS = [
@@ -387,7 +413,7 @@ const DIMS = [
   { k: 'com', l: 'Comuna', K: NC, key: i => COM[i], lab: CN, click: j => tog(F.com, j), on: j => F.com.has(j) },
   { k: 'lin', l: 'Lineamiento CTCI', K: NL, bits: i => LB[i], ord: [...Array(NL).keys()], lab: j => `${LIN[j].k} · ${LSHORT[LIN[j].k]}`, click: j => { tog(F.lin, j); if (UI.exAuto && F.lin.has(j)) UI.exDim = 'sub'; }, on: j => F.lin.has(j) },
   { k: 'rub', l: 'Rubro (sección CIIU)', K: NR, key: i => RUB[i], lab: RLAB, click: j => { tog(F.rub, j); if (UI.exAuto && F.rub.has(j)) UI.exDim = 'sub'; }, on: j => F.rub.has(j) },
-  { k: 'sub', l: 'Subrubro', K: NS, key: i => SUB[i], lab: j => D.subs[j].l, click: j => { tog(F.sub, j); if (UI.exAuto && F.sub.has(j)) UI.exDim = 'act'; }, on: j => F.sub.has(j) },
+  { k: 'sub', l: 'Subrubro', K: NS, key: i => SUB[i], lab: j => D.subs[j].l, click: j => { if (F.sub.size > 1 && F.sub.has(j)) { F.sub.clear(); F.sub.add(j); } else tog(F.sub, j); if (UI.exAuto && F.sub.has(j)) UI.exDim = 'act'; }, on: j => F.sub.has(j) },
   { k: 'act', l: 'Actividad económica', K: NA, key: i => ACT[i], lab: j => D.acts[j].l, click: j => tog(F.act, j), on: j => F.act.has(j) },
   { k: 'ctci', l: 'Grupo CTCI (aprox.)', K: 6, ord: [1, 2, 3, 4, 5, 0], key: i => CT[i], lab: ctLab, click: j => tog(F.ctci, j), on: j => F.ctci.has(j) },
   { k: 'tam', l: 'Tamaño según ventas', K: 5, ordered: true, key: i => TAM[i], lab: j => TAMS[j], click: j => tog(F.tam, j), on: j => F.tam.has(j) },
@@ -514,25 +540,6 @@ function renderEvo() {
   if (sr.tamApprox) notes.push(`En ${SY0}–${SY0 + TY0 - 1} el tramo de ventas está reservado para cerca del 2% de las empresas (las más grandes), que quedan fuera al filtrar por tamaño.`);
   notes.push('Cada año cuenta las empresas con casa matriz en la región al 31 de diciembre; la franja marca el periodo de comparación.');
   $('#evo-note').textContent = notes.join(' ');
-}
-function renderCre() {
-  const host = $('#cre'), m = CTX.M0, cnt = new Map(); let before = 0, recent = 0, tot = 0;
-  for (let i = 0; i < N; i++) if (m[i]) { const y = YR[i]; if (!y) continue; tot++; if (y < 2000) before++; else cnt.set(y, (cnt.get(y) || 0) + 1); if (y >= 2020) recent++; }
-  $('#cre-sub').textContent = tot ? `${pc(recent / tot, 0)} inició actividades desde 2020 · solo empresas presentes en 2024` : '';
-  const years = []; for (let y = 2000; y <= 2025; y++) years.push(y);
-  const cats = [['<2000', before], ...years.map(y => [String(y), cnt.get(y) || 0])];
-  const W = Math.max(260, host.clientWidth || 300), H = 170, l = 6, r = 6, t = 10, b = 22, bw = (W - l - r) / cats.length, mx = Math.max(1, ...cats.map(c => c[1]));
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Empresas según año de inicio" style="display:block"><line x1="${l}" x2="${W - r}" y1="${H - b}" y2="${H - b}" stroke="#35434C"/>`;
-  cats.forEach(([lab, v], i) => {
-    const h = v / mx * (H - t - b), x = l + i * bw + 1, w = Math.max(1, bw - 2), y = H - b - h, col = lab === '<2000' ? '#4A5258' : +lab >= 2020 ? '#3987E5' : '#2A5F9E', rr = Math.min(3, h / 2, w / 2);
-    if (h > 0) s += `<path d="M${x},${H - b}V${(y + rr).toFixed(1)}q0,-${rr} ${rr},-${rr}h${Math.max(0, w - 2 * rr).toFixed(1)}q${rr},0 ${rr},${rr}V${H - b}Z" fill="${col}"/>`;
-    s += `<rect x="${l + i * bw}" y="${t}" width="${bw}" height="${H - t - b}" fill="transparent" data-i="${i}"/>`;
-    if (lab === '<2000') s += `<text x="${x.toFixed(1)}" y="${H - 6}" text-anchor="start" font-size="10.5" fill="#83929A">Antes</text>`;
-    else if (['2005', '2010', '2015', '2020', '2025'].includes(lab)) s += `<text x="${(x + w / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="10.5" fill="#83929A">${lab}</text>`;
-  });
-  host.innerHTML = s + '</svg>';
-  host.querySelector('svg').addEventListener('pointermove', e => { const el = e.target.closest('[data-i]'); if (!el) return hideTip(); const c = cats[+el.dataset.i]; showTip(e, c[0] === '<2000' ? 'Antes de 2000' : 'Inicio en ' + c[0], [[f0(c[1]), 'empresas de la selección']]); });
-  host.querySelector('svg').addEventListener('pointerleave', hideTip);
 }
 const TAMCOL = ['#4A5258', '#184F95', '#2A78D6', '#6DA7EC', '#B7D3F6'];
 function tamStack(m) {
@@ -808,8 +815,7 @@ if ($('#strat-matrix-wrap')) {
       syncInputs();
       update();
       toast(`Filtro aplicado: ${ch.n}` + (c != null ? ` · ${CN(c)}` : t != null ? ` · ${TER[t].n}` : ''));
-      const tbWrap = $('#tb-wrap');
-      if (tbWrap) tbWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0 }); $('#eb-act').focus({ preventScroll: true });
     }
   });
 }
@@ -837,5 +843,10 @@ function renderEmpresas() {
   if (!CTX) return;
   if (!DIRTY.empresas) return;
   DIRTY.empresas = false;
-  renderKpisE(); renderM1E(); renderExplorer(); renderEvo(); renderCre(); renderTam(); renderStratMatrix(); renderTable(); renderHeat();
+  renderSumE(); renderTam(); renderM1E(); renderExplorer(); renderTable(); renderEvo();
+  if ($('#strat-matrix-card').open) renderStratMatrix();
+  if ($('#e-hm-d').open) renderHeat();
 }
+$('#e-evo-d').addEventListener('toggle', e => { if (e.target.open) renderEvo(); });
+$('#strat-matrix-card').addEventListener('toggle', e => { if (e.target.open) renderStratMatrix(); });
+$('#e-hm-d').addEventListener('toggle', e => { if (e.target.open) renderHeat(); });

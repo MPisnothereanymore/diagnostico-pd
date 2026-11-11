@@ -134,10 +134,11 @@ function fmExe(x) {
 function fmFrom() {
   const fr = FMU.from, fb = $('#fm-from');
   fb.hidden = !fr; if (!fr) return;
-  if (fr.src === 'ter') {
-    fb.innerHTML = `<p><b>Vienes de Territorios:</b> ${esc(TER[fr.t].n)}${fr.ch ? ` · ${esc(STRAT_CHAINS[fr.ci].n)}` : ''}.</p>
+  if (fr.src === 'ter' || fr.src === 'emp') {
+    const S = fr.src === 'emp' ? 'Empresas' : 'Territorios';
+    fb.innerHTML = `<p><b>Vienes de ${S}:</b> ${esc(TER[fr.t].n)}${fr.ch ? ` · ${esc(STRAT_CHAINS[fr.ci].n)}` : ''}.</p>
       <p class="note">${fr.ch ? 'Quedaron elegidos el territorio y la cadena productiva: cámbialos si no corresponde.' : 'Quedó elegido el territorio: elige la cadena productiva para ver el recorrido.'}</p>
-      <div class="ct-ob"><button type="button" class="btn sm" id="fm-back">Volver a Territorios</button><button type="button" class="btn sm" id="fm-fromx">Quitar este aviso</button></div>`;
+      <div class="ct-ob"><button type="button" class="btn sm" id="fm-back">Volver a ${S}</button><button type="button" class="btn sm" id="fm-fromx">Quitar este aviso</button></div>`;
     return;
   }
   const ln = fr.line ? LINE[fr.line] : null;
@@ -216,7 +217,7 @@ function fmInit() {
   $('#fm-rub').addEventListener('change', e => { const k = e.target.dataset.k; if (!k) return; FMU.sc[k] = +e.target.value || 0; fmRub(); fmFicha(); });
   $('#v-formular').addEventListener('click', e => {
     const b = e.target.closest('button[data-bip]'), xb = e.target.closest('button[data-x]'), xa = e.target.closest('button[data-xall]');
-    if (e.target.closest('#fm-back')) { (FMU.from.src === 'ter' ? trBack : ctBack)(FMU.from); return; }
+    if (e.target.closest('#fm-back')) { (FMU.from.src === 'ter' ? trBack : FMU.from.src === 'emp' ? empBack : ctBack)(FMU.from); return; }
     if (e.target.closest('#fm-fromx')) { FMU.from = null; renderFormular(); $('#fm-t').focus(); return; }
     const tog = (s, k) => { if (s.has(k)) s.delete(k); else s.add(k); };
     if (b) openBip({ t: FMU.t, cat: b.dataset.bip, ti: new Set(b.dataset.ti ? b.dataset.ti.split(',').map(Number) : []) });
