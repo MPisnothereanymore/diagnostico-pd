@@ -29,6 +29,9 @@ try { D = await loadPack(); } catch (e) { $('#loading').textContent = 'No se pud
 // obras georreferenciadas de Geo-CGR (opcional: el tablero funciona sin ellas)
 let OB = null;
 try { if (document.getElementById('obras')) OB = await loadPack('obras'); } catch (e) { console.warn('Obras Geo-CGR no disponibles:', e); }
+// matriz estratégica art. 8 × ERD/PRFP para la pestaña Formular (opcional)
+let MX = null;
+try { if (document.getElementById('matriz')) MX = await loadPack('matriz'); } catch (e) { console.warn('Matriz estratégica no disponible:', e); }
 
 // ================= catálogos =================
 const FR = D.FRPD, NC = D.comunas.length;
@@ -418,7 +421,7 @@ function locator(ti, extra) {
 }
 
 // ================= vistas =================
-const VIEWS = ['cartera', 'bip', 'compras', 'territorios', 'empresas', 'evid', 'marco', 'simulador'];
+const VIEWS = ['cartera', 'bip', 'compras', 'territorios', 'empresas', 'evid', 'formular', 'marco', 'simulador'];
 const FIRMV = new Set(['cartera', 'territorios', 'empresas']);
 const rendered = {};
 function setView(v) {
@@ -432,6 +435,7 @@ function setView(v) {
   if (v === 'empresas') renderEmpresas();
   if (v === 'marco' && !rendered.marco) { renderMarco(); rendered.marco = true; }
   if (v === 'simulador') renderSim();
+  if (v === 'formular') renderFormular();
   if (v === 'bip') renderBip();
   if (v === 'evid') renderEvid();
   if (v === 'compras') { renderCompras(); if (!CP_FULL && !window.LIVE_COMPRAS) syncRadarData(true); }

@@ -617,10 +617,35 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .obp .bip b{font-family:var(--f-mono);font-weight:500;color:var(--sel)}
 .obp .btn{margin-top:8px;width:100%}
 .if-tblw{overflow-x:auto}
+.fm-b{display:flex;flex-direction:column;gap:14px}
+.fm-b .srch{flex:none;width:100%;max-width:none}
+.fm-n{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:9px;border-radius:50%;background:var(--acc-soft);color:var(--acc);font-family:var(--f-mono);font-size:13px;font-weight:500;vertical-align:1px}
+.fm-st{flex:1 1 320px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink2);min-width:0}.fm-st .ifc{width:auto;flex:none;padding:3px 12px}
+.fm-itemd{margin:0;font-size:13px;color:var(--ink2);line-height:1.6}.fm-itemd b{color:var(--ink)}.fm-itemd .m,.fm-ul .m{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.fm-acts{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fm-act{display:flex;gap:10px;align-items:flex-start;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--surf2);font-size:12.5px;line-height:1.5;color:var(--ink2);cursor:pointer}
+.fm-act:has(input:checked){border-color:var(--acc)}.fm-act input{accent-color:var(--acc);margin-top:3px;flex:none}.fm-act b{color:var(--ink);font-weight:500;font-family:var(--f-mono);font-size:11.5px}
+.fm-fun{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:6px}
+.fm-fun>div{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--surf2)}
+.fm-fun b{font-family:var(--f-mono);font-size:22px;font-weight:500}.fm-fun small{color:var(--ink2);font-size:12px;display:flex;flex-direction:column;gap:3px}
+.fm-fun label{display:flex;gap:6px;align-items:center;cursor:pointer}.fm-fun input[type=checkbox]{accent-color:var(--acc);margin:0}
+.fm-fun input[type=number]{width:100%;background:var(--surf);border:1px solid var(--line2);border-radius:5px;color:var(--ink);padding:5px 8px;font:500 18px var(--f-mono)}
+.fm-2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.fm-ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--ink2)}.fm-ul b{color:var(--ink)}.fm-ul li+li{margin-top:5px}
+.fm-ta{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fm-ta textarea{width:100%;resize:vertical;background:var(--surf2);border:1px solid var(--line2);border-radius:6px;color:var(--ink);padding:9px 11px;font:13.5px/1.5 var(--f-sans)}
+.fm-ta textarea:focus-visible,.fm-fun input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.fm-cnt{font-size:12px;color:var(--ink2)}.fm-cnt b{font-family:var(--f-mono);font-weight:500;color:var(--ok)}.fm-cnt b.over{color:var(--bad)}.fm-cnt ul{margin:4px 0 0;padding-left:18px;color:var(--sel)}
+.fm-h4{grid-template-columns:minmax(0,1fr) auto auto auto!important}
+.fm-al{margin:0;font-size:12.5px;color:var(--sel)}#fm-exe p{margin:0 0 6px;font-size:13px;color:var(--ink2)}#fm-exe b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.fm-rub{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 14px;margin-top:6px}
+.fm-rub label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--ink2)}.fm-rub small{color:var(--muted);margin-right:auto;padding-left:4px}
+.fm-tot{margin:10px 0 0;font-size:13px;color:var(--ink2)}.fm-tot b{font-family:var(--f-mono);font-weight:500;color:var(--ink);font-size:16px}
+.fm-ficha{margin:0;max-height:420px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:14px 16px;font:12.5px/1.55 var(--f-mono);color:var(--ink2)}
 .if-sum{margin:0;font-size:14px;color:var(--ink2)}.if-sum b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
 .ift{width:100%;min-width:640px;border-collapse:separate;border-spacing:3px;font-size:12.5px;table-layout:fixed}
 .ift th:first-child{width:190px}
-.ift thead th{font-size:11.5px;font-weight:500;color:var(--ink2);text-align:center;padding:2px 4px 6px;vertical-align:bottom}
+.ift thead th{font-size:10.5px;font-weight:500;color:var(--ink2);text-align:center;padding:2px 2px 6px;vertical-align:bottom;overflow-wrap:anywhere;letter-spacing:.02em}
 .ift th:first-child{text-align:left;white-space:nowrap;font-weight:500;padding-right:8px}
 .ift tbody th{color:var(--ink)}
 .ift-g th{font-family:var(--f-cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:8px}
@@ -749,6 +774,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       <button class="tab" role="tab" id="tab-evid" aria-controls="v-evid" aria-selected="false" type="button">Evidencia territorial</button>
     </div></div>
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Formulación</span><div class="tabg-b" role="presentation">
+      <button class="tab" role="tab" id="tab-formular" aria-controls="v-formular" aria-selected="false" type="button">Formular</button>
       <button class="tab" role="tab" id="tab-marco" aria-controls="v-marco" aria-selected="false" type="button">Marco normativo</button>
       <button class="tab" role="tab" id="tab-simulador" aria-controls="v-simulador" aria-selected="false" type="button">Simulador</button>
     </div></div>
@@ -1350,6 +1376,57 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       <div class="card-h"><div><h2>Estrategia Regional de Desarrollo 2040</h2><div class="sub">Seis lineamientos estratégicos regionales (LER) y sus objetivos. El D.S. 1.699 admite iniciativas asociadas a la ERD (art. 8 N°2 i) y cada línea de la cartera declara los LER con que se alinea.</div></div></div>
       <div class="card-b" id="ler"></div>
     </section>
+  </section>
+
+  <!-- ===== Formular ===== -->
+  <section class="view" id="v-formular" role="tabpanel" aria-labelledby="tab-formular" hidden>
+    <p class="note" id="fm-none" hidden>La matriz estratégica no está incluida en esta copia del tablero. Se genera con procesamiento/prep_matriz.py.</p>
+    <div id="fm-body" style="display:flex;flex-direction:column;gap:16px">
+      <div class="fbar" role="group" aria-label="Selección">
+        <label class="ctrl">Territorio<select class="sel" id="fm-t"></select></label>
+        <label class="ctrl">Cadena productiva<select class="sel" id="fm-ch"></select></label>
+        <div class="fm-st" id="fm-st"></div>
+      </div>
+      <section class="card">
+        <div class="card-h"><div><h2><span class="fm-n">1</span>Dónde mirar: cuadre con el art. 8 y la estrategia</h2><div class="sub">Toda idea lleva un ítem del art. 8 del D.S. 1.699 y una acción de la ERD o la PRFP, con página</div></div></div>
+        <div class="card-b fm-b">
+          <label class="ctrl" style="max-width:100%">Ítem del art. 8<select class="sel" id="fm-item" style="max-width:100%"></select></label>
+          <p class="fm-itemd" id="fm-itemd"></p>
+          <input class="srch" id="fm-aq" type="search" placeholder="Filtrar acciones por palabra: riego, turismo, asociatividad…" autocomplete="off" aria-label="Filtrar acciones">
+          <div class="fm-acts" id="fm-acts"></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-h"><div><h2><span class="fm-n">2</span>Problema y evidencia</h2><div class="sub">Primero el problema, con su dato: población afectada + territorio + condición negativa verificable. Después la solución</div></div></div>
+        <div class="card-b fm-b">
+          <div><span class="lbl">Poblaciones</span><div id="fm-pop"></div></div>
+          <div class="grid fm-2"><div id="fm-cond"></div><div><span class="lbl">Causas candidatas, con dato y fuente</span><div id="fm-caus"></div></div></div>
+          <div class="grid fm-2">
+            <div class="fm-ta"><label class="lbl" for="fm-prob">Problema (borrador)</label><textarea id="fm-prob" rows="4"></textarea><div class="fm-cnt" id="fm-prob-n"></div><div><button type="button" class="btn sm" id="fm-prob-r">Volver al borrador automático</button></div></div>
+            <div class="fm-ta"><label class="lbl" for="fm-prop">Propósito (borrador)</label><textarea id="fm-prop" rows="4"></textarea><div class="fm-cnt" id="fm-prop-n"></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-h"><div><h2><span class="fm-n">3</span>Qué ya se hace</h2><div class="sub">Inversión y proyectos en el territorio, para complementar y no duplicar</div></div></div>
+        <div class="card-b fm-b" id="fm-hace"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><div><h2><span class="fm-n">4</span>Cómo se ejecuta</h2><div class="sub">Instrumento, ejecutores, exclusiones del art. 10 y rúbrica de priorización de DIFOI</div></div></div>
+        <div class="card-b fm-b">
+          <label class="ctrl">Instrumento<select class="sel" id="fm-inst"></select></label>
+          <div id="fm-exe"></div>
+          <div><span class="lbl">Rúbrica de priorización (1 bajo a 5 alto)</span><div id="fm-rub"></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-h"><div><h2>Ficha de Paso 0</h2><div class="sub">Reúne lo anterior en texto, con sus etiquetas [V], [I] y [S], para llevarlo a la carpeta de la iniciativa</div></div><div class="ctrls"><button class="btn pri" id="fm-copy" type="button">Copiar</button><button class="btn" id="fm-dl" type="button">Descargar .md</button></div></div>
+        <div class="card-b fm-b">
+          <label class="lbl" for="fm-idea">Idea en una frase</label><input class="srch" id="fm-idea" type="text" placeholder="Qué se quiere lograr, en quién y dónde" autocomplete="off">
+          <pre class="fm-ficha" id="fm-ficha" tabindex="0"></pre>
+        </div>
+      </section>
+    </div>
   </section>
 
   <!-- ===== Iniciativas BIP ===== -->

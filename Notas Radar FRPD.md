@@ -281,6 +281,21 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Capas de Territorios.** Agrupadas en Referencias, Transporte y conectividad, y Servicios y equipamiento.
 - **Unidades.** Los encabezados de los CSV dicen «miles de $» en vez de «M$», para no confundirlos con los MM$ de la pantalla. Los valores no cambian.
 
+## Exploración: infraestructura por cadena y pestaña Formular (11 de noviembre de 2026, sin publicar en GitHub)
+- **Infraestructura habilitante por cadena (Territorios).** Matriz de territorio o comuna × cadena con cuatro estados: sofisticar, habilitar, diversificar y sin prioridad.
+  - *Presencia:* cociente de localización de la cadena de al menos 1 y cinco o más empresas.
+  - *Brecha:* el indicador de la dimensión cae en el tercio peor de las comunas.
+  - *Inversión en camino:* iniciativas BIP de infraestructura de la categoría, con comuna y última postulación desde 2025.
+  - *Requisitos por cadena:* supuesto provisional, definido en `IF_REQ` (`fuente/infra.js`).
+- **Pestaña Formular.** Recorrido de Paso 0 para un territorio y una cadena:
+  - *Cuadre:* ítem del art. 8 y acciones de la ERD y la PRFP.
+  - *Problema y evidencia:* poblaciones, condición de la cadena frente a la región, causas con dato y fuente, y borradores de problema y propósito con contador de 300 caracteres y controles de la guía.
+  - *Qué ya se hace:* inversión y proyectos en el territorio.
+  - *Cómo se ejecuta:* instrumento, ejecutores, art. 10 y rúbrica de DIFOI con su variante de pesos.
+  - *Salida:* una ficha en texto para copiar o descargar.
+- **Matriz estratégica.** `procesamiento/prep_matriz.py` (paso 8) lee `07_MATRIZ_ESTRATEGICA.md` y `07_ACCIONES_ERD_PRFP.csv` de la carpeta DIFOI y genera `fuente/matriz_estrategica.b64`: 35 ítems y 638 acciones, 467 con ítem. No incluye la cartera en formulación, las prioridades ni la hoja de ruta.
+- **Hoja de ruta.** `01_HOJA_DE_RUTA.md` está sin efecto desde el 14-oct-2026, así que el recorrido no asigna etapas.
+
 ## Rendimiento (11 de noviembre de 2026)
 - **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
 - **Marcas en canvas.** Las obras de Geo-CGR y los puntos de infraestructura de Territorios se dibujan en canvas y no como elementos SVG, con las mismas fichas y clics.
