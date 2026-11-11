@@ -471,6 +471,48 @@ details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 #fm-body.nochain>:not(.fm-from):not(.fbar){display:none}#fm-ch.warn{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
 .fm-from{border:1px solid var(--line2);border-left:3px solid var(--acc);border-radius:6px;padding:10px 14px;background:var(--surf);display:grid;gap:6px;font-size:13.5px}.fm-from p{margin:0}.fm-from:focus{outline:none}
 details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-content}details.foot>div{margin-top:8px}
+/* Territorios: selector, lectura en tres preguntas, mapa de apoyo y tablas por comuna plegadas */
+.tr-pick{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.tr-p{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:9px 10px 9px 11px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:7px;background:var(--surf2);color:var(--ink2);font-size:12px;line-height:1.35;min-width:0}
+.tr-p b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25}
+.tr-p .g{color:var(--bad)}.tr-p .g.z{color:var(--ok)}
+.tr-p:hover{border-color:var(--acc);border-left-color:var(--tc)}
+.tr-p[aria-pressed="true"]{background:var(--surf3);border-color:var(--ink);border-left-color:var(--tc);box-shadow:0 0 0 1px var(--ink)}
+.g-terr{grid-template-columns:minmax(0,1.5fr) minmax(380px,1fr)}
+.tr-side{display:flex;flex-direction:column;gap:16px;min-width:0}.tr-xh{font-size:15px!important;margin:0!important}
+.tr-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px 18px;flex-wrap:wrap}
+#tp-title:focus{outline:none}
+.tr-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
+.tr-q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.tr-q>h3{font-size:16px;font-weight:600}
+.tr-q>.c{margin:0;font-size:14px;line-height:1.5;color:var(--ink2);max-width:82ch}.tr-q>.c b{color:var(--ink);font-weight:600}
+.tr-q .note{margin:0}
+.tr-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 28px;align-items:start}
+.tr-2>div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.tr-ch{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--line)}
+.tr-ch .n b{display:block;font-weight:600;font-size:13px}.tr-ch small{color:var(--muted);font-size:11.5px}
+.tr-ch .ifc{width:auto;min-height:24px;padding:2px 10px}
+.tr-dim{display:grid;grid-template-columns:minmax(0,1.25fr) 132px minmax(0,1fr);gap:4px 16px;align-items:start;padding:9px 0 9px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:12.5px}
+.tr-dim.gap{border-left-color:var(--bad)}
+.tr-dim .a>b{display:block;font-size:13.5px;font-weight:600}.tr-dim:not(.gap) .a>b{font-weight:500;color:var(--ink2)}
+.tr-dim small{display:block;color:var(--ink2);font-size:11.5px;line-height:1.45;margin-top:2px}.tr-dim small b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.tr-dim .c{display:flex;flex-direction:column;gap:3px;align-items:flex-start}.tr-dim .c b{font-weight:600}.tr-dim .linkbtn{font-size:12px;font-weight:500}
+details.tr-det>summary{cursor:pointer;list-style:none;align-items:center;flex-wrap:nowrap;padding-bottom:14px}
+details.tr-det>summary::-webkit-details-marker{display:none}
+details.tr-det>summary::after{content:"Mostrar";flex:none;font-size:12px;color:var(--acc);font-weight:600;border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+details.tr-det[open]>summary::after{content:"Ocultar"}
+details.tr-det>summary:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;border-radius:var(--r)}
+.tr-detb{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}.tr-detb .note{margin:0;max-width:110ch}
+details.tr-lay>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--acc);width:fit-content}
+details.tr-lay>summary span{color:var(--muted);font-weight:400}
+details.tr-lay>.layers{margin-top:10px}
+.ift tr.on>th{color:var(--sel)}.ift tr.on>th::before{content:"▸ "}
+.ipt-s{display:block;font-size:11px;line-height:1.35;color:var(--muted);margin-top:3px}
+.ipt-tbl td{vertical-align:top}.ipt-tbl td>b{font-size:13px}
+@media (max-width:1180px){.tr-pick{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.tr-2,.tr-dim{grid-template-columns:minmax(0,1fr)}.tr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tr-ch{grid-template-columns:minmax(0,1fr) auto}.tr-ch .linkbtn{grid-column:1/-1}}
+@media (max-width:560px){.tr-pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
 
@@ -821,7 +863,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <div class="work" id="work">
   <aside class="rail" id="rail" aria-label="Filtros de empresas">
     <div class="rail-h"><b>Filtros de empresas</b><button class="btn sm" id="rail-hide" type="button" aria-label="Ocultar los filtros">Ocultar</button></div>
-    <p class="scope">Filtran las empresas SII en Territorios y Empresas, y la base empresarial de las fichas de Cartera: los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
+    <p class="scope">Filtran las empresas SII de esta pestaña y la base empresarial de las fichas de Cartera. Territorios y el resto de Cartera usan siempre todas las empresas. Cada opción muestra cuántas empresas quedarían.</p>
     <label class="lbl" for="f-q">Buscar</label>
     <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
     <details class="facet" id="f-strat-facet" open style="border:1.5px solid var(--acc);background:rgba(26,115,232,0.03);border-radius:8px;padding:4px 8px 6px;margin:8px 0">
@@ -877,10 +919,16 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Territorios ===== -->
   <section class="view" id="v-territorios" role="tabpanel" aria-labelledby="tab-territorios" hidden>
+    <section class="card" aria-labelledby="tr-pk-h">
+      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y cuántas de las seis dimensiones de infraestructura tiene cada uno en brecha. También puedes elegirlo en el mapa.</div></div></div>
+      <div class="card-b"><div class="tr-pick" id="tr-pick" role="group" aria-labelledby="tr-pk-h"></div></div>
+    </section>
     <div class="grid g-terr">
-      <section class="card">
+      <section class="card" id="tprof" aria-label="Lectura del territorio"></section>
+      <div class="tr-side">
+      <section class="card" id="tr-mapc" aria-labelledby="tr-map-h">
         <div class="card-h">
-          <div><h2 id="m-title">Territorios ERD 2040</h2><div class="sub" id="m-sub">Clic en una comuna para ver su territorio · arrastra para mover · Ctrl + rueda o botones para acercar</div></div>
+          <div><h2 id="tr-map-h">Mapa</h2><div class="sub" id="m-sub">Clic en una comuna para elegir su territorio.</div></div>
           <div class="ctrls">
             <label class="ctrl">Colorear comunas por<select class="sel" id="m-ind"></select></label>
             <label class="ctrl" id="m-lin-w" hidden>Lineamiento<select class="sel" id="m-lin"></select></label>
@@ -888,23 +936,16 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
         </div>
         <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
           <div class="mapwrap" id="map"></div>
-          <fieldset class="layers" id="layers"><legend class="lbl">Infraestructura y capas</legend></fieldset>
+          <details class="tr-lay"><summary>Capas de infraestructura <span id="ly-n"></span></summary><fieldset class="layers" id="layers" aria-label="Capas del mapa"></fieldset></details>
           <div class="note" id="m-note"></div>
-          <details class="guide-det">
-            <summary class="guide-sum">¿Cómo leer el mapa y las capas de infraestructura?</summary>
-            <div class="guide-b">
-              <div><b>División territorial:</b> Los bordes gruesos demarcan los <b>8 Territorios de la ERD 2040</b>; las subdivisiones internas son las 32 comunas.</div>
-              <div><b>Capas de infraestructura:</b> Activa capas como <i>Sistemas Sanitarios Rurales (SSR/APR)</i>, <i>Subestaciones eléctricas</i>, <i>Plantas de tratamiento</i> o <i>Antenas</i> para identificar cuellos de botella y justificar proyectos habilitantes.</div>
-              <div><b>Ficha diagnóstica:</b> Haz clic en cualquier comuna para ver en el panel derecho su vocación productiva 2040, población Censo 2024 y situación de sus Planes Reguladores (PRC).</div>
-            </div>
-          </details>
         </div>
       </section>
-      <aside class="card" id="tprof" aria-live="polite"></aside>
+      <section class="card" id="tprof-x" aria-label="Más datos del territorio"></section>
+      </div>
     </div>
     <section class="card" id="if-card">
       <div class="card-h">
-        <div><h2>Infraestructura habilitante por cadena productiva</h2><div class="sub">Dónde la infraestructura frena a una cadena que ya existe y dónde está lista para una nueva · clic en una celda para ver las brechas y la inversión en camino</div></div>
+        <div><h2>Comparar territorios: infraestructura por cadena productiva</h2><div class="sub">Dónde la infraestructura frena a una cadena que ya existe y dónde está lista para una nueva. Clic en una celda para ver las brechas y la inversión en camino.</div></div>
         <div class="ctrls"><div class="seg" id="if-lev" role="group" aria-label="Nivel"></div></div>
       </div>
       <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
@@ -915,250 +956,22 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
         <div class="note" id="if-note"></div>
       </div>
     </section>
-    <section class="card">
-      <div class="card-h">
-        <div><h2>Condiciones habilitantes por comuna</h2><div class="sub">▲ marca el tercio de comunas con peor valor regional en cada indicador. Las brechas orientan inversiones del art. 8 N°2 (conectividad, descarbonización, bienes públicos) y los riesgos de ejecución de cada línea.</div></div>
-        <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="hb-scope"><option value="all">Todas las comunas</option><option value="ter">Solo el territorio seleccionado</option></select></label><button class="btn pri" id="hb-csv" type="button" hidden>Exportar CSV</button></div>
+    <details class="card tr-det" id="tr-com">
+      <summary class="card-h"><div><h2>Indicadores de infraestructura por comuna</h2><div class="sub">Los indicadores detrás de cada dimensión, comuna por comuna.</div></div></summary>
+      <div class="tr-detb">
+        <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="hb-scope"></select></label><button class="btn pri" id="hb-csv" type="button" hidden>Exportar CSV</button></div>
+        <div class="tbl-wrap" id="hab"></div>
+        <p class="note">▲ marca los valores en el tercio peor de las 32 comunas. Una dimensión está en brecha cuando alguno de sus indicadores lo está: conectividad vial (pavimento o puentes de madera), energía (interrupción eléctrica), conectividad digital (antenas), agua potable (viviendas sin red pública), riego (superficie regada) y educación superior (territorio sin sedes). El archivo CSV trae además el resto de las variables de infraestructura.</p>
       </div>
-      <div class="tbl-wrap" id="hab"></div>
-      <div style="padding:0 16px 14px">
-        <details class="guide-det">
-          <summary class="guide-sum">¿Cómo interpretar la tabla de condiciones habilitantes?</summary>
-          <div class="guide-b">
-            <div><b>Marcador ▲ (alerta de brecha):</b> Señala al <b>tercio de comunas más desfavorecidas</b> de la región en esa variable (mayor carencia de agua potable rural, rezago vial, brecha de internet o vulnerabilidad social).</div>
-            <div><b>Criterio normativo:</b> Fundamenta asignaciones del <b>Art. 8 N°2 del D.S. 1.699</b> (bienes públicos e infraestructura habilitante) y ayuda a anticipar riesgos de ejecución comunal.</div>
-          </div>
-        </details>
+    </details>
+    <details class="card tr-det" id="ipt-card">
+      <summary class="card-h"><div><h2>Instrumentos de planificación por comuna</h2><div class="sub">Plan regulador, PLADECO, gestión del riesgo, turismo, cambio climático y regímenes especiales. Catastro sin verificar.</div></div></summary>
+      <div class="tr-detb">
+        <p class="note warn" id="ipt-sum"></p>
+        <div class="ctrls"><label class="ctrl">Mostrar<select class="sel" id="ipt-scope"></select></label><button class="btn pri" id="ipt-csv" type="button">Exportar CSV</button></div>
+        <div class="tbl-wrap" id="ipt-tbl-wrap"></div>
       </div>
-    </section>
-
-    <!-- ===== Instrumentos de Planificación, Gestión y Sostenibilidad Territorial ===== -->
-    <section class="card" id="ipt-card">
-      <div class="card-h">
-        <div>
-          <h2>Instrumentos de Planificación, Gestión y Sostenibilidad Territorial</h2>
-          <div class="sub">Catastro comunal integrado: PRC · PRI · PLADECO · GRD (SENAPRED) · PLADETUR · ZOIT · PACCC (Ley 21.455) · ADI (Ley 19.253) · Descontaminación (PDA/PDL) y Relevancia FRPD en las 32 comunas de La Araucanía. Fuentes: ERD 2040, MINVU, SUBDERE, SERNATUR, SENAPRED, CONADI y MMA 2024.</div>
-        </div>
-        <div class="ctrls" style="gap:6px;flex-wrap:wrap">
-          <button class="btn" id="ipt-btn-map" type="button" title="Colorear el mapa por estado del PRC">PRC</button>
-          <button class="btn" id="ipt-btn-map-plad" type="button" title="Colorear el mapa por estado del PLADECO">PLADECO</button>
-          <button class="btn" id="ipt-btn-map-grd" type="button" title="Colorear el mapa por estado de los Planes de GRD">GRD</button>
-          <button class="btn" id="ipt-btn-map-pladet" type="button" title="Colorear el mapa por PLADETUR">PLADETUR</button>
-          <button class="btn" id="ipt-btn-map-paccc" type="button" title="Colorear el mapa por PACCC Cambio Climático">PACCC</button>
-          <button class="btn" id="ipt-btn-map-adi" type="button" title="Colorear el mapa por Áreas Indígenas ADI">ADI</button>
-          <button class="btn" id="ipt-btn-map-descont" type="button" title="Colorear el mapa por Planes de Descontaminación">Descontam.</button>
-          <button class="btn" id="ipt-btn-map-frpd" type="button" title="Colorear el mapa por Relevancia e Impacto FRPD">Nivel FRPD</button>
-          <button class="btn pri" id="ipt-csv" type="button">Exportar CSV</button>
-        </div>
-      </div>
-      <div class="card-b" style="display:flex;flex-direction:column;gap:14px">
-        <!-- KPIs integrados de Planificación y Gestión (8 indicadores) -->
-        <div class="kpis" id="ipt-kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
-          <div class="kpi">
-            <span class="l">PRC Vigentes</span>
-            <span class="v" style="color:var(--ok)">20 <small>/ 32</small></span>
-            <span class="s">8 consolidados · 12 en mod. <b style="color:var(--sel)">[FRPD Medio]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">PLADECO Vigentes</span>
-            <span class="v" style="color:var(--ok)">14 <small>/ 32</small></span>
-            <span class="s">10 en act. · 8 vencidos <b style="color:var(--muted)">[FRPD Bajo]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">Plan Emergencia GRD</span>
-            <span class="v" style="color:var(--data)">22 <small>/ 32</small></span>
-            <span class="s">Ley 21.364 · 11 con RRD <b style="color:var(--bad)">[FRPD Alto]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">PLADETUR Turismo</span>
-            <span class="v" style="color:var(--acc)">11 <small>/ 32</small></span>
-            <span class="s">11 vigentes · 8 en form. <b style="color:var(--acc)">[FRPD Alto]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">ZOIT Declaradas</span>
-            <span class="v" style="color:#C7A2F0">5 ZOIT</span>
-            <span class="s">Ley 20.423 (Lacustre y Andina) <b style="color:#C7A2F0">[FRPD Alto]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">PACCC Climático</span>
-            <span class="v" style="color:var(--data)">4 <small>Aprobados</small></span>
-            <span class="s">16 en elab. · Ley 21.455 <b style="color:var(--data)">[FRPD Medio]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">Áreas Indígenas ADI</span>
-            <span class="v" style="color:#E29D62">8 <small>Comunas</small></span>
-            <span class="s">Budi, Ercilla, Nahuelbuta, Huichahue <b style="color:#E29D62">[FRPD Medio]</b></span>
-          </div>
-          <div class="kpi">
-            <span class="l">Descontaminación</span>
-            <span class="v" style="color:#F27878">5 <small>Comunas</small></span>
-            <span class="s">PDA Aire (2) · PDL Lago (3) <b style="color:#F27878">[FRPD Alto]</b></span>
-          </div>
-        </div>
-
-        <!-- Filtros avanzados de la tabla -->
-        <div class="fbar" style="border-radius:6px;padding:8px 12px;background:var(--surf2);gap:8px 12px">
-          <div class="fgrp" style="gap:6px 10px;flex-wrap:wrap">
-            <span class="lbl">Filtros:</span>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-ter" style="max-width:150px">
-              <option value="all">Todos los territorios</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-frpd" style="max-width:160px">
-              <option value="all">Impacto FRPD: Todos</option>
-              <option value="muy-alto">Muy Alto (5 comunas)</option>
-              <option value="alto">Alto (9 comunas)</option>
-              <option value="medio-alto">Medio-alto (10 comunas)</option>
-              <option value="medio">Medio (7 comunas)</option>
-              <option value="bajo">Bajo (1 comuna)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-est" style="max-width:165px">
-              <option value="all">PRC: Todos los estados</option>
-              <option value="vigente">PRC Vigente consolidado (8)</option>
-              <option value="modificacion">PRC en Modificación (12)</option>
-              <option value="formulacion">Sin PRC · En Formulación (6)</option>
-              <option value="limite">Sin PRC · Solo Límite Urbano (5)</option>
-              <option value="sin">Sin Instrumento ni Límite (1)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-plad" style="max-width:165px">
-              <option value="all">PLADECO: Todos</option>
-              <option value="vigente">PLADECO Vigente (14)</option>
-              <option value="actualizacion">PLADECO en Actualización (10)</option>
-              <option value="vencido">PLADECO Vencido / Desactualizado (8)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-grd" style="max-width:165px">
-              <option value="all">GRD: Todos los estados</option>
-              <option value="ambos">Emergencia + RRD Aprobados (11)</option>
-              <option value="emerg">Plan Emergencia Aprobado (22)</option>
-              <option value="rrd">Plan RRD Aprobado (11)</option>
-              <option value="pend">Con instrumentos pendientes</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-pladet" style="max-width:165px">
-              <option value="all">PLADETUR: Todos</option>
-              <option value="vigente">PLADETUR Vigente (11)</option>
-              <option value="formulacion">PLADETUR en Formulación (8)</option>
-              <option value="sin">Sin PLADETUR formal (13)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-paccc" style="max-width:165px">
-              <option value="all">PACCC: Todos (Ley 21.455)</option>
-              <option value="aprobado">PACCC Aprobado (4)</option>
-              <option value="elaboracion">PACCC en Elaboración (16)</option>
-              <option value="pendiente">PACCC Pendiente (12)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-adi" style="max-width:155px">
-              <option value="all">ADI Indígena: Todos</option>
-              <option value="si">Con ADI Decretada (8)</option>
-              <option value="no">Sin ADI (24)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-descont" style="max-width:170px">
-              <option value="all">Descontaminación: Todos</option>
-              <option value="si">Con PDA / PDL Decretado (5)</option>
-              <option value="pda">PDA Aire Temuco-PLC (2)</option>
-              <option value="pdl">PDL Lago Villarrica (3)</option>
-              <option value="estudio">En Estudio Macrocentro (3)</option>
-              <option value="no">Sin Plan de Descontam. (24)</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-threat" style="max-width:160px">
-              <option value="all">Amenaza crítica: Todas</option>
-              <option value="fire">Incendios Forestales</option>
-              <option value="volc">Volcánico / Lahares</option>
-              <option value="water">Inundación / Tsunami</option>
-              <option value="snow">Nieve / Aislamiento</option>
-              <option value="dry">Déficit Hídrico Severo</option>
-            </select></label>
-            <label class="ctrl" style="margin:0"><select class="sel" id="ipt-f-reg" style="max-width:150px">
-              <option value="all">Régimen especial</option>
-              <option value="zoit">Solo ZOIT (Turismo)</option>
-              <option value="pri">Solo PRI Intercomunal</option>
-              <option value="zubc">Solo Borde Costero</option>
-              <option value="rez">Solo Zona de Rezago</option>
-            </select></label>
-          </div>
-          <input class="srch" id="ipt-q" type="search" placeholder="Buscar comuna, ADI, amenaza o instrumento..." style="max-width:240px;margin-left:auto">
-          <button class="btn" id="ipt-clear" type="button">Restablecer</button>
-        </div>
-
-        <!-- Tabla interactiva ampliada -->
-        <div class="tbl-wrap" id="ipt-tbl-wrap" style="max-height:620px;overflow-y:auto"></div>
-
-        <!-- Guía de interpretación integrada con la ponderación de los 9 instrumentos -->
-        <details class="guide-det" open>
-          <summary class="guide-sum">¿Cómo se articulan los 9 instrumentos de planificación y su impacto en el FRPD?</summary>
-          <div class="guide-b">
-            <div><b>Matriz de Instrumentos de Planificación y Gestión Territorial en el FRPD:</b>
-              <div style="overflow-x:auto;margin:10px 0">
-                <table class="strat-tbl" style="background:var(--surf2);border-radius:6px;overflow:hidden">
-                  <thead>
-                    <tr>
-                      <th style="text-align:left">Instrumento de Planificación</th>
-                      <th style="text-align:left">Marco Normativo</th>
-                      <th style="text-align:center">Impacto / Exigencia FRPD</th>
-                      <th style="text-align:left">Implicancia en la Formulación y Ejecución FRPD</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><b>PLADECO</b><br><small>Plan de Desarrollo Comunal</small></td>
-                      <td>Ley 18.695 (Orgánica de Municipalidades) Art. 7</td>
-                      <td style="text-align:center"><span class="frpd-badge bajo">FRPD Bajo</span></td>
-                      <td style="font-size:11.5px">Carta de navegación municipal. Condición de alineamiento político y compromiso de mantención, pero de bajo impacto en la permisología técnica dura.</td>
-                    </tr>
-                    <tr>
-                      <td><b>PRC · Plan Regulador Comunal</b><br><small>Zonificación y uso de suelo</small></td>
-                      <td>LGUC (D.F.L. 458) Art. 41 al 54 y OGUC</td>
-                      <td style="text-align:center"><span class="frpd-badge medio">FRPD Medio</span></td>
-                      <td style="font-size:11.5px">Define la cabida urbana, vialidad y condiciones de edificación. Si no hay PRC (12 comunas), proyectos de plantas o centros requieren Informes Favorables (IFC / Art. 55 LGUC).</td>
-                    </tr>
-                    <tr>
-                      <td><b>PRI · Plan Regulador Intercomunal</b><br><small>Sistemas Temuco-PLC y Lacustre</small></td>
-                      <td>LGUC Art. 34 al 40 (MINVU / CORE)</td>
-                      <td style="text-align:center"><span class="frpd-badge medio-alto">FRPD Medio-alto</span></td>
-                      <td style="font-size:11.5px">Regula macroinfraestructura de transporte, amortiguación periurbana, macrozonas productivas y franjas de protección ambiental en áreas metropolitanas.</td>
-                    </tr>
-                    <tr>
-                      <td><b>PLADETUR</b><br><small>Plan de Desarrollo Turístico</small></td>
-                      <td>SERNATUR / Planes Comunales</td>
-                      <td style="text-align:center"><span class="frpd-badge alto">FRPD Alto</span></td>
-                      <td style="font-size:11.5px">Articula de forma directa la diversificación económica territorial (Ruta Fluvial, Geoparque Kutralkura, Nahuelbuta, Costa Budi). Clave en postulación a líneas de fomento.</td>
-                    </tr>
-                    <tr>
-                      <td><b>ZOIT · Zona de Interés Turístico</b><br><small>5 zonas declaradas en la región</small></td>
-                      <td>Ley 20.423 del Sistema de Turismo</td>
-                      <td style="text-align:center"><span class="frpd-badge alto">FRPD Alto</span></td>
-                      <td style="font-size:11.5px">Otorga prioridad vinculante para inversión pública multisectorial de SERNATUR, CORFO, MOP y GORE; restringe actividades productivas incompatibles.</td>
-                    </tr>
-                    <tr>
-                      <td><b>PACCC</b><br><small>Plan Acción Comunal Cambio Climático</small></td>
-                      <td>Ley 21.455 Marco de Cambio Climático</td>
-                      <td style="text-align:center"><span class="frpd-badge medio">FRPD Medio</span></td>
-                      <td style="font-size:11.5px">Mandato legal para los 345 municipios. Define medidas comunales de adaptación hídrica, mitigación de carbono y resiliencia energética ante sequías recurrentes.</td>
-                    </tr>
-                    <tr>
-                      <td><b>Zona Rezagada</b><br><small>12 comunas en 2 territorios</small></td>
-                      <td>D.S. 90/2014 SUBDERE / D.S. 149</td>
-                      <td style="text-align:center"><span class="frpd-badge medio-alto">FRPD Medio-alto</span></td>
-                      <td style="font-size:11.5px">Habilita metodologías de evaluación social simplificadas (MDSF) y asignación prioritaria de fondos FNDR y FRPD para compensar severas brechas de aislamiento.</td>
-                    </tr>
-                    <tr>
-                      <td><b>ADI · Área de Desarrollo Indígena</b><br><small>Lago Budi, Nahuelbuta, Ercilla, etc.</small></td>
-                      <td>Ley 19.253 (Ley Indígena) Art. 26 / CONADI</td>
-                      <td style="text-align:center"><span class="frpd-badge medio">FRPD Medio</span></td>
-                      <td style="font-size:11.5px">Exige pertinencia intercultural, diálogo con mesas territoriales y procesos de co-diseño comunitario. Crucial para viabilidad social y sustentabilidad de proyectos FRPD.</td>
-                    </tr>
-                    <tr>
-                      <td><b>Planes de Descontaminación</b><br><small>PDA Aire Temuco-PLC y PDL Lago Villarrica</small></td>
-                      <td>Ley 19.300 sobre Bases del Medio Ambiente / MMA</td>
-                      <td style="text-align:center"><span class="frpd-badge alto">FRPD Alto</span></td>
-                      <td style="font-size:11.5px">Establece normas de emisión y planes de cumplimiento severos: aislamiento térmico y biomasa (PDA Aire) o neutralización de fósforo y aguas servidas (PDL Lago Villarrica).</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div><b>Índice de Relevancia e Impacto FRPD:</b> Califica a cada comuna en 5 niveles (<i>Muy Alto, Alto, Medio-alto, Medio, Bajo</i>) según la concurrencia simultánea de estos 9 instrumentos, anticipando el nivel de rigor regulatorio, la factibilidad técnica y la capacidad de apalancamiento de recursos regionales.</div>
-          </div>
-        </details>
-      </div>
-    </section>
+    </details>
   </section>
 
   <!-- ===== Empresas ===== -->

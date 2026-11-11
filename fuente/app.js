@@ -206,6 +206,9 @@ function recomputeSII(m) {
 recomputeSII(ALL);
 const lqN = (t, L) => (tN[t] && rN[L] ? (cN[t][L] / tN[t]) / (rN[L] / NSEL) : NaN);
 const LQ0 = Array.from({ length: NT }, (_, t) => Array.from({ length: NL }, (_, L) => lqN(t, L)));   // cociente con todas las empresas (Cartera)
+// base sin filtros de empresas: Territorios no cambia con la barra de filtros
+const SII0 = { tN: [...tN], tT: [...tT], tTpub: [...tTpub], T10: [...T10], sales: [...TSALES], totT, comN: [...comN], comLN: comLN.map(x => [...x]), rN: [...rN] };
+const lqCom0 = (c, L) => (SII0.comN[c] && SII0.rN[L] ? (SII0.comLN[c][L] / SII0.comN[c]) / (SII0.rN[L] / N) : NaN);
 const lqT = (t, L) => (tT[t] && rT[L] ? (cT[t][L] / tT[t]) / (rT[L] / totT) : NaN);
 const lqCom = (c, L) => (comN[c] && rN[L] ? (comLN[c][L] / comN[c]) / (rN[L] / NSEL) : NaN);
 const terOn = t => !hasGeo() || TER[t].c.some(c => GEO[c]);
@@ -231,7 +234,6 @@ HABS.forEach(h => {
   HREG[h.k] = h.v(ALLC);
 });
 const isGap = (h, v) => (h.bad === 'high' ? v >= HTH[h.k][1] : v <= HTH[h.k][0]);
-const BRE = ALLC.map(c => HABS.filter(h => isGap(h, HV[h.k][c])).map(h => h.k));
 const terHab = (h, ti) => h.v(TER[ti].c);
 // territory status vs region: worse / similar / better (±10% band)
 function status(h, v) {
@@ -365,7 +367,7 @@ function finRow(i) {
 
 // ================= estado =================
 const UI = { view: 'cartera', t: TIDX.VCE, L: LIDX.L3, line: null, fOpen: false,
-  ter: TIDX.VCE, mInd: 'ter', mLin: LIDX.L3, layers: new Set(['tl', 'ies', 'erd']), hbScope: 'all', hbSort: 'bre', hbDir: -1 };
+  ter: TIDX.VCE, mInd: 'ter', mLin: LIDX.L3, layers: new Set(['tl']), hbScope: 'ter', hbSort: 'bre', hbDir: -1 };
 // ================= colores =================
 function hex2rgb(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
 function mix(a, b, t) { const A = hex2rgb(a), Bc = hex2rgb(b); return '#' + A.map((x, i) => Math.round(x + (Bc[i] - x) * t).toString(16).padStart(2, '0')).join(''); }
@@ -411,7 +413,7 @@ function locator(ti, extra) {
 
 // ================= vistas =================
 const VIEWS = ['cartera', 'bip', 'territorios', 'empresas', 'evid', 'formular', 'marco'];
-const FIRMV = new Set(['territorios', 'empresas']);
+const FIRMV = new Set(['empresas']);   // la barra de filtros de empresas solo se muestra en Empresas
 const rendered = {};
 function setView(v) {
   UI.view = v;
@@ -723,8 +725,10 @@ function renderCartera(withFicha) {
   if (UI.fOpen && withFicha) renderFicha();
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
-// Catastro oficial: ERD 2040 (Tabla 14), MINVU 2024, SUBDERE/SINIM y SENAPRED Dirección Regional La Araucanía 2024 (Ley 21.364)
+// ================= INSTRUMENTOS DE PLANIFICACIÓN POR COMUNA (datos) =================
+// Catastro cargado a mano, sin fuente verificable en el radar salvo el estado «con o sin plan regulador» (ERD 2040, Tabla 14).
+// Los campos frpd* y obs no se muestran: son una calificación sin método ni fuente.
+const PRC_L = { vigente: 'Vigente', modificacion: 'Vigente, en modificación', formulacion: 'Sin plan, en formulación', limite: 'Sin plan, solo límite urbano', sin: 'Sin plan ni límite urbano' };
 const IPT_DATA = [
   { c: 0, com: 'Carahue', ti: 5, terr: 'Costa Araucanía', est: 'vigente', estLbl: 'PRC Vigente', cls: 'vig', color: '#5CBF8A', val: 4, prcAno: 'D.O. 1989', prcDet: 'D.O. 1989 (Mod. 2010; Carahue y Trovolhue)', limAno: '1989', pri: '–', zoit: '–', reg: 'ZUBC Borde Costero · Rezago Costa', rez: true, zubc: true, pladEst: 'vigente', pladLbl: 'Vigente', pladCls: 'vig', pladPer: '2022–2026', pladCol: '#5CBF8A', grdEmerg: 'aprobado', grdEmergLbl: 'Aprobado', grdEmergCls: 'ok', grdRrd: 'aprobado', grdRrdLbl: 'Aprobado', grdRrdCls: 'ok', grdCol: '#5CBF8A', threats: ['water', 'fire'], threatStr: 'Tsunami / Inundación Imperial · Incendios', pladetEst: 'formulacion', pladetLbl: 'En Formulación', pladetCls: 'form', pladetDet: 'Ruta Fluvial Carahue Navegable y humedales', pladetCol: '#5598E7', pacccEst: 'elaboracion', pacccLbl: 'En Elaboración', pacccCls: 'elab', pacccDet: 'En formulación financiamiento FNDR', pacccCol: '#5598E7', adi: '–', adiNom: '–', adiCol: '#354856', descont: '–', descontDet: '–', descontCol: '#354856', frpdNivel: 'Medio-alto', frpdCls: 'medio-alto', frpdVal: 3, frpdCol: '#5598E7', frpdFund: 'PRC consolidado, ZUBC litoral, Rezago Costa y PLADETUR fluvial en curso', obs: 'Zonificación urbana consolidada y ZUBC costera D.S. 475/1994. En formulación de PLADETUR (turismo fluvial río Imperial) y PACCC; rezago Costa y riesgo tsunami/inundación.' },
   { c: 1, com: 'Cholchol', ti: 4, terr: 'Nahuelbuta', est: 'sin', estLbl: 'Sin Instrumento', cls: 'sin', color: '#E07A6B', val: 0, prcAno: 'Sin PRC', prcDet: 'Sin Plan Regulador Comunal ni Límite propio', limAno: '–', pri: '–', zoit: '–', reg: 'Zona de Rezago Nahuelbuta', rez: true, zubc: false, pladEst: 'vencido', pladLbl: 'Vencido', pladCls: 'ven', pladPer: 'Vencido (previo)', pladCol: '#E07A6B', grdEmerg: 'tramite', grdEmergLbl: 'En Trámite', grdEmergCls: 'act', grdRrd: 'pendiente', grdRrdLbl: 'Pendiente', grdRrdCls: 'pend', grdCol: '#E07A6B', threats: ['fire', 'dry'], threatStr: 'Incendios interfaz · Déficit hídrico severo', pladetEst: 'sin', pladetLbl: 'Sin PLADETUR', pladetCls: 'sin', pladetDet: 'Sin instrumento formal', pladetCol: '#A0AAB2', pacccEst: 'pendiente', pacccLbl: 'Pendiente', pacccCls: 'pend', pacccDet: 'Sin inicio formal', pacccCol: '#E07A6B', adi: '–', adiNom: '–', adiCol: '#354856', descont: '–', descontDet: '–', descontCol: '#354856', frpdNivel: 'Bajo', frpdCls: 'bajo', frpdVal: 1, frpdCol: '#E07A6B', frpdFund: 'Sin PRC ni límite, PLADECO vencido y planes GRD/PACCC pendientes', obs: 'Comuna creada en 2004 sin PRC ni límite. Alta dependencia FCM, PLADECO vencido, PACCC y planes GRD pendientes; máxima necesidad de asistencia técnica preparatoria FRPD.' },
@@ -764,18 +768,11 @@ const IPT_DATA = [
 const MP = FR.map;
 const MAPIND = [
   { k: 'ter', l: 'Territorio ERD' },
-  { k: 'frpd', l: 'Relevancia e Impacto FRPD Territorial', grp: 'Planificación y sostenibilidad' },
-  { k: 'ipt', l: 'Plan Regulador Comunal (PRC · LGUC)', grp: 'Planificación y sostenibilidad' },
-  { k: 'pladeco', l: 'Plan de Desarrollo Comunal (PLADECO)', grp: 'Planificación y sostenibilidad' },
-  { k: 'grd', l: 'Gestión del Riesgo de Desastres (GRD · SENAPRED)', grp: 'Planificación y sostenibilidad' },
-  { k: 'pladetur', l: 'Plan de Desarrollo Turístico (PLADETUR · SERNATUR)', grp: 'Planificación y sostenibilidad' },
-  { k: 'paccc', l: 'Plan de Acción de Cambio Climático (PACCC · Ley 21.455)', grp: 'Planificación y sostenibilidad' },
-  { k: 'adi', l: 'Áreas de Desarrollo Indígena (ADI · CONADI)', grp: 'Planificación y sostenibilidad' },
-  { k: 'descont', l: 'Descontaminación Atmosférica y Lacustre (PDA/PDL · MMA)', grp: 'Planificación y sostenibilidad' },
-  { k: 'bre', l: 'N° de brechas habilitantes (0–5)' },
+  { k: 'bre', l: 'N° de dimensiones de infraestructura en brecha (0–6)' },
   ...HABS.map(h => ({ k: h.k, l: `${h.l} (${h.u})`, hab: h })),
+  { k: 'ipt', l: 'Plan regulador comunal (ERD 2040, Tabla 14)' },
   { k: 'ipa', l: 'Inversión pública 2010–2022 por habitante' },
-  { k: 'emp', l: 'Empresas por 1.000 habitantes (SII 2024, con los filtros de empresas)' },
+  { k: 'emp', l: 'Empresas por 1.000 habitantes (SII 2024)' },
   { k: 'binv', l: 'Iniciativas BIP habilitantes 2019–2027 (miles de $ por habitante)' },
   { k: 'lq', l: 'Especialización en un lineamiento' },
   ...EVI.map(e => ({ k: 'ev:' + e.k, l: `${e.l} (${e.u.split(' · ')[0]})`, ev: e, grp: EVG[e.g] })),
@@ -797,36 +794,22 @@ const LAYERS = [
 ];
 function comVal(k, c) {
   if (k === 'ipt') return IPT_DATA[c].val;
-  if (k === 'pladeco') return IPT_DATA[c].pladEst === 'vigente' ? 2 : IPT_DATA[c].pladEst === 'actualizacion' ? 1 : 0;
-  if (k === 'grd') return IPT_DATA[c].grdRrd === 'aprobado' ? 3 : IPT_DATA[c].grdEmerg === 'aprobado' ? 2 : IPT_DATA[c].grdEmerg === 'tramite' ? 1 : 0;
-  if (k === 'pladetur') return IPT_DATA[c].pladetEst === 'vigente' ? 2 : IPT_DATA[c].pladetEst === 'formulacion' ? 1 : 0;
-  if (k === 'paccc') return IPT_DATA[c].pacccEst === 'aprobado' ? 2 : IPT_DATA[c].pacccEst === 'elaboracion' ? 1 : 0;
-  if (k === 'adi') return IPT_DATA[c].adi !== '–' ? 1 : 0;
-  if (k === 'descont') return IPT_DATA[c].descont === 'PDL Lago' ? 3 : IPT_DATA[c].descont === 'PDA Aire' ? 2 : IPT_DATA[c].descont === 'PDA Estudio' ? 1 : 0;
-  if (k === 'frpd') return IPT_DATA[c].frpdVal;
   if (k.startsWith('ev:')) return EVV[k.slice(3)][c];
-  if (k === 'bre') return BRE[c].length;
+  if (k === 'bre') return trData().com[c].length;
   if (k === 'ipa') return IN.ipapc[c] / 1e6;
-  if (k === 'emp') return comN[c] / POP[c] * 1000;
+  if (k === 'emp') return SII0.comN[c] / POP[c] * 1000;
   if (k === 'binv') return binvC[c] * 1000 / POP[c];
-  if (k === 'lq') return lqCom(c, UI.mLin);
+  if (k === 'lq') return lqCom0(c, UI.mLin);
   const h = HABS.find(x => x.k === k); return h ? HV[k][c] : NaN;
 }
 function comFill(k) {
   if (k === 'ter') return ALLC.map(c => TCOL[TOF[c]]);
   if (k === 'ipt') return ALLC.map(c => IPT_DATA[c].color);
-  if (k === 'pladeco') return ALLC.map(c => IPT_DATA[c].pladCol);
-  if (k === 'grd') return ALLC.map(c => IPT_DATA[c].grdCol);
-  if (k === 'pladetur') return ALLC.map(c => IPT_DATA[c].pladetCol);
-  if (k === 'paccc') return ALLC.map(c => IPT_DATA[c].pacccCol);
-  if (k === 'adi') return ALLC.map(c => IPT_DATA[c].adiCol);
-  if (k === 'descont') return ALLC.map(c => IPT_DATA[c].descontCol);
-  if (k === 'frpd') return ALLC.map(c => IPT_DATA[c].frpdCol);
   if (k === 'lq') return ALLC.map(c => lqColor(comVal('lq', c)));
   const v = ALLC.map(c => comVal(k, c)), fv = v.filter(isFinite), mn = Math.min(...fv), mx = Math.max(...fv);
   const h = HABS.find(x => x.k === k);
   if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; return v.map(x => (!isFinite(x) ? NODATA : e.bad ? ramp(BADR, e.bad === 'high' ? (x - mn) / (mx - mn || 1) : (mx - x) / (mx - mn || 1)) : ramp(SEQ, (x - mn) / (mx - mn || 1)))); }
-  if (k === 'bre') return v.map(x => ramp(BADR, x / 4));
+  if (k === 'bre') return v.map(x => ramp(BADR, x / 4));   // 4 o más dimensiones: tono máximo
   if (h) return v.map(x => ramp(BADR, h.bad === 'high' ? (x - mn) / (mx - mn) : (mx - x) / (mx - mn)));
   return v.map(x => ramp(SEQ, (x - mn) / (mx - mn)));
 }
@@ -834,72 +817,9 @@ function mapLegend(k) {
   const lg = MAP.legend;
   if (k === 'ter') { lg.innerHTML = '<b>Territorios ERD 2040</b>' + TER.map((t, i) => `<span class="row"><span class="sw" style="background:${TCOL[i]}"></span>${esc(t.n)}</span>`).join(''); return; }
   if (k === 'ipt') {
-    lg.innerHTML = '<b>Plan Regulador Comunal (PRC · LGUC)</b>' + [
-      ['#5CBF8A', 'PRC Vigente consolidado (8 comunas)'],
-      ['#F2A541', 'PRC en Modificación / Actualización (12 comunas)'],
-      ['#5598E7', 'Sin PRC · En Formulación (con límite) (6 comunas)'],
-      ['#E0974A', 'Sin PRC · Solo Límite Urbano histórico (5 comunas)'],
-      ['#E07A6B', 'Sin Instrumento ni Límite aprobado (1 comuna)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'pladeco') {
-    lg.innerHTML = '<b>Plan de Desarrollo Comunal (PLADECO)</b>' + [
-      ['#5CBF8A', 'PLADECO Vigente (14 comunas)'],
-      ['#F2A541', 'PLADECO en Actualización / Licitación (10 comunas)'],
-      ['#E07A6B', 'PLADECO Vencido / Desactualizado (8 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'grd') {
-    lg.innerHTML = '<b>Gestión del Riesgo de Desastres (GRD · SENAPRED)</b>' + [
-      ['#5CBF8A', 'Plan Emergencia + RRD Aprobados (11 comunas)'],
-      ['#F2A541', 'Plan Emergencia Aprobado · RRD en Elaboración (11 comunas)'],
-      ['#5598E7', 'Plan Emergencia en Trámite / Actualización (5 comunas)'],
-      ['#E07A6B', 'Planes de Emergencia y RRD Pendientes (5 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'pladetur') {
-    lg.innerHTML = '<b>Plan de Desarrollo Turístico (PLADETUR · SERNATUR)</b>' + [
-      ['#5CBF8A', 'PLADETUR Vigente (11 comunas)'],
-      ['#5598E7', 'PLADETUR en Formulación / Actualización (8 comunas)'],
-      ['#A0AAB2', 'Sin PLADETUR formal (13 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'paccc') {
-    lg.innerHTML = '<b>Plan Comunal de Cambio Climático (PACCC · Ley 21.455)</b>' + [
-      ['#5CBF8A', 'PACCC Aprobado / En Implementación (4 comunas)'],
-      ['#5598E7', 'PACCC en Elaboración / FNDR-MMA (16 comunas)'],
-      ['#E07A6B', 'PACCC en Etapa Inicial o Pendiente (12 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'adi') {
-    lg.innerHTML = '<b>Áreas de Desarrollo Indígena (ADI · CONADI Ley 19.253)</b>' + [
-      ['#E29D62', 'Comuna con ADI Decretada (8 comunas)'],
-      ['#354856', 'Comuna sin ADI (24 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'descont') {
-    lg.innerHTML = '<b>Planes de Descontaminación (PDA / PDL · MMA)</b>' + [
-      ['#6BA8F2', 'PDL Lacustre Cuenca Lago Villarrica (3 comunas)'],
-      ['#F27878', 'PDA Atmosférico Temuco–Padre Las Casas (2 comunas)'],
-      ['#F2A541', 'PDA Macroárea Centro-Sur en Estudio (3 comunas)'],
-      ['#354856', 'Sin Plan de Descontaminación decretado (24 comunas)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
-    return;
-  }
-  if (k === 'frpd') {
-    lg.innerHTML = '<b>Relevancia e Impacto FRPD Territorial</b>' + [
-      ['#C7A2F0', 'Muy Alto: Alta concurrencia y restricción (5 comunas)'],
-      ['#5CBF8A', 'Alto: Diversificación y vocación estratégica (9 comunas)'],
-      ['#5598E7', 'Medio-alto: Rezago o pertinencia intercultural (10 comunas)'],
-      ['#F2A541', 'Medio: Habilitación estándar y cuencas (7 comunas)'],
-      ['#E07A6B', 'Bajo: Brechas críticas basales (1 comuna)'],
-    ].map(([c, l]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l}</span>`).join('');
+    const n = {}; IPT_DATA.forEach(it => { n[it.est] = (n[it.est] || 0) + 1; });
+    lg.innerHTML = '<b>Plan regulador comunal</b>' + [['vigente', '#5CBF8A'], ['modificacion', '#F2A541'], ['formulacion', '#5598E7'], ['limite', '#E0974A'], ['sin', '#E07A6B']]
+      .map(([e, c, l = PRC_L[e]]) => `<span class="row"><span class="sw" style="background:${c}"></span>${l} (${n[e] || 0})</span>`).join('');
     return;
   }
   if (k === 'lq') { lg.innerHTML = `<b>Cociente de localización en ${LIN[UI.mLin].k} ${esc(LSHORT[LIN[UI.mLin].k])} (empresas)</b>` + [[0.5, '< 0,6'], [0.8, '0,8'], [1, '1,0'], [1.25, '1,25'], [2, '> 1,7']].map(([v, l]) => `<span class="row"><span class="sw" style="background:${lqColor(v)}"></span>${l}</span>`).join(''); return; }
@@ -1219,43 +1139,8 @@ function createMap(host) {
 function comTip(c) {
   const k = UI.mInd, rows = [];
   rows.push([TER[TOF[c]].n, 'territorio']);
-  const ipt = IPT_DATA[c];
-  if (k === 'ipt') {
-    rows.push([ipt.estLbl, 'estado del PRC']);
-    rows.push([ipt.prcAno, 'publicación D.O.']);
-    if (ipt.pri !== '–') rows.push([ipt.pri, 'intercomunal']);
-    if (ipt.zoit !== '–') rows.push([ipt.zoit, 'turismo']);
-    if (ipt.reg !== '–') rows.push([ipt.reg, 'régimen especial']);
-  }
-  else if (k === 'pladeco') {
-    rows.push([ipt.pladLbl, 'estado PLADECO']);
-    rows.push([ipt.pladPer, 'periodo']);
-  }
-  else if (k === 'grd') {
-    rows.push([ipt.grdEmergLbl, 'Plan Emergencia']);
-    rows.push([ipt.grdRrdLbl, 'Plan RRD (Prevención)']);
-    rows.push([ipt.threatStr, 'amenazas críticas']);
-  }
-  else if (k === 'pladetur') {
-    rows.push([ipt.pladetLbl, 'estado PLADETUR']);
-    rows.push([ipt.pladetDet, 'circuito / foco']);
-    if (ipt.zoit !== '–') rows.push([ipt.zoit, 'ZOIT Ley 20.423']);
-  }
-  else if (k === 'paccc') {
-    rows.push([ipt.pacccLbl, 'estado PACCC']);
-    rows.push([ipt.pacccDet, 'detalle']);
-  }
-  else if (k === 'adi') {
-    rows.push([ipt.adi !== '–' ? ipt.adiNom : 'Sin ADI decretada', 'Área Indígena (Ley 19.253)']);
-  }
-  else if (k === 'descont') {
-    rows.push([ipt.descont !== '–' ? ipt.descontDet : 'Sin plan decretado', 'descontaminación']);
-  }
-  else if (k === 'frpd') {
-    rows.push([ipt.frpdNivel, 'relevancia e impacto FRPD']);
-    rows.push([ipt.frpdFund, 'fundamento estratégico']);
-  }
-  else if (k === 'ter' || k === 'bre') rows.push([BRE[c].length ? BRE[c].map(x => HABS.find(h => h.k === x).l.split(' (')[0]).join(', ') : 'ninguna', 'brechas (tercio peor)']);
+  if (k === 'ipt') { rows.push([PRC_L[IPT_DATA[c].est], 'plan regulador comunal']); if (/^D\.O\./.test(IPT_DATA[c].prcAno)) rows.push([IPT_DATA[c].prcAno, 'publicación']); }
+  else if (k === 'ter' || k === 'bre') { const g = trData().com[c]; rows.push([g.length ? g.map(x => IF_DIM[x].l).join(', ') : 'ninguna', 'dimensiones de infraestructura en brecha']); }
   else if (k === 'ipa') rows.push([f1(IN.ipapc[c] / 1e6) + ' MM$', 'inversión pública 2010–2022 por hab.']);
   else if (k === 'emp') rows.push([f1(comVal('emp', c)), 'empresas por 1.000 hab.']);
   else if (k === 'binv') rows.push([f0(binvC[c]) + ' MM$', `BIP habilitante 2019–2027 (${f0(comVal('binv', c))} mil $ por hab.)`]);
@@ -1263,17 +1148,13 @@ function comTip(c) {
   else if (k.startsWith('ev:')) { const e = EVK[k.slice(3)]; rows.push([e.f(EVV[e.k][c]), e.l + ' · ' + e.u]); if (!e.sum) rows.push([e.f(EVREG[e.k]), 'región']); }
   else { const h = HABS.find(x => x.k === k); rows.push([h.f(HV[k][c]), h.l + ' · ' + h.u]); }
   rows.push([f0(POP[c]), 'habitantes (Censo 2024)']);
-  let sub = `FRPD ${ipt.frpdNivel} · PRC ${ipt.estLbl} · PLADECO ${ipt.pladLbl}`;
-  if (ipt.zoit !== '–') sub += ' · ' + ipt.zoit;
-  if (ipt.adi !== '–') sub += ' · ADI';
-  if (ipt.descont !== '–') sub += ' · ' + ipt.descont;
-  else if (IN.rez[c]) sub += ' · Rezago';
+  const sub = [IN.rez[c] ? 'Zona de rezago' : '', TER[TOF[c]].prcSin.includes(c) ? 'Sin plan regulador vigente' : ''].filter(Boolean).join(' · ');
   return [CN(c), rows, sub];
 }
 let MAP = null;
 function initMap() {
   MAP = mapAuto($('#map'), { tip: comTip, click: ci => { UI.ter = TOF[ci]; renderTerritorios(); }, labelMode: 'layers', layerKeys: LAYERS.map(l => l.k).filter(k => k !== 'tl' && k !== 'cl'), buildLayer: lfInfra,
-    sub: [$('#m-sub'), 'Clic en una comuna para ver su territorio · rueda o botones para acercar, arrastra para moverte'] }, () => createMap($('#map')));
+    sub: [$('#m-sub'), 'Clic en una comuna para elegir su territorio · rueda o botones para acercar, arrastra para moverte'] }, () => createMap($('#map')));
   if (MAP.map) { const m = MAP; MAP = { legend: m.legend, setLayers: set => m.setLayers(set), paint: (fills, ti) => m.paint(fills, [], ti >= 0 ? [ti] : []) }; }
   const og = {}; MAPIND.forEach(m => { const g = m.grp || 'Territorio e infraestructura'; (og[g] = og[g] || []).push(m); });
   $('#m-ind').innerHTML = Object.entries(og).map(([g, ms]) => `<optgroup label="${esc(g)}">${ms.map(m => `<option value="${m.k}">${esc(m.l)}</option>`).join('')}</optgroup>`).join('');
@@ -1284,9 +1165,10 @@ function initMap() {
   const LGRP = [['Referencias', ['tl', 'cl', 'rez']], ['Transporte y conectividad', ['rut', 'erd', 'pue', 'port', 'aer']], ['Servicios y equipamiento', ['elec', 'ssr', 'ant', 'ies']]];
   const lyIn = new Set(LGRP.flatMap(g => g[1])), lyRest = LAYERS.filter(l => !lyIn.has(l.k));
   $('#layers').insertAdjacentHTML('beforeend', LGRP.map(([g, ks]) => `<div class="lgrp"><b>${g}</b>${ks.map(k => LAYERS.find(l => l.k === k)).filter(Boolean).map(lyItem).join('')}</div>`).join('') + (lyRest.length ? `<div class="lgrp"><b>Otras</b>${lyRest.map(lyItem).join('')}</div>` : ''));
-  $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); }));
-  MAP.setLayers(UI.layers);
+  $$('#layers [data-layer]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) UI.layers.add(cb.dataset.layer); else UI.layers.delete(cb.dataset.layer); MAP.setLayers(UI.layers); renderMapNote(); lyCount(); }));
+  MAP.setLayers(UI.layers); lyCount();
 }
+function lyCount() { const n = UI.layers.size; $('#ly-n').textContent = n ? `· ${n} ${n === 1 ? 'activa' : 'activas'}` : ''; }
 function renderMapOnly() {
   $('#m-ind').value = UI.mInd; $('#m-lin').value = String(UI.mLin); $('#m-lin-w').hidden = UI.mInd !== 'lq';
   MAP.paint(comFill(UI.mInd), UI.ter); mapLegend(UI.mInd); renderMapNote();
@@ -1297,366 +1179,187 @@ function renderMapNote() {
   if (UI.layers.has('pue')) n.push(`Puentes: ${f0(MP.pue.filter(p => p[2]).length)} de ${f0(MP.pue.length)} con tablero de madera.`);
   if (UI.layers.has('erd')) n.push('Corredor bioceánico (línea continua) y ferrocarril (discontinua) son trazados de iniciativas del plan de la ERD, no infraestructura existente.');
   if (UI.layers.has('rez')) n.push('Zonas de rezago: Costa Araucanía y el grupo Malleco–Nahuelbuta (Collipulli, Ercilla, Los Sauces, Lumaco, Purén, Traiguén, Victoria).');
+  if (UI.mInd === 'ipt') n.push('Plan regulador: qué comunas no lo tienen vigente viene de la ERD 2040 (Tabla 14); el detalle del estado no está verificado.');
+  if (UI.mInd === 'bre') n.push('Una dimensión está en brecha cuando alguno de sus indicadores cae en el tercio peor de las comunas; educación superior, cuando el territorio no tiene sedes.');
   if (UI.mInd === 'vse') n.push('Viviendas sin energía: la capa registra 50 en ocho comunas, lo que sugiere un valor mínimo de la fuente.');
   if (UI.mInd.startsWith('ev:')) { const e = EVK[UI.mInd.slice(3)]; n.push(EVSRC[e.g].map(k => CX.meta[k]).join(' ')); if (e.k === 'inu') n.push('Una comuna sin zonas puede estar fuera del área estudiada.'); }
   setNote($('#m-note'), n.join(' '), 'Más notas de las capas activas');
 }
-const TP_OPEN = new Set(['Especialización por lineamiento']);
+// ================= TERRITORIOS: selector, lectura y tablas por comuna =================
+// Tres preguntas por territorio, en orden: en qué destaca, qué lo frena y qué hay en cartera.
+// No cambia con los filtros de empresas (usa SII0 y LQ0). «Brecha» es siempre la de las seis dimensiones de infraestructura (IF_DIM, en infra.js).
+let TR_C = null;
+function trData() {
+  if (!TR_C) TR_C = {
+    ter: TER.map((T, ti) => { const dims = Object.keys(IF_DIM).map(k => ifDim(k, T.c)); return { dims, nGap: dims.filter(d => d.gap).length, ch: STRAT_CHAINS.map((c, ci) => ({ ...ifCell('ter', ti, ci), ci })) }; }),
+    com: ALLC.map(c => Object.keys(IF_DIM).filter(k => ifDim(k, [c]).gap)),
+  };
+  return TR_C;
+}
+const fMil = v => (v >= 1e5 ? f0(v / 1000) : f1(v / 1000)) + ' mil';
+function renderTerPick() {
+  const d = trData().ter;
+  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span><span class="g${d[i].nGap ? '' : ' z'}">${d[i].nGap ? `${d[i].nGap} de ${d[i].dims.length} en brecha` : 'sin brechas'}</span></button>`).join('');
+}
+function trSelect(ti, focusSel) {
+  if (ti === UI.ter) return;
+  UI.ter = ti; renderTerritorios();
+  const el = focusSel && $(focusSel); if (el) el.focus({ preventScroll: true });
+}
+// de Territorios a Formular, con vuelta al mismo punto
+function trFormular(t, ci, sel) { fmOpen(t, ci, { src: 'ter', t, ci, L: null, line: null, ch: ci >= 0, back: { sy: scrollY, sel, ter: UI.ter } }); }
+function trBack(fr) {
+  const bk = fr.back || {};
+  if (bk.ter != null) UI.ter = bk.ter;
+  setView('territorios'); window.scrollTo(0, bk.sy || 0);
+  const el = bk.sel && $(bk.sel); if (el) el.focus({ preventScroll: true });
+}
+const TR_OPEN = new Set();
+const a8Txt = a8 => (a8 === '–' ? 'Fuera de las categorías del art. 8: se financia por otras vías' : `Candidata al FRPD, art. 8 ${a8.startsWith('N') ? a8 : 'N°' + a8[0] + ' letra ' + a8[1]}`);
 function renderTprof() {
-  const ti = UI.ter, T = TER[ti];
-  const ents = ENT.filter(e => e.t === T.k);
-  const lqs = LIN.map((l, L) => ({ L, v: lqN(ti, L) }));
-  const mxq = Math.max(2, ...lqs.map(x => x.v));
-  const x = v => Math.min(100, v / mxq * 100);
-  const ies = iesOfTer(ti), gTot = sum(TER.map(t => t.gore || 0));
+  const ti = UI.ter, T = TER[ti], d = trData().ter[ti], S = SII0;
+  const ents = ENT.filter(e => e.t === T.k).sort((a, b) => b.m - a.m || a.c.localeCompare(b.c));
+  const lqs = LIN.map((l, L) => ({ L, k: l.k, v: LQ0[ti][L] }));
+  const top = lqs.filter(q => lq2(q.v) >= 1.1).sort((a, b) => b.v - a.v);
+  const mxq = Math.max(2, ...lqs.map(q => q.v)), x = v => Math.min(100, v / mxq * 100);
+  const pres = d.ch.filter(c => c.pres), aus = d.ch.filter(c => !c.pres);
+  const gaps = d.dims.filter(m => m.gap), sinInv = gaps.filter(m => !m.inv.n);
+  const noEnt = lqs.filter(q => cellEmpty(ti, q.L)), n3 = ents.filter(e => e.m === 3).length;
+  const ies = iesOfTer(ti), gTot = sum(TER.map(t => t.gore || 0)), rez = T.c.filter(c => IN.rez[c]);
   const inT = []; for (let i = 0; i < NFN; i++) if (FN_T[i] === ti) inT.push(i);
   const tfin = [['ANID (sede en el territorio)', inT.filter(i => FN_S[i] === S_ANID)], ['CORFO InnovaChile', inT.filter(i => FN_S[i] === S_CORFO)]]
     .concat(Object.keys(BIPCAT).map(g => [`BIP · ${BIPCAT[g]}`, inT.filter(i => FN_S[i] === S_BIP && fnG(i) === g)]));
+  const dimRow = m => {
+    const lim = pres.filter(c => (IF_REQ[c.ch.id] || []).includes(m.k)).map(c => ifShort(c.ch));
+    return `<div class="tr-dim${m.gap ? ' gap' : ''}">
+      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small>${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''} · región ${esc(i.reg)}</small>`).join('')}</div>
+      <div class="b"><span class="pill ${m.gap ? 'bad' : 'ok'}">${m.gap ? 'En brecha' : 'Sin brecha'}</span>${m.gap && lim.length ? `<small>Limita a ${esc(listY(lim))}</small>` : ''}</div>
+      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b> en camino · ${mmK(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}">Ver en Iniciativas BIP</button>`
+        : m.gap ? `<span class="pill warn">Sin inversión en camino</span><small>${a8Txt(m.d.a8)}</small>` : '<small>Sin iniciativas BIP recientes</small>'}</div>
+    </div>`;
+  };
+  const sec = (key, body) => `<details class="psec"${TR_OPEN.has(key) ? ' open' : ''} data-k="${key}"><summary><span class="lbl">${key}</span></summary><div>${body}</div></details>`;
   $('#tprof').innerHTML = `<div class="prof">
-    <div><div class="eyebrow">Territorio ERD 2040</div><h2>${esc(T.n)}</h2><p class="note">${esc(T.c.map(CN).join(' · '))}</p></div>
-    <p class="quote">${esc(T.obj)}</p>
-    <div class="stats">
-      <div class="stat"><div class="l">Población 2024</div><div class="v">${f0(T.pop)}</div><div class="s">${pcs(T.pop / T.pop17 - 1)} desde 2017</div></div>
-      <div class="stat"><div class="l">Empresas SII 2024${hasAttr() ? ' · selección' : ''}</div><div class="v">${f0(tN[ti])}</div><div class="s">${f1(tN[ti] / T.pop * 1000)} por 1.000 hab. (región ${f1(NSEL / POPREG * 1000)})</div></div>
-      <div class="stat"><div class="l">Crecimiento ${pLab()}</div><div class="v">${pcs(gr(serT[ti]))}</div><div class="s">región ${pcs(gr(serAll))}</div></div>
-      <div class="stat"><div class="l">Trabajadores dependientes</div><div class="v">${f0(tT[ti])}</div><div class="s">${pc(tT[ti] / totT, 0)} de la región${tTpub[ti] ? ` · ${pc(tTpub[ti] / tT[ti], 0)} en entidades públicas` : ''}</div></div>
-      <div class="stat"><div class="l">Empresas con 10 o más trabajadores</div><div class="v">${f0(T10[ti])}</div><div class="s">${pc(T10[ti] / tN[ti])} de sus empresas</div></div>
-      <div class="stat"><div class="l">Ventas anuales (mill. UF)</div><div class="v">${(r => NF1.format(r.lo / 1e6) + '–' + NF1.format(r.hi / 1e6))(TSALES[ti])}</div><div class="s" title="Suma de los tramos de ventas SII de las empresas vigentes; la estadística comunal del SII (capa regional, año no indicado) incluye personas naturales">rango por tramos SII${TSALES[ti].open ? ` + ${TSALES[ti].open} sin tope` : ''}; SII comunal ${NF1.format(sumC('jv', T.c) / 1e6)}</div></div>
+    <div class="tr-h"><div><div class="eyebrow">Territorio ERD 2040</div><h2 id="tp-title" tabindex="-1">${esc(T.n)}</h2><p class="note">${esc(T.c.map(CN).join(' · '))}</p></div>
+      <button class="btn pri" type="button" id="tp-fm">Formular en este territorio</button></div>
+    <p class="quote" title="Objetivo del territorio en la ERD 2040">${esc(T.obj)}</p>
+    <div class="tr-stats">
+      <div class="stat"><div class="l">Habitantes · Censo 2024</div><div class="v">${f0(T.pop)}</div><div class="s">${pc(T.pop / POPREG, 0)} de la región · ${pcs(T.pop / T.pop17 - 1)} desde 2017</div></div>
+      <div class="stat"><div class="l">Empresas · SII 2024</div><div class="v">${f0(S.tN[ti])}</div><div class="s">${f1(S.tN[ti] / T.pop * 1000)} por 1.000 hab. · región ${f1(N / POPREG * 1000)}</div></div>
+      <div class="stat"><div class="l">Trabajadores dependientes</div><div class="v">${f0(S.tT[ti])}</div><div class="s">${pc(S.tT[ti] / S.totT, 0)} de la región</div></div>
+      <div class="stat"><div class="l">Sedes de educación superior</div><div class="v">${ies.length}</div><div class="s">${ies.length ? esc([...new Set(ies.map(i => i.t))].join(', ')) : 'ninguna'}</div></div>
+    </div>
+    <section class="tr-q" aria-labelledby="tq1"><h3 id="tq1">En qué destaca</h3>
+      <p class="c">${top.length ? `<b>${esc(listY(top.map(q => LSHORT[q.k])))}</b> ${top.length === 1 ? 'pesa' : 'pesan'} más entre sus empresas que en el promedio regional.` : 'Ningún lineamiento pesa claramente más entre sus empresas que en el promedio regional.'} ${pres.length ? `<b>${pl(pres.length, 'cadena productiva', 'cadenas productivas')}</b> con presencia.` : 'Ninguna cadena productiva alcanza presencia.'}</p>
+      <div class="tr-2">
+        <div><span class="lbl">Lineamientos CTCI · cociente de localización</span>
+          ${lqs.map(({ k, v }) => `<div class="lqrow"><span>${k} ${esc(LSHORT[k])}</span><span class="tr"><i style="width:${x(v)}%;background:${lqColor(v)}"></i><u style="left:${x(1)}%"></u></span><span class="x">${f2(v)}</span></div>`).join('')}
+          <p class="note">La línea vertical marca 1,00: el promedio regional. Destaca desde 1,10.</p></div>
+        <div><span class="lbl">Cadenas productivas presentes</span>
+          ${pres.length ? pres.map(c => `<div class="tr-ch"><span class="n"><b>${esc(ifShort(c.ch))}</b><small>${pl(c.n, 'empresa', 'empresas')} · cociente ${f2(c.lq)}</small></span><span class="ifc ${c.st}" title="${esc(IF_ST[c.st].d)}">${IF_ST[c.st].l}${c.st === 'hab' ? ` <b>${c.gaps.length}</b>` : ''}</span><button type="button" class="linkbtn" data-ch="${c.ci}" aria-label="Formular con la cadena ${esc(ifShort(c.ch))}">Formular</button></div>`).join('') : '<p class="note">Ninguna reúne cinco empresas y un peso igual o mayor al regional.</p>'}
+          <p class="note">${pres.some(c => c.st === 'hab') ? '«Habilitar» y un número: la cadena está presente y ese número de dimensiones de infraestructura que necesita está en brecha. ' : ''}${pres.some(c => c.st === 'sof') ? '«Sofisticar»: presente y sin brechas en lo que necesita. ' : ''}${aus.length ? `Poco presentes: ${esc(listY(aus.map(c => ifShort(c.ch))))}.` : ''}</p></div>
+      </div>
+    </section>
+    <section class="tr-q" aria-labelledby="tq2"><h3 id="tq2">Qué lo frena</h3>
+      <p class="c">${gaps.length ? `<b>${gaps.length} de ${d.dims.length}</b> dimensiones de infraestructura en brecha${sinInv.length ? `; <b>${sinInv.length}</b> sin inversión en camino` : ', todas con inversión en camino'}.` : `Ninguna de las ${d.dims.length} dimensiones de infraestructura está en brecha.`}${rez.length ? ` Zona de rezago: ${esc(listY(rez.map(CN)))}.` : ''}${T.prcSin.length ? ` Sin plan regulador vigente: ${esc(listY(T.prcSin.map(CN)))}.` : ''}</p>
+      <div class="tr-dims">${[...gaps, ...d.dims.filter(m => !m.gap)].map(dimRow).join('')}</div>
+      <div><button type="button" class="linkbtn" id="tp-com">Ver estos indicadores comuna por comuna</button></div>
+    </section>
+    <section class="tr-q" aria-labelledby="tq3"><h3 id="tq3">Qué hay en cartera</h3>
+      <p class="c"><b>${pl(ents.length, 'entrada', 'entradas')}</b>${ents.length ? `, ${n3} con evidencia levantada` : ''}. ${noEnt.length ? `Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}${lq2(q.v) >= 1.1 ? ` (cociente ${f2(q.v)}, sobre el promedio)` : ''}`)))}.` : 'Tiene entrada en los seis lineamientos.'}</p>
+      <div class="ct-ter">${ents.map(e => `<button type="button" class="ct-t" data-c="${e.c}" title="${esc(LINE[e.l].n)} · evidencia ${MADS[e.m]}">${mDots(e.m)}<span>${e.c} ${esc(LSHORT[e.c])}</span><span>${e.l}</span></button>`).join('')}</div>
+      <p class="note">Cada botón abre la ficha de esa entrada en Cartera. Puntos: evidencia levantada (3), parcial (2) o por levantar (1).</p>
+    </section>
+  </div>`;
+  $('#tprof-x').innerHTML = `<div class="prof"><div><h2 class="tr-xh">Más datos de ${esc(T.n)}</h2></div>
+    ${sec('Más cifras', `<div class="stats">
+      <div class="stat"><div class="l">Empresas con 10 o más trabajadores</div><div class="v">${f0(S.T10[ti])}</div><div class="s">${pc(S.T10[ti] / S.tN[ti])} de sus empresas</div></div>
+      <div class="stat"><div class="l">Trabajo en entidades públicas</div><div class="v">${pc(S.tTpub[ti] / S.tT[ti], 0)}</div><div class="s">de sus trabajadores dependientes</div></div>
+      <div class="stat"><div class="l">Ventas anuales (mill. UF)</div><div class="v">${(r => NF1.format(r.lo / 1e6) + '–' + NF1.format(r.hi / 1e6))(S.sales[ti])}</div><div class="s">rango por tramos SII${S.sales[ti].open ? ` + ${S.sales[ti].open} sin tope` : ''}</div></div>
       <div class="stat"><div class="l">Inversión pública 2010–2022</div><div class="v">${T.ipaTpc ? f1(T.ipaTpc / 1e6) : '–'} <small style="font-size:12px;color:var(--muted)">MM$/hab.</small></div><div class="s">${T.ipaT ? f0(T.ipaT / 1000) + ' mil MM$ en total' : ''}</div></div>
       <div class="stat"><div class="l">Inversión GORE 2010–2022</div><div class="v">${T.gore ? pc(T.gore / gTot, 0) : '–'}</div><div class="s">${T.gore ? f0(T.gore) + ' MM$ del total regional' : ''}</div></div>
-      <div class="stat"><div class="l">Sedes de educación superior</div><div class="v">${ies.length}</div><div class="s">${ies.length ? esc([...new Set(ies.map(x => x.t))].join(', ')) : 'ninguna'}</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Especialización por lineamiento (empresas)</span>
-      ${lqs.map(({ L, v }) => `<div class="lqrow"><span>${LIN[L].k} ${esc(LSHORT[LIN[L].k])}</span><span class="tr"><i style="width:${x(v)}%;background:${lqColor(v)}"></i><u style="left:${x(1)}%"></u></span><span class="x">${f2(v)}</span></div>`).join('')}
-      <p class="note">La línea vertical marca 1,0: el promedio regional.</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Condiciones habilitantes</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
-      ${HABS.map(hb => { const v = terHab(hb, ti), st = status(hb, v); return `<span class="n">${esc(hb.l)} <small style="color:var(--muted)">${esc(hb.u)}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${hb.f(v)}</span></span><span class="x"><small>${hb.f(HREG[hb.k])}</small></span>`; }).join('')}</div>
-      <p class="note">${T.c.some(c => IN.rez[c]) ? `Zona de rezago: ${esc(T.c.filter(c => IN.rez[c]).map(CN).join(', '))}. ` : ''}${T.prcSin.length ? `Sin plan regulador vigente: ${esc(T.prcSin.map(CN).join(', '))}.` : ''}</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Planificación, Gestión y Relevancia FRPD</span>
-      <div class="hab" style="grid-template-columns:minmax(0,1fr) auto auto auto auto">
-        <span class="h">Comuna</span><span class="h" style="text-align:center">Nivel FRPD</span><span class="h" style="text-align:center">Plan Regulador</span><span class="h" style="text-align:center">PLADECO</span><span class="h" style="text-align:right">GRD Emerg.</span>
-        ${T.c.map(c => `<span class="n">${esc(CN(c))}</span><span class="x" style="text-align:center"><span class="frpd-badge ${IPT_DATA[c].frpdCls}">${IPT_DATA[c].frpdNivel}</span></span><span class="x" style="text-align:center"><span class="ipt-badge ${IPT_DATA[c].cls}">${IPT_DATA[c].estLbl}</span></span><span class="x" style="text-align:center"><span class="plad-badge ${IPT_DATA[c].pladCls}">${IPT_DATA[c].pladLbl}</span></span><span class="x" style="text-align:right"><span class="grd-badge ${IPT_DATA[c].grdEmergCls}">${IPT_DATA[c].grdEmergLbl}</span></span>`).join('')}
-      </div>
-      <p class="note">Detalle comunal, fechas de aprobación, límites urbanos, PLADETUR, PACCC, ADI, PDA y planes de GRD en la tabla inferior.</p></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Evidencia territorial</span><div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
+    </div>`)}
+    ${sec('Evidencia territorial', `<div class="hab"><span class="h">Indicador</span><span class="h" style="text-align:right">Territorio</span><span class="h" style="text-align:right">Región</span>
       ${['pmd', 'ind', 'sred', 'alj', 'prd', 'incp', 'upaa', 'rie', 'fcm', 'prof'].map(k => { const e = EVK[k], v = e.v(T.c), st = evStatus(e, v); return `<span class="n">${esc(e.l)} <small style="color:var(--muted)">${esc(e.u.split(' · ')[0])}</small></span><span class="x"><span class="pill ${st}" title="${ST_LAB[st]}">${e.f(v)}</span></span><span class="x"><small>${e.f(EVREG[k])}</small></span>`; }).join('')}</div>
-      <div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Financiamiento público 2019–2026</span><div class="hab"><span class="h">Fuente</span><span class="h" style="text-align:right">N°</span><span class="h" style="text-align:right">Monto</span>
+      <p class="note">Color: peor, similar (±10 %) o mejor que la región.</p><div><button class="btn" type="button" id="tp-ev">Ver todos los indicadores por comuna</button></div>`)}
+    ${sec('Financiamiento público 2019–2026', `<div class="hab"><span class="h">Fuente</span><span class="h" style="text-align:right">N°</span><span class="h" style="text-align:right">Monto</span>
       ${tfin.map(([l, ix]) => `<span class="n">${esc(l)}</span><span class="x">${f0(ix.length)}</span><span class="x"><small>${ix.length ? mm(sumM(ix)) : '–'}</small></span>`).join('')}</div>
-      <p class="note">ANID por sede de la institución; CORFO InnovaChile por casa matriz del beneficiario; BIP: iniciativas postuladas 2019–2027 con comuna en el territorio (costo total de la etapa).</p><div><button class="btn" type="button" id="tp-bip">Ver las iniciativas BIP del territorio</button></div></div>
-    <div style="display:flex;flex-direction:column;gap:7px"><span class="lbl">Entradas de la cartera (${ents.length})</span>
-      <div class="tchips">${ents.map(e => `<button type="button" class="tchip m${e.m}" data-c="${e.c}" style="background:none;cursor:pointer" title="${esc(LINE[e.l].n)} · madurez ${e.m}">${e.c} ${e.l}</button>`).join('')}</div>
-      <p class="note">Clic en una entrada para abrir su ficha en la cartera.</p></div>
+      <p class="note">ANID por sede de la institución; CORFO InnovaChile por casa matriz del beneficiario; BIP: iniciativas postuladas 2019–2027 con comuna en el territorio (costo total de la etapa).</p><div><button class="btn" type="button" id="tp-bip">Ver las iniciativas BIP del territorio</button></div>`)}
   </div>`;
-  for (const d of [...$('#tprof .prof').children]) {
-    const lb = d.firstElementChild; if (!lb || !lb.classList.contains('lbl')) continue;
-    const key = lb.textContent.replace(/\s*\(.*\)\s*$/, ''), det = document.createElement('details'), sum = document.createElement('summary'), body = document.createElement('div');
-    det.className = 'psec'; det.open = TP_OPEN.has(key); sum.appendChild(lb); while (d.firstChild) body.appendChild(d.firstChild); det.append(sum, body); d.replaceWith(det);
-    det.addEventListener('toggle', () => { if (det.open) TP_OPEN.add(key); else TP_OPEN.delete(key); });
-  }
-  $('#tp-bip').addEventListener('click', () => openBip({ t: ti }));
-  $('#tp-ev').addEventListener('click', () => openEvid({ t: ti }));
-  $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { setView('cartera'); openFicha(ti, LIDX[b.dataset.c]); }));
+  $$('#tprof-x details.psec').forEach(det => det.addEventListener('toggle', () => { if (det.open) TR_OPEN.add(det.dataset.k); else TR_OPEN.delete(det.dataset.k); }));
 }
-// tabla de habilitantes por comuna
+// lleva a un bloque de la pestaña; repite el ajuste porque el mapa cambia el alto de la página al iniciarse
+function trReveal(el) { const go = () => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.top > innerHeight * 0.4) el.scrollIntoView({ block: 'start' }); }; go(); setTimeout(go, 400); }
+function trOpenDet(id) { const d = $(id); d.open = true; trReveal(d); const s = d.querySelector('summary'); if (s) s.focus({ preventScroll: true }); }
+$$('#tprof,#tprof-x').forEach(el => el.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'tp-fm') trFormular(UI.ter, -1, '#tp-fm');
+  else if (b.dataset.ch != null) trFormular(UI.ter, +b.dataset.ch, `#tprof button[data-ch="${b.dataset.ch}"]`);
+  else if (b.dataset.c) { setView('cartera'); openFicha(UI.ter, LIDX[b.dataset.c]); }
+  else if (b.dataset.cat) openBip({ t: UI.ter, cat: b.dataset.cat, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) });
+  else if (b.id === 'tp-bip') openBip({ t: UI.ter });
+  else if (b.id === 'tp-ev') openEvid({ t: UI.ter });
+  else if (b.id === 'tp-com') trOpenDet('#tr-com');
+}));
+$('#tr-pick').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) trSelect(+b.dataset.t, `#tr-pick button[data-t="${b.dataset.t}"]`); });
+// tabla por comuna: los indicadores de cada dimensión de infraestructura
 const HCOLS = [
   { k: 'com', l: 'Comuna', s: c => CN(c) },
   { k: 'pop', l: 'Habitantes 2024', r: 1, s: c => POP[c], f: c => f0(POP[c]) },
-  ...HABS.map(h => ({ k: h.k, l: `${h.l.replace(' (SAIDI 2022)', '')} · ${h.u}`, r: 1, s: c => HV[h.k][c], f: c => h.f(HV[h.k][c]), hab: h })),
-  { k: 'ssr', l: 'Servicios sanitarios rurales · benef.', r: 1, s: c => IN.ssrb[c], f: c => `${IN.ssr[c]} · ${f0(IN.ssrb[c])}` },
-  { k: 'ies', l: 'Sedes educación superior', r: 1, s: c => IN.ies[c], f: c => (IN.ies[c] || '–') },
-  { k: 'ipa', l: 'Inversión pública 2010–22 · MM$/hab.', r: 1, s: c => IN.ipapc[c], f: c => f1(IN.ipapc[c] / 1e6) },
+  ...['pav', 'pmad', 'saidi', 'ant'].map(k => HABS.find(h => h.k === k)).map(h => ({ k: h.k, l: `${h.l.replace(' (SAIDI 2022)', '')} · ${h.u}`, r: 1, s: c => HV[h.k][c], f: c => h.f(HV[h.k][c]), gap: c => isGap(h, HV[h.k][c]) })),
+  ...['sred', 'rie'].map(k => EVK[k]).map(e => ({ k: e.k, l: `${e.l} · ${e.u.split(' · ')[0]}`, r: 1, s: c => EVV[e.k][c], f: c => e.f(EVV[e.k][c]), gap: c => evGap(e, EVV[e.k][c]) })),
+  { k: 'ies', l: 'Sedes de educación superior', r: 1, s: c => IN.ies[c], f: c => (IN.ies[c] || '–'), gap: c => iesOfTer(TOF[c]).length === 0 },
+  { k: 'bre', l: 'Dimensiones en brecha · de 6', r: 1, s: c => trData().com[c].length, f: c => trData().com[c].length },
   { k: 'binv', l: 'BIP habilitante 2019–27 · MM$', r: 1, s: c => binvC[c], f: c => f0(binvC[c]) },
   { k: 'rez', l: 'Zona de rezago', s: c => IN.rez[c], f: c => (IN.rez[c] ? 'Sí' : '') },
-  { k: 'bre', l: 'Brechas', r: 1, s: c => BRE[c].length, f: c => BRE[c].length },
 ];
+const trScope = () => (UI.hbScope === 'ter' ? TER[UI.ter].c : ALLC);
+function trScopeSel() { $$('#hb-scope,#ipt-scope').forEach(s => { s.innerHTML = `<option value="ter">Solo ${esc(TER[UI.ter].n)}</option><option value="all">Las 32 comunas</option>`; s.value = UI.hbScope; }); }
 function renderHab() {
-  const scope = UI.hbScope === 'ter' ? TER[UI.ter].c : ALLC;
   const col = HCOLS.find(c => c.k === UI.hbSort) || HCOLS[0];
-  const rows = [...scope].sort((a, b) => { const x = col.s(a), y = col.s(b); return (typeof x === 'string' ? x.localeCompare(y, 'es') : x - y) * UI.hbDir || POP[b] - POP[a]; });
+  const num = v => (typeof v === 'number' && !isFinite(v) ? -Infinity : v);
+  const rows = [...trScope()].sort((a, b) => { const p = num(col.s(a)), q = num(col.s(b)); return (typeof p === 'string' ? p.localeCompare(q, 'es') : p - q) * UI.hbDir || POP[b] - POP[a]; });
   $('#hab').innerHTML = `<table><thead><tr>${HCOLS.map(c => `<th class="${c.r ? 'r' : ''}"><button type="button" data-k="${c.k}"${UI.hbSort === c.k ? ` aria-sort="${UI.hbDir > 0 ? 'ascending' : 'descending'}"` : ''}>${esc(c.l)}${UI.hbSort === c.k ? (UI.hbDir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`).join('')}</tr></thead><tbody>` +
-    rows.map(c => `<tr class="click${TOF[c] === UI.ter ? ' on' : ''}" data-c="${c}">${HCOLS.map(k => {
-      if (k.k === 'com') return `<td><b style="font-weight:600">${esc(CN(c))}</b><span class="sm">${esc(TER[TOF[c]].n)}</span></td>`;
-      const cls = k.hab ? (isGap(k.hab, HV[k.k][c]) ? 'flag' : '') : '';
-      return `<td class="m${k.r ? ' r' : ''} ${cls}">${k.f(c)}</td>`;
-    }).join('')}</tr>`).join('') + '</tbody></table>';
-  $$('#hab th button').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; if (UI.hbSort === k) UI.hbDir *= -1; else { UI.hbSort = k; UI.hbDir = k === 'com' ? 1 : -1; } renderHab(); }));
-  $$('#hab tr[data-c]').forEach(r => r.addEventListener('click', () => { UI.ter = TOF[+r.dataset.c]; renderTerritorios(); }));
+    rows.map(c => `<tr class="${UI.hbScope === 'all' && TOF[c] === UI.ter ? 'on' : ''}">${HCOLS.map(k => (k.k === 'com' ? `<td><b style="font-weight:600">${esc(CN(c))}</b>${UI.hbScope === 'all' ? `<span class="sm">${esc(TER[TOF[c]].n)}</span>` : ''}</td>` : `<td class="m${k.r ? ' r' : ''}${k.gap && k.gap(c) ? ' flag' : ''}">${k.f(c)}</td>`)).join('')}</tr>`).join('') + '</tbody></table>';
 }
-$('#hb-scope').addEventListener('change', e => { UI.hbScope = e.target.value; renderHab(); });
+$('#hab').addEventListener('click', e => { const b = e.target.closest('th button'); if (!b) return; const k = b.dataset.k; if (UI.hbSort === k) UI.hbDir *= -1; else { UI.hbSort = k; UI.hbDir = k === 'com' ? 1 : -1; } renderHab(); const nb = $(`#hab th button[data-k="${k}"]`); if (nb) nb.focus({ preventScroll: true }); });
+$$('#hb-scope,#ipt-scope').forEach(s => s.addEventListener('change', e => { UI.hbScope = e.target.value; trScopeSel(); renderHab(); renderIptTable(); }));
 function renderTerritorios() {
   if (!MAP) initMap();
   if (!rendered.infra) { initInfra(); rendered.infra = true; }
-  renderMapOnly(); renderTprof(); renderInfra(); renderHab(); renderIptTable();
-  $('#m-title').textContent = 'Territorios ERD 2040 · ' + TER[UI.ter].n;
+  renderTerPick(); renderMapOnly(); renderTprof(); renderInfra(); trScopeSel(); renderHab(); renderIptTable();
 }
 
-// ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
-const IPT_STATE = {
-  ter: 'all', frpd: 'all', est: 'all', plad: 'all', grd: 'all',
-  pladet: 'all', paccc: 'all', adi: 'all', descont: 'all',
-  threat: 'all', reg: 'all', q: '', sort: 'com', dir: 1
-};
-let iptInitDone = false;
-
-function initIpt() {
-  if (iptInitDone) return;
-  iptInitDone = true;
-  const sTer = $('#ipt-f-ter');
-  if (sTer) {
-    sTer.innerHTML = '<option value="all">Todos los territorios</option>' +
-      TER.map((t, i) => `<option value="${i}">${esc(t.n)}</option>`).join('');
-    sTer.addEventListener('change', e => { IPT_STATE.ter = e.target.value; renderIptTable(); });
-  }
-  const sFrpd = $('#ipt-f-frpd');
-  if (sFrpd) sFrpd.addEventListener('change', e => { IPT_STATE.frpd = e.target.value; renderIptTable(); });
-  const sEst = $('#ipt-f-est');
-  if (sEst) sEst.addEventListener('change', e => { IPT_STATE.est = e.target.value; renderIptTable(); });
-  const sPlad = $('#ipt-f-plad');
-  if (sPlad) sPlad.addEventListener('change', e => { IPT_STATE.plad = e.target.value; renderIptTable(); });
-  const sGrd = $('#ipt-f-grd');
-  if (sGrd) sGrd.addEventListener('change', e => { IPT_STATE.grd = e.target.value; renderIptTable(); });
-  const sPladet = $('#ipt-f-pladet');
-  if (sPladet) sPladet.addEventListener('change', e => { IPT_STATE.pladet = e.target.value; renderIptTable(); });
-  const sPaccc = $('#ipt-f-paccc');
-  if (sPaccc) sPaccc.addEventListener('change', e => { IPT_STATE.paccc = e.target.value; renderIptTable(); });
-  const sAdi = $('#ipt-f-adi');
-  if (sAdi) sAdi.addEventListener('change', e => { IPT_STATE.adi = e.target.value; renderIptTable(); });
-  const sDescont = $('#ipt-f-descont');
-  if (sDescont) sDescont.addEventListener('change', e => { IPT_STATE.descont = e.target.value; renderIptTable(); });
-  const sThreat = $('#ipt-f-threat');
-  if (sThreat) sThreat.addEventListener('change', e => { IPT_STATE.threat = e.target.value; renderIptTable(); });
-  const sReg = $('#ipt-f-reg');
-  if (sReg) sReg.addEventListener('change', e => { IPT_STATE.reg = e.target.value; renderIptTable(); });
-  const sQ = $('#ipt-q');
-  if (sQ) sQ.addEventListener('input', e => { IPT_STATE.q = e.target.value.toLowerCase().trim(); renderIptTable(); });
-  const bClear = $('#ipt-clear');
-  if (bClear) bClear.addEventListener('click', () => {
-    IPT_STATE.ter = 'all'; IPT_STATE.frpd = 'all'; IPT_STATE.est = 'all'; IPT_STATE.plad = 'all'; IPT_STATE.grd = 'all';
-    IPT_STATE.pladet = 'all'; IPT_STATE.paccc = 'all'; IPT_STATE.adi = 'all'; IPT_STATE.descont = 'all';
-    IPT_STATE.threat = 'all'; IPT_STATE.reg = 'all'; IPT_STATE.q = '';
-    if (sTer) sTer.value = 'all';
-    if (sFrpd) sFrpd.value = 'all';
-    if (sEst) sEst.value = 'all';
-    if (sPlad) sPlad.value = 'all';
-    if (sGrd) sGrd.value = 'all';
-    if (sPladet) sPladet.value = 'all';
-    if (sPaccc) sPaccc.value = 'all';
-    if (sAdi) sAdi.value = 'all';
-    if (sDescont) sDescont.value = 'all';
-    if (sThreat) sThreat.value = 'all';
-    if (sReg) sReg.value = 'all';
-    if (sQ) sQ.value = '';
-    renderIptTable();
-  });
-  const bCsv = $('#ipt-csv');
-  if (bCsv) bCsv.addEventListener('click', exportIptCSV);
-  const bMapPrc = $('#ipt-btn-map');
-  if (bMapPrc) bMapPrc.addEventListener('click', () => {
-    UI.mInd = 'ipt'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPlad = $('#ipt-btn-map-plad');
-  if (bMapPlad) bMapPlad.addEventListener('click', () => {
-    UI.mInd = 'pladeco'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapGrd = $('#ipt-btn-map-grd');
-  if (bMapGrd) bMapGrd.addEventListener('click', () => {
-    UI.mInd = 'grd'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPladet = $('#ipt-btn-map-pladet');
-  if (bMapPladet) bMapPladet.addEventListener('click', () => {
-    UI.mInd = 'pladetur'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapPaccc = $('#ipt-btn-map-paccc');
-  if (bMapPaccc) bMapPaccc.addEventListener('click', () => {
-    UI.mInd = 'paccc'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapAdi = $('#ipt-btn-map-adi');
-  if (bMapAdi) bMapAdi.addEventListener('click', () => {
-    UI.mInd = 'adi'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapDescont = $('#ipt-btn-map-descont');
-  if (bMapDescont) bMapDescont.addEventListener('click', () => {
-    UI.mInd = 'descont'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bMapFrpd = $('#ipt-btn-map-frpd');
-  if (bMapFrpd) bMapFrpd.addEventListener('click', () => {
-    UI.mInd = 'frpd'; renderMapOnly(); $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  const bEv = $('#ev-goto-ipt');
-  if (bEv) bEv.addEventListener('click', () => {
-    setView('territorios');
-    setTimeout(() => {
-      const card = $('#ipt-card');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  });
-}
-
+// ================= INSTRUMENTOS DE PLANIFICACIÓN POR COMUNA =================
+// Catastro cargado a mano (IPT_DATA). Solo el estado «con o sin plan regulador» (ERD 2040, Tabla 14) y las zonas de rezago
+// coinciden con una fuente del radar; el resto se muestra plegado y con el aviso de que no está verificado.
+const IPTU = { sort: 'com', dir: 1 };
+const IPT_SV = { com: it => it.com, est: it => it.val, plad: it => ({ vigente: 2, actualizacion: 1 })[it.pladEst] || 0, grd: it => (it.grdEmerg === 'aprobado' ? 2 : it.grdEmerg === 'tramite' ? 1 : 0) + (it.grdRrd === 'aprobado' ? 2 : it.grdRrd === 'elaboracion' ? 1 : 0), pladet: it => ({ vigente: 2, formulacion: 1 })[it.pladetEst] || 0, paccc: it => ({ aprobado: 2, elaboracion: 1 })[it.pacccEst] || 0 };
 function renderIptTable() {
-  initIpt();
-  const wrap = $('#ipt-tbl-wrap');
-  if (!wrap) return;
-  const q = IPT_STATE.q;
-  const filtered = IPT_DATA.filter(it => {
-    if (IPT_STATE.ter !== 'all' && TOF[it.c] !== +IPT_STATE.ter) return false;
-    if (IPT_STATE.frpd !== 'all' && it.frpdCls !== IPT_STATE.frpd) return false;
-    if (IPT_STATE.est !== 'all' && it.est !== IPT_STATE.est) return false;
-    if (IPT_STATE.plad !== 'all' && it.pladEst !== IPT_STATE.plad) return false;
-    if (IPT_STATE.grd === 'ambos' && !(it.grdEmerg === 'aprobado' && it.grdRrd === 'aprobado')) return false;
-    if (IPT_STATE.grd === 'emerg' && it.grdEmerg !== 'aprobado') return false;
-    if (IPT_STATE.grd === 'rrd' && it.grdRrd !== 'aprobado') return false;
-    if (IPT_STATE.grd === 'pend' && !(it.grdEmerg === 'pendiente' || it.grdRrd === 'pendiente' || it.grdEmerg === 'tramite')) return false;
-    if (IPT_STATE.pladet !== 'all' && it.pladetEst !== IPT_STATE.pladet) return false;
-    if (IPT_STATE.paccc !== 'all' && it.pacccEst !== IPT_STATE.paccc) return false;
-    if (IPT_STATE.adi === 'si' && it.adi === '–') return false;
-    if (IPT_STATE.adi === 'no' && it.adi !== '–') return false;
-    if (IPT_STATE.descont === 'si' && it.descont === '–') return false;
-    if (IPT_STATE.descont === 'pda' && it.descont !== 'PDA Aire') return false;
-    if (IPT_STATE.descont === 'pdl' && it.descont !== 'PDL Lago') return false;
-    if (IPT_STATE.descont === 'estudio' && it.descont !== 'PDA Estudio') return false;
-    if (IPT_STATE.descont === 'no' && it.descont !== '–') return false;
-    if (IPT_STATE.threat !== 'all' && !it.threats.includes(IPT_STATE.threat)) return false;
-    if (IPT_STATE.reg === 'zoit' && it.zoit === '–') return false;
-    if (IPT_STATE.reg === 'pri' && it.pri === '–') return false;
-    if (IPT_STATE.reg === 'zubc' && !it.zubc) return false;
-    if (IPT_STATE.reg === 'rez' && !it.rez) return false;
-    if (q) {
-      const s = (it.com + ' ' + it.terr + ' ' + it.frpdNivel + ' ' + it.frpdFund + ' ' + it.estLbl + ' ' + it.prcAno + ' ' + it.prcDet + ' ' + it.limAno + ' ' + it.pladLbl + ' ' + it.pladPer + ' ' + it.grdEmergLbl + ' ' + it.grdRrdLbl + ' ' + it.threatStr + ' ' + it.pladetLbl + ' ' + it.pladetDet + ' ' + it.pacccLbl + ' ' + it.pacccDet + ' ' + it.adi + ' ' + it.adiNom + ' ' + it.descont + ' ' + it.descontDet + ' ' + it.pri + ' ' + it.zoit + ' ' + it.reg + ' ' + it.obs).toLowerCase();
-      if (!s.includes(q)) return false;
-    }
-    return true;
-  });
-
-  const sv = it => {
-    if (IPT_STATE.sort === 'com') return it.com;
-    if (IPT_STATE.sort === 'terr') return it.terr;
-    if (IPT_STATE.sort === 'frpd') return it.frpdVal;
-    if (IPT_STATE.sort === 'est') return it.val;
-    if (IPT_STATE.sort === 'prc') return it.prcAno;
-    if (IPT_STATE.sort === 'plad') return it.pladEst;
-    if (IPT_STATE.sort === 'emerg') return (it.grdEmerg === 'aprobado' ? 2 : it.grdEmerg === 'tramite' ? 1 : 0);
-    if (IPT_STATE.sort === 'rrd') return (it.grdRrd === 'aprobado' ? 2 : it.grdRrd === 'elaboracion' ? 1 : 0);
-    if (IPT_STATE.sort === 'pladet') return (it.pladetEst === 'vigente' ? 2 : it.pladetEst === 'formulacion' ? 1 : 0);
-    if (IPT_STATE.sort === 'paccc') return (it.pacccEst === 'aprobado' ? 2 : it.pacccEst === 'elaboracion' ? 1 : 0);
-    if (IPT_STATE.sort === 'adi') return it.adi !== '–' ? 1 : 0;
-    if (IPT_STATE.sort === 'descont') return (it.descont === 'PDL Lago' ? 3 : it.descont === 'PDA Aire' ? 2 : it.descont === 'PDA Estudio' ? 1 : 0);
-    return it.com;
-  };
-  filtered.sort((a, b) => {
-    const va = sv(a), vb = sv(b);
-    return (typeof va === 'string' ? va.localeCompare(vb, 'es') : va - vb) * IPT_STATE.dir || a.c - b.c;
-  });
-
-  const th = (col, label) => `<th scope="col"><button type="button" data-col="${col}">${label}${IPT_STATE.sort === col ? (IPT_STATE.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
-
-  wrap.innerHTML = `<table class="ipt-tbl">
-    <thead>
-      <tr>
-        ${th('com', 'Comuna & Territorio')}
-        ${th('frpd', 'Relevancia FRPD')}
-        ${th('est', 'PRC · Suelo')}
-        ${th('plad', 'PLADECO')}
-        <th style="min-width:140px">GRD SENAPRED</th>
-        ${th('pladet', 'Turismo (PLADETUR / ZOIT)')}
-        ${th('paccc', 'Clima & Descont. (PACCC / PDA)')}
-        ${th('adi', 'Pueblos & Régimen')}
-        <th style="min-width:230px">Diagnóstico e Implicancia FRPD</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No se encontraron comunas con los filtros seleccionados.</td></tr>' : filtered.map(it => {
-        const isSel = TOF[it.c] === UI.ter;
-        return `<tr class="click${isSel ? ' on' : ''}" data-c="${it.c}">
-          <td>
-            <b style="color:var(--ink);font-size:13px">${esc(it.com)}</b>
-            <span class="sm" style="display:block;color:var(--ink2)">${esc(it.terr)}</span>
-          </td>
-          <td>
-            <span class="frpd-badge ${it.frpdCls}">${esc(it.frpdNivel)}</span>
-          </td>
-          <td>
-            <span class="ipt-badge ${it.cls}">${esc(it.estLbl)}</span>
-            <span class="mono" style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.prcAno)}</span>
-          </td>
-          <td>
-            <span class="plad-badge ${it.pladCls}">${esc(it.pladLbl)}</span>
-            <span class="mono" style="display:block;font-size:11px;color:var(--ink2);margin-top:2px">${esc(it.pladPer)}</span>
-          </td>
-          <td>
-            <div style="display:flex;flex-direction:column;gap:3px">
-              <div style="display:flex;gap:4px">
-                <span class="grd-badge ${it.grdEmergCls}" title="Plan Comunal de Emergencia">${esc(it.grdEmergLbl)}</span>
-                <span class="grd-badge ${it.grdRrdCls}" title="Plan RRD">${esc(it.grdRrdLbl)}</span>
-              </div>
-              <span style="font-size:11px;color:var(--ink2);line-height:1.2">${esc(it.threatStr)}</span>
-            </div>
-          </td>
-          <td>
-            <span class="pladet-badge ${it.pladetCls}">${esc(it.pladetLbl)}</span>
-            ${it.zoit !== '–' ? `<span class="tag-zoit" style="margin-top:3px;display:inline-block">${esc(it.zoit)}</span>` : ''}
-            <span style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.pladetDet)}</span>
-          </td>
-          <td>
-            <span class="paccc-badge ${it.pacccCls}">PACCC: ${esc(it.pacccLbl)}</span>
-            ${it.descont === 'PDA Aire' ? '<span class="tag-pda" style="margin-top:3px;display:inline-block">PDA Aire</span>' : ''}
-            ${it.descont === 'PDL Lago' ? '<span class="tag-pdl" style="margin-top:3px;display:inline-block">PDL Lago</span>' : ''}
-            ${it.descont === 'PDA Estudio' ? '<span class="tag-pda" style="margin-top:3px;display:inline-block;background:rgba(242,165,65,.18);color:var(--sel)">PDA Estudio</span>' : ''}
-            <span style="display:block;font-size:11px;color:var(--muted);margin-top:2px">${esc(it.pacccDet)}</span>
-          </td>
-          <td>
-            ${it.adi !== '–' ? `<span class="tag-adi" style="margin-bottom:2px;display:inline-block" title="${esc(it.adiNom)}">${esc(it.adi)}</span><br>` : ''}
-            ${it.pri !== '–' ? `<span class="tag-pri" style="margin-bottom:2px;display:inline-block">${esc(it.pri)}</span><br>` : ''}
-            ${it.zubc ? '<span class="tag-zubc" title="D.S. 475/1994">Borde Costero</span> ' : ''}
-            ${it.rez ? '<span class="tag-rez" title="Zona de Rezago Subdere">Rezago</span> ' : ''}
-            ${it.adi === '–' && it.pri === '–' && !it.zubc && !it.rez ? '<span style="color:var(--muted)">–</span>' : ''}
-          </td>
-          <td>
-            <b style="color:var(--ink);display:block;margin-bottom:2px;font-size:11.5px">${esc(it.frpdFund)}</b>
-            <span style="font-size:11.5px;line-height:1.4;color:var(--ink2)">${esc(it.obs)}</span>
-          </td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table>`;
-
-  // Listener para sorting
-  $$('#ipt-tbl-wrap th button').forEach(b => b.addEventListener('click', () => {
-    const col = b.dataset.col;
-    if (IPT_STATE.sort === col) IPT_STATE.dir *= -1;
-    else { IPT_STATE.sort = col; IPT_STATE.dir = 1; }
-    renderIptTable();
-  }));
-
-  // Listener para clic en fila: selecciona territorio y actualiza
-  $$('#ipt-tbl-wrap tr[data-c]').forEach(r => r.addEventListener('click', () => {
-    const c = +r.dataset.c;
-    UI.ter = TOF[c];
-    renderTerritorios();
-  }));
+  const wrap = $('#ipt-tbl-wrap'); if (!wrap) return;
+  const nSin = sum(TER.map(t => t.prcSin.length));
+  $('#ipt-sum').innerHTML = `<b>Catastro sin verificar.</b> Se cargó a mano y el radar no tiene su fuente; confírmalo con el municipio o el servicio antes de citarlo. Lo único contrastado es que ${nSin} de las ${NC} comunas no tienen plan regulador vigente (ERD 2040, Tabla 14) y cuáles son zona de rezago.`;
+  const sc = new Set(trScope()), sv = IPT_SV[IPTU.sort] || IPT_SV.com;
+  const rows = IPT_DATA.filter(it => sc.has(it.c)).sort((a, b) => { const p = sv(a), q = sv(b); return (typeof p === 'string' ? p.localeCompare(q, 'es') : p - q) * IPTU.dir || a.com.localeCompare(b.com, 'es'); });
+  const th = (col, label) => `<th scope="col"><button type="button" data-col="${col}"${IPTU.sort === col ? ` aria-sort="${IPTU.dir > 0 ? 'ascending' : 'descending'}"` : ''}>${label}${IPTU.sort === col ? (IPTU.dir > 0 ? ' ↑' : ' ↓') : ''}</button></th>`;
+  const sm = t => (t && t !== '–' ? `<span class="ipt-s">${esc(t)}</span>` : '');
+  wrap.innerHTML = `<table class="ipt-tbl"><thead><tr>${th('com', 'Comuna')}${th('est', 'Plan regulador')}${th('plad', 'PLADECO')}${th('grd', 'Riesgo de desastres')}${th('pladet', 'Turismo')}${th('paccc', 'Clima y descontaminación')}<th scope="col">Regímenes especiales</th></tr></thead><tbody>
+    ${rows.map(it => `<tr class="${UI.hbScope === 'all' && TOF[it.c] === UI.ter ? 'on' : ''}">
+      <td><b>${esc(it.com)}</b>${UI.hbScope === 'all' ? sm(TER[TOF[it.c]].n) : ''}</td>
+      <td><span class="ipt-badge ${it.cls}">${PRC_L[it.est]}</span>${sm(/^D\.O\./.test(it.prcAno) ? it.prcAno : '')}</td>
+      <td><span class="plad-badge ${it.pladCls}">${esc(it.pladLbl)}</span>${sm(it.pladPer)}</td>
+      <td><span class="grd-badge ${it.grdEmergCls}" title="Plan comunal de emergencia">Emergencia: ${esc(it.grdEmergLbl.toLowerCase())}</span> <span class="grd-badge ${it.grdRrdCls}" title="Plan de reducción del riesgo de desastres">Reducción: ${esc(it.grdRrdLbl.toLowerCase())}</span>${sm(it.threatStr)}</td>
+      <td><span class="pladet-badge ${it.pladetCls}">${esc(it.pladetLbl)}</span>${it.zoit !== '–' ? ` <span class="tag-zoit">${esc(it.zoit)}</span>` : ''}${sm(it.pladetDet)}</td>
+      <td><span class="paccc-badge ${it.pacccCls}">PACCC: ${esc(it.pacccLbl.toLowerCase())}</span>${it.descont !== '–' ? ` <span class="${it.descont === 'PDL Lago' ? 'tag-pdl' : 'tag-pda'}">${esc(it.descont)}</span>` : ''}${sm(it.pacccDet)}</td>
+      <td>${[it.adi !== '–' ? `<span class="tag-adi" title="${esc(it.adiNom)}">${esc(it.adi)}</span>` : '', it.pri !== '–' ? `<span class="tag-pri">${esc(it.pri)}</span>` : '', it.zubc ? '<span class="tag-zubc" title="Zonificación de uso del borde costero">Borde costero</span>' : '', IN.rez[it.c] ? '<span class="tag-rez">Zona de rezago</span>' : ''].filter(Boolean).join(' ') || '<span style="color:var(--muted)">–</span>'}</td>
+    </tr>`).join('')}</tbody></table>`;
 }
-
-function exportIptCSV() {
-  const head = [
-    'Comuna', 'Territorio ERD', 'Nivel Relevancia FRPD', 'Fundamento Estratégico FRPD',
-    'Estado Plan Regulador', 'Año Aprobación PRC', 'Detalle PRC', 'Límite Urbano Histórico',
-    'PRI Intercomunal', 'Estado PLADECO', 'Periodo PLADECO', 'Plan Emergencia SENAPRED',
-    'Plan RRD Prevención Ley 21.364', 'Amenazas Críticas (GRD)', 'Estado PLADETUR', 'Detalle PLADETUR',
-    'ZOIT Turismo Ley 20.423', 'Estado PACCC Ley 21.455', 'Detalle PACCC', 'Área Indígena ADI Ley 19.253',
-    'Nombre ADI', 'Plan Descontaminación (PDA/PDL)', 'Detalle Descontaminación',
-    'Zonificación Borde Costero (ZUBC)', 'Zona de Rezago', 'Régimen Especial', 'Diagnóstico e Implicancia FRPD'
-  ];
-  const lines = [head].concat(IPT_DATA.map(it => [
-    it.com, it.terr, it.frpdNivel, it.frpdFund,
-    it.estLbl, it.prcAno, it.prcDet, it.limAno,
-    it.pri, it.pladLbl, it.pladPer, it.grdEmergLbl,
-    it.grdRrdLbl, it.threatStr, it.pladetLbl, it.pladetDet,
-    it.zoit, it.pacccLbl, it.pacccDet, it.adi,
-    it.adiNom, it.descont, it.descontDet,
-    it.zubc ? 'Sí' : 'No', it.rez ? 'Sí' : 'No', it.reg, it.obs
-  ]));
-  saveCSV(lines, 'instrumentos_planificacion_y_gestion_araucania_erd2040.csv');
-}
+$('#ipt-tbl-wrap').addEventListener('click', e => { const b = e.target.closest('th button'); if (!b) return; const col = b.dataset.col; if (IPTU.sort === col) IPTU.dir *= -1; else { IPTU.sort = col; IPTU.dir = 1; } renderIptTable(); const nb = $(`#ipt-tbl-wrap th button[data-col="${col}"]`); if (nb) nb.focus({ preventScroll: true }); });
+$('#ipt-csv').addEventListener('click', () => {
+  const head = ['Comuna', 'Territorio ERD', 'Estado plan regulador', 'Publicación PRC', 'Detalle PRC', 'Límite urbano', 'Plan regulador intercomunal', 'Estado PLADECO', 'Periodo PLADECO', 'Plan de emergencia', 'Plan de reducción del riesgo', 'Amenazas', 'Estado PLADETUR', 'Detalle PLADETUR', 'ZOIT', 'Estado PACCC', 'Detalle PACCC', 'Área de desarrollo indígena', 'Nombre ADI', 'Plan de descontaminación', 'Detalle descontaminación', 'Borde costero (ZUBC)', 'Zona de rezago', 'Verificación'];
+  saveCSV([head].concat(IPT_DATA.map(it => [it.com, TER[TOF[it.c]].n, PRC_L[it.est], it.prcAno, it.prcDet, it.limAno, it.pri, it.pladLbl, it.pladPer, it.grdEmergLbl, it.grdRrdLbl, it.threatStr, it.pladetLbl, it.pladetDet, it.zoit, it.pacccLbl, it.pacccDet, it.adi, it.adiNom, it.descont, it.descontDet, it.zubc ? 'Sí' : 'No', IN.rez[it.c] ? 'Sí' : 'No', 'Catastro sin verificar, salvo plan regulador (ERD 2040, Tabla 14) y zona de rezago'])), 'instrumentos_planificacion_comunas_araucania_sin_verificar.csv');
+});
+{ const bEv = $('#ev-goto-ipt'); if (bEv) bEv.addEventListener('click', () => { UI.hbScope = 'all'; setView('territorios'); trOpenDet('#ipt-card'); }); }
 
 // ================= EVIDENCIA TERRITORIAL =================
 Object.assign(UI, { evG: 'eq', evScope: 'all', evSort: 'com', evDir: 1, evMap: 'pmd' });
@@ -1759,7 +1462,7 @@ function renderEvid() {
     $$('#ev-g button').forEach(b => b.addEventListener('click', () => { UI.evG = b.dataset.g; if (!['com', 'pop'].includes(UI.evSort)) { UI.evSort = 'com'; UI.evDir = 1; } renderEvTable(); }));
     $('#ev-scope').addEventListener('change', e => { UI.evScope = e.target.value; renderEvTable(); });
     $('#ev-map').addEventListener('change', e => { UI.evMap = e.target.value; });
-    $('#ev-go').addEventListener('click', () => { UI.mInd = 'ev:' + UI.evMap; setView('territorios'); });
+    $('#ev-go').addEventListener('click', () => { UI.mInd = 'ev:' + UI.evMap; setView('territorios'); trReveal($('#tr-mapc')); });
     $('#ev-csv').addEventListener('click', exportEvid);
     rendered.evid = true;
   }
@@ -2238,8 +1941,8 @@ $('#exe-csv').addEventListener('click', () => {
   saveCSV(lines, 'ejecutores_frpd_araucania.csv');
 });
 $('#hb-csv').addEventListener('click', () => {
-  const lines = [['Comuna', 'Territorio ERD', 'Habitantes 2024', 'Km red vial', 'Km pavimentados', '% pavimentado', 'Puentes', 'Puentes con tablero de madera', 'SAIDI 2022 (h)', 'Viviendas sin energía', 'Antenas autorizadas', 'Antenas LTE', 'Subestaciones', 'Servicios sanitarios rurales', 'Beneficiarios SSR', 'SSR con grupo electrógeno', 'Bocatomas', 'Embalses', 'Sedes educación superior', 'Inversión pública 2010-2022 (MM$)', 'Inversión pública per cápita ($)', 'BIP habilitante 2019-2027 (MM$)', 'Zona de rezago', 'Brechas (tercio peor)']]
-    .concat(ALLC.map(c => [CN(c), TER[TOF[c]].n, POP[c], IN.kmv[c], IN.kmpav[c], (HV.pav[c] * 100).toFixed(1), IN.pue[c], IN.pmad[c], IN.saidi[c], IN.vse[c], IN.ant[c], IN.lte[c], IN.sub[c], IN.ssr[c], IN.ssrb[c], IN.ssrge[c], IN.boc[c], IN.emb[c], IN.ies[c], IN.ipa[c], IN.ipapc[c], Math.round(binvC[c]), IN.rez[c] ? 'Sí' : 'No', BRE[c].map(k => HABS.find(h => h.k === k).l).join(', ')]));
+  const lines = [['Comuna', 'Territorio ERD', 'Habitantes 2024', 'Km red vial', 'Km pavimentados', '% pavimentado', 'Puentes', 'Puentes con tablero de madera', 'SAIDI 2022 (h)', 'Viviendas sin energía', 'Antenas autorizadas', 'Antenas LTE', 'Subestaciones', 'Servicios sanitarios rurales', 'Beneficiarios SSR', 'SSR con grupo electrógeno', 'Bocatomas', 'Embalses', 'Sedes educación superior', 'Inversión pública 2010-2022 (MM$)', 'Inversión pública per cápita ($)', 'BIP habilitante 2019-2027 (MM$)', 'Zona de rezago', 'Dimensiones de infraestructura en brecha']]
+    .concat(ALLC.map(c => [CN(c), TER[TOF[c]].n, POP[c], IN.kmv[c], IN.kmpav[c], (HV.pav[c] * 100).toFixed(1), IN.pue[c], IN.pmad[c], IN.saidi[c], IN.vse[c], IN.ant[c], IN.lte[c], IN.sub[c], IN.ssr[c], IN.ssrb[c], IN.ssrge[c], IN.boc[c], IN.emb[c], IN.ies[c], IN.ipa[c], IN.ipapc[c], Math.round(binvC[c]), IN.rez[c] ? 'Sí' : 'No', trData().com[c].map(k => IF_DIM[k].l).join(', ')]));
   saveCSV(lines, 'condiciones_habilitantes_comunas_araucania.csv');
 });
 

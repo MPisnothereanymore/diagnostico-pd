@@ -72,7 +72,7 @@ function renderInfra() {
   let lastT = -1;
   for (const j of rowsJ) {
     if (lev === 'com' && TOF[j] !== lastT) { lastT = TOF[j]; h += `<tr class="ift-g"><th colspan="${STRAT_CHAINS.length + 1}">${esc(TER[lastT].n)}</th></tr>`; }
-    h += `<tr><th>${esc(ifName(lev, j))}</th>`;
+    h += `<tr${(lev === 'ter' ? j : TOF[j]) === UI.ter ? ' class="on"' : ''}><th>${esc(ifName(lev, j))}</th>`;
     STRAT_CHAINS.forEach((ch, ci) => {
       const x = ifCell(lev, j, ci), on = IFU.sel && IFU.sel.lev === lev && IFU.sel.j === j && IFU.sel.ci === ci;
       if (x.st === 'hab') { nHab++; nSin += x.sinInv; } if (x.st === 'div') nDiv++;
@@ -98,7 +98,7 @@ function renderInfraDet() {
       <div>${dm.inv.n ? `<b>${pl(dm.inv.n, 'iniciativa', 'iniciativas')}</b> en camino<small>${mmK(dm.inv.t)} MM$ · ${f0(dm.inv.rs)} con RS · ${f0(dm.inv.ob)} con obra en ejecución</small><button type="button" class="btn sm" data-cat="${dm.d.cat}">Ver en Iniciativas BIP</button>`
         : dm.gap ? `<span class="pill warn">Sin inversión en camino</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : '<small>Sin iniciativas recientes</small>'}</div>
     </div>`).join('')}</div>${MX ? '<div><button type="button" class="btn pri" id="if-fm">Formular con esta combinación</button></div>' : ''}`;
-  if ($('#if-fm')) $('#if-fm').addEventListener('click', () => fmOpen(s.lev === 'ter' ? s.j : TOF[s.j], s.ci));
+  if ($('#if-fm')) $('#if-fm').addEventListener('click', () => trFormular(s.lev === 'ter' ? s.j : TOF[s.j], s.ci, '#if-fm'));
   box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) })));
 }
 function initInfra() {
