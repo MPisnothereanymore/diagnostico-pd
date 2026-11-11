@@ -1205,7 +1205,7 @@ function trData() {
 const fMil = v => (v >= 1e5 ? f0(v / 1000) : f1(v / 1000)) + ' mil';
 function renderTerPick() {
   const d = trData().ter;
-  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span><span class="g${d[i].nGap ? '' : ' z'}" title="Dimensiones de infraestructura en brecha en el agregado del territorio">Agregado: ${d[i].nGap} de ${d[i].dims.length}</span><span title="Comunas con alguna dimensión en brecha">Comunas: ${d[i].cg.length} de ${T.c.length}</span></button>`).join('');
+  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><span class="h"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span></span><span><span class="g${d[i].nGap ? '' : ' z'}">Territorio: ${d[i].nGap} de ${d[i].dims.length} en brecha</span> · Comunas con brecha: ${d[i].cg.length} de ${T.c.length}</span></button>`).join('');
 }
 function trSelect(ti, focusSel) {
   if (ti === UI.ter) return;
@@ -1228,11 +1228,12 @@ function trBack(fr) {
 // de Territorios a una ficha de Cartera o a Iniciativas BIP: se guarda el punto de partida para ofrecer la vuelta
 let TR_RET = null;
 function trReturn() { const r = TR_RET; if (!r) return; if (UI.fOpen) closeFicha(true); TR_RET = null; trBack({ back: r }); }
-const trFromHtml = (r, idB, idX) => `<p><b>Vienes de Territorios:</b> ${esc(TER[r.ter].n)}${r.what ? ` · ${esc(r.what)}` : ''}.</p><div class="ct-ob"><button type="button" class="btn sm" id="${idB}">Volver a Territorios</button><button type="button" class="btn sm" id="${idX}">Quitar este aviso</button></div>`;
-function renderBxFrom() { const bf = $('#bx-from'), on = !!(TR_RET && TR_RET.kind === 'bip'); bf.hidden = !on; bf.innerHTML = on ? trFromHtml(TR_RET, 'bx-back', 'bx-fromx') : ''; }
+const trFromHtml = (r, idB, idX) => `<p><b>Vienes de Territorios:</b> ${esc(r.what || TER[r.ter].n)}.</p><div class="ct-ob"><button type="button" class="btn sm" id="${idB}">Volver a Territorios</button><button type="button" class="btn sm" id="${idX}">Quitar este aviso</button></div>`;
+function renderBxFrom() { const bf = $('#bx-from'), on = !!(TR_RET && TR_RET.kind === 'bip'), was = !bf.hidden; bf.hidden = !on; bf.innerHTML = on ? trFromHtml(TR_RET, 'bx-back', 'bx-fromx') : ''; if (on && !was) setTimeout(() => bf.focus({ preventScroll: true }), 0); }
 $('#bx-from').addEventListener('click', e => { if (e.target.closest('#bx-back')) trReturn(); else if (e.target.closest('#bx-fromx')) { TR_RET = null; renderBxFrom(); $('#bx-q').focus(); } });
 const TR_OPEN = new Set();
 const a8Txt = a8 => (a8 === '–' ? 'Fuera de las categorías del art. 8: se financia por otras vías' : `Candidata al FRPD, art. 8 ${a8.startsWith('N') ? a8 : 'N°' + a8[0] + ' letra ' + a8[1]}`);
+const mmR = v => (v / 1000 >= 10 ? f0(v / 1000) : f1(v / 1000));   // M$ → MM$, como lo muestra Iniciativas BIP
 const chg = v => (Math.round(v * 100) === 0 ? 'sin cambio' : pcs(v));
 function renderTprof() {
   const ti = UI.ter, T = TER[ti], D0 = trData(), d = D0.ter[ti], S = SII0;
@@ -1248,20 +1249,20 @@ function renderTprof() {
   const tfin = [['ANID (sede en el territorio)', inT.filter(i => FN_S[i] === S_ANID)], ['CORFO InnovaChile', inT.filter(i => FN_S[i] === S_CORFO)]]
     .concat(Object.keys(BIPCAT).map(g => [`BIP · ${BIPCAT[g]}`, inT.filter(i => FN_S[i] === S_BIP && fnG(i) === g)]));
   // las tres conclusiones
-  const c1 = `${top.length ? `Lineamientos CTCI sobre el promedio regional: <b>${esc(top.map(q => LSHORT[q.k]).join(' · '))}</b>.` : 'Ningún lineamiento CTCI supera el promedio regional.'} ${pres.length ? `Cadenas presentes y sus empresas: ${pres.map(c => `<b>${esc(ifShort(c.ch))}</b> ${f0(c.n)}`).join(' · ')}.` : 'Ninguna cadena productiva alcanza presencia.'}`;
-  const invTxt = !gaps.length ? '' : !sinInv.length ? (gaps.length === 1 ? 'Tiene' : `Las ${gaps.length} tienen`) + ' alguna iniciativa BIP postulada desde 2025.'
-    : sinInv.length === gaps.length ? (gaps.length === 1 ? 'No tiene' : 'Ninguna tiene') + ' iniciativas BIP postuladas desde 2025.' : `${sinInv.length} de ellas sin iniciativas BIP postuladas desde 2025.`;
-  const comTxt = d.cg.length ? ` Dimensiones en brecha por comuna: ${esc(d.cg.map(c => `${CN(c)} ${D0.com[c].length}`).join(' · '))}.` : '';
-  const c2 = (gaps.length ? `<b>${gaps.length} de ${nD}</b> dimensiones de infraestructura en brecha en el agregado del territorio: <b>${esc(gaps.map(m => m.d.l).join(' · '))}</b>. ${invTxt}`
-    : `Ninguna de las ${nD} dimensiones de infraestructura está en brecha en el agregado del territorio${d.cg.length ? `, pero ${d.cg.length} de sus ${T.c.length} comunas ${d.cg.length === 1 ? 'tiene' : 'tienen'} alguna` : ''}.`) + comTxt;
+  const c1 = `${top.length ? `Lineamientos CTCI claramente sobre el promedio regional (cociente de 1,10 o más): <b>${esc(top.map(q => LSHORT[q.k]).join(' · '))}</b>.` : 'Ningún lineamiento CTCI llega a un cociente de 1,10 sobre el promedio regional.'} ${pres.length ? `Cadenas presentes y sus empresas: ${pres.map(c => `<b>${esc(ifShort(c.ch))}</b> ${f0(c.n)}`).join(' · ')}.` : 'Ninguna cadena productiva alcanza presencia.'}`;
+  const invTxt = !gaps.length ? '' : !sinInv.length ? (gaps.length === 1 ? 'Con' : `Las ${gaps.length} con`) + ` alguna iniciativa BIP postulada desde ${IF_Y0}.`
+    : sinInv.length === gaps.length ? (gaps.length === 1 ? 'Sin' : 'Ninguna con') + ` iniciativas BIP postuladas desde ${IF_Y0}.` : `${sinInv.length} de ellas sin iniciativas BIP postuladas desde ${IF_Y0}.`;
+  const comTxt = ` ${d.cg.length} de ${T.c.length} comunas con alguna.`;
+  const c2 = (gaps.length ? `<b>${gaps.length} de ${nD}</b> dimensiones de infraestructura en brecha en el territorio en conjunto: <b>${esc(gaps.map(m => m.d.l).join(' · '))}</b>. ${invTxt}`
+    : `Ninguna de las ${nD} dimensiones de infraestructura está en brecha en el territorio en conjunto.`) + comTxt;
   const c3 = `<b>${pl(ents.length, 'entrada', 'entradas')}</b>${ents.length ? `, ${n3} con evidencia levantada` : ''}. ${noEnt.length ? `Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}${lq2(q.v) >= 1.1 ? ` (cociente ${f2(q.v)}, sobre el promedio)` : ''}`)))}.` : 'Tiene entrada en los seis lineamientos.'}`;
   const dimRow = m => {
     const req = m.gap ? pres.filter(c => (IF_REQ[c.ch.id] || []).includes(m.k)).map(c => ifShort(c.ch)) : [];
     const cg = m.k === 'con' ? [] : T.c.filter(c => D0.com[c].includes(m.k));
     return `<div class="tr-dim${m.gap ? ' gap' : ''}">
-      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small${i.gap ? ' class="g"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${m.k === 'con' ? '' : ` · región ${esc(i.reg)}`}${i.gap ? '<span class="sr"> (en el tercio peor)</span>' : ''}</small>`).join('')}${cg.length ? `<small>Comunas en brecha: ${esc(cg.map(CN).join(' · '))}</small>` : ''}</div>
-      <div class="b"><span class="pill${m.gap ? ' bad' : ''}">${m.gap ? 'En brecha' : 'Fuera del tercio peor'}</span>${req.length ? `<small>La requieren (supuesto): ${esc(req.join(' · '))}</small>` : ''}</div>
-      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${m.k === 'con' ? ` de ${esc(BIPCAT[m.d.cat])}` : ''} ${m.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0} · ${mmK(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}" data-dim="${esc(m.d.l)}" aria-label="Ver las iniciativas BIP de ${esc(m.d.l)}">Ver estas iniciativas</button>`
+      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small${i.gap ? ' class="g"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${m.k === 'con' ? '' : ` · región ${esc(i.reg)}`}${i.gap ? `<span class="sr"> (${m.k === 'con' ? 'sin sedes' : 'en el tercio peor'})</span>` : ''}</small>`).join('')}${cg.length ? `<small>Comunas en brecha: ${esc(cg.map(CN).join(' · '))}</small>` : ''}</div>
+      <div class="b"><span class="pill${m.gap ? ' bad' : ''}">${m.gap ? 'En brecha' : ifOkLab(m)}</span>${req.length ? `<small>La requieren (supuesto): ${esc(req.join(' · '))}</small>` : ''}</div>
+      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${m.k === 'con' ? ` de ${esc(BIPCAT[m.d.cat])}` : ''} ${m.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0} · ${mmR(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}" data-dim="${esc(m.d.l)}" aria-label="Ver las iniciativas BIP de ${esc(m.d.l)}">Ver estas iniciativas</button>`
         : m.gap ? `<span class="pill warn">Sin iniciativas BIP desde ${IF_Y0}</span><small>${a8Txt(m.d.a8)}</small>` : `<small>Sin iniciativas BIP desde ${IF_Y0}</small>`}</div>
     </div>`;
   };
@@ -1291,13 +1292,14 @@ function renderTprof() {
       </div>
     </section>
     <section class="tr-q" aria-labelledby="tq2"><h3 id="tq2" tabindex="-1">Qué lo frena</h3>
-      <div class="tr-dims">${[...gaps, ...d.dims.filter(m => !m.gap)].map(dimRow).join('')}</div>
-      <p class="note">Cifras del agregado del territorio. En brecha: algún indicador (▲) cae en el tercio peor de las 32 comunas; en educación superior, el territorio no tiene sedes. Que una iniciativa esté postulada no implica que tenga financiamiento.${rez.length ? ` Zona de rezago: ${esc(listY(rez.map(CN)))}.` : ''}${T.prcSin.length ? ` Sin plan regulador vigente: ${esc(listY(T.prcSin.map(CN)))}.` : ''}</p>
+      ${rez.length || T.prcSin.length ? `<p class="tr-ctx">${rez.length ? `<span><b>Zona de rezago:</b> ${rez.length === T.c.length ? `sus ${T.c.length} comunas` : esc(listY(rez.map(CN)))}.</span>` : ''}${T.prcSin.length ? `<span><b>Sin plan regulador vigente:</b> ${esc(listY(T.prcSin.map(CN)))}.</span>` : ''}</p>` : ''}
+      <div class="tr-dims">${gaps.map(dimRow).join('')}${gaps.length < nD ? `<div class="tr-dsep">No están en brecha</div>` : ''}${d.dims.filter(m => !m.gap).map(dimRow).join('')}</div>
+      <p class="note">Cifras del agregado del territorio. En brecha: algún indicador (▲) cae en el tercio peor de las 32 comunas; en educación superior, el territorio no tiene sedes. Que una iniciativa esté postulada no implica que tenga financiamiento.</p>
       <div><button type="button" class="linkbtn" id="tp-com">Ver estos indicadores comuna por comuna</button></div>
     </section>
     <section class="tr-q" aria-labelledby="tq3"><h3 id="tq3" tabindex="-1">Qué hay en cartera</h3>
       <div class="tr-ents">${ents.map(e => `<button type="button" class="tr-ent" data-c="${e.c}" data-e="${e.l}">${mDots(e.m)}<span class="n">${esc(LINE[e.l].n)}</span><span class="m">${e.c} ${esc(LSHORT[e.c])} · evidencia ${MADS[e.m]}</span></button>`).join('')}</div>
-      <p class="note">Cada fila abre la ficha de esa entrada en Cartera.${noEnt.length ? ` Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}`)))}.` : ''}</p>
+      <p class="note">Cada fila abre la ficha de esa entrada en Cartera.</p>
     </section>
   </div>`;
   $('#tprof-x').innerHTML = `<div class="prof"><div><h2 class="tr-xh">Más datos de ${esc(T.n)}</h2></div>
@@ -1328,7 +1330,7 @@ $$('#tprof,#tprof-x').forEach(el => el.addEventListener('click', e => {
   else if (b.dataset.go) { const h = $('#' + b.dataset.go); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
   else if (b.dataset.ch != null) trFormular(UI.ter, +b.dataset.ch, `#tprof button[data-ch="${b.dataset.ch}"]`);
   else if (b.dataset.e) { leave('ficha', `#tprof button[data-e="${b.dataset.e}"]`); setView('cartera'); openFicha(UI.ter, LIDX[b.dataset.c]); }
-  else if (b.dataset.cat) { leave('bip', `#tprof button[data-cat="${b.dataset.cat}"]`, b.dataset.dim); openBip({ t: UI.ter, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }
+  else if (b.dataset.cat) { leave('bip', `#tprof button[data-cat="${b.dataset.cat}"]`, `${TER[UI.ter].n} · ${b.dataset.dim}`); openBip({ t: UI.ter, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }
   else if (b.id === 'tp-bip') { leave('bip', '#tp-bip'); openBip({ t: UI.ter }); }
   else if (b.id === 'tp-ev') openEvid({ t: UI.ter });
   else if (b.id === 'tp-com') trOpenDet('#tr-com');

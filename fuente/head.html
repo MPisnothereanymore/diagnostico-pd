@@ -473,9 +473,9 @@ details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-content}details.foot>div{margin-top:8px}
 /* Territorios: selector, lectura en tres preguntas, mapa de apoyo y tablas por comuna plegadas */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.tr-pick{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.tr-pick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .tr-p{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:9px 10px 9px 11px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:7px;background:var(--surf2);color:var(--ink2);font-size:12px;line-height:1.35;min-width:0}
-.tr-p b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25}
+.tr-p b{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25}.tr-p .h{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;width:100%}
 .tr-p .g{color:var(--bad)}.tr-p .g.z{color:var(--ink2)}
 .tr-p:hover{border-color:var(--acc);border-left-color:var(--tc)}
 .tr-p[aria-pressed="true"]{background:var(--surf3);border-color:var(--ink);border-left-color:var(--tc);box-shadow:0 0 0 1px var(--ink)}
@@ -497,6 +497,8 @@ details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-
 .tr-ch .n b{display:block;font-weight:600;font-size:13px}.tr-ch small{display:block;color:var(--muted);font-size:11.5px;line-height:1.4}.tr-ch small.w{color:var(--sel)}
 .tr-dim{display:grid;grid-template-columns:minmax(0,1.25fr) 150px minmax(0,1fr);gap:4px 16px;align-items:start;padding:9px 0 9px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:12.5px}
 .tr-dim.gap{border-left-color:var(--bad)}
+.tr-dsep{display:none;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 0 2px}
+.tr-ctx{margin:0;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:13.5px;line-height:1.5;color:var(--ink2)}.tr-ctx b{color:var(--sel);font-weight:600}
 .tr-dim .a>b{display:block;font-size:13.5px;font-weight:600}.tr-dim:not(.gap) .a>b{font-weight:500;color:var(--ink2)}
 .tr-dim small{display:block;color:var(--ink2);font-size:11.5px;line-height:1.45;margin-top:2px}.tr-dim small b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
 .tr-dim small.g,.tr-dim small.g b{color:var(--bad)}
@@ -523,11 +525,11 @@ details.tr-lay>.layers{margin-top:10px}
 .ipt-tbl td{vertical-align:top}.ipt-tbl td>b{font-size:13px}
 #ipt-tbl-wrap .plad-badge,#ipt-tbl-wrap .grd-badge,#ipt-tbl-wrap .pladet-badge,#ipt-tbl-wrap .paccc-badge,#ipt-tbl-wrap [class^="tag-"]{background:var(--surf3);color:var(--ink2);border-color:var(--line2);font-weight:500}
 #ipt-tbl-wrap .ipt-badge.form{color:#9CC3F5}
-@media (max-width:1180px){.tr-pick{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}#map.lf{aspect-ratio:auto;height:min(62vh,560px)}#map .map-svg{max-height:62vh}}
+@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}#map.lf{aspect-ratio:auto;height:min(62vh,560px,92vw)}#map .map-svg{max-height:62vh}}
 @media (max-width:760px){.tr-2,.tr-dim,.tr-lead li{grid-template-columns:minmax(0,1fr)}.tr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   #v-territorios .linkbtn,#v-territorios .psec>summary,details.tr-lay>summary{min-height:40px;display:inline-flex;align-items:center}#v-territorios .psec>summary{display:flex}.tr-ent{min-height:44px}
-  .ift{min-width:760px}.ift th:first-child{width:150px;white-space:normal}}
+  #if-wrap .ift{min-width:800px}#if-wrap .ift th:first-child{width:150px;white-space:normal}
+  .tr-dsep{display:block}.tr-dim:not(.gap){padding:6px 0 6px 12px}.tr-dim:not(.gap) .b,.tr-dim:not(.gap) .c{display:none}}
 @media (max-width:560px){.tr-pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
@@ -936,7 +938,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <!-- ===== Territorios ===== -->
   <section class="view" id="v-territorios" role="tabpanel" aria-labelledby="tab-territorios" hidden>
     <section class="card" aria-labelledby="tr-pk-h">
-      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y sus brechas de infraestructura. «Agregado»: cuántas de las seis dimensiones están en brecha para el territorio en conjunto. «Comunas»: cuántas de sus comunas tienen alguna. También puedes elegirlo en el mapa.</div></div></div>
+      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y sus brechas en seis dimensiones de infraestructura: las del territorio en conjunto y cuántas de sus comunas tienen alguna. También puedes elegirlo en el mapa.</div></div></div>
       <div class="card-b"><div class="tr-pick" id="tr-pick" role="group" aria-labelledby="tr-pk-h"></div></div>
     </section>
     <div class="grid g-terr">
@@ -1284,7 +1286,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Iniciativas BIP ===== -->
   <section class="view" id="v-bip" role="tabpanel" aria-labelledby="tab-bip" hidden>
-    <div class="fm-from" id="bx-from" hidden></div>
+    <div class="fm-from" id="bx-from" tabindex="-1" hidden></div>
     <div class="kpis" id="bx-kpis"></div>
     <div class="fbar" id="bx-f" role="group" aria-label="Filtros de iniciativas BIP">
       <input class="srch" id="bx-q" type="search" placeholder="Buscar por nombre, código BIP o institución" autocomplete="off" aria-label="Buscar iniciativas">

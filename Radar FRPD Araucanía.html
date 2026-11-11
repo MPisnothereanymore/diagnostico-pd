@@ -485,9 +485,9 @@ details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-content}details.foot>div{margin-top:8px}
 /* Territorios: selector, lectura en tres preguntas, mapa de apoyo y tablas por comuna plegadas */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.tr-pick{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.tr-pick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .tr-p{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:9px 10px 9px 11px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:7px;background:var(--surf2);color:var(--ink2);font-size:12px;line-height:1.35;min-width:0}
-.tr-p b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25}
+.tr-p b{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25}.tr-p .h{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;width:100%}
 .tr-p .g{color:var(--bad)}.tr-p .g.z{color:var(--ink2)}
 .tr-p:hover{border-color:var(--acc);border-left-color:var(--tc)}
 .tr-p[aria-pressed="true"]{background:var(--surf3);border-color:var(--ink);border-left-color:var(--tc);box-shadow:0 0 0 1px var(--ink)}
@@ -509,6 +509,8 @@ details.foot>summary{cursor:pointer;color:var(--ink2);font-weight:600;width:fit-
 .tr-ch .n b{display:block;font-weight:600;font-size:13px}.tr-ch small{display:block;color:var(--muted);font-size:11.5px;line-height:1.4}.tr-ch small.w{color:var(--sel)}
 .tr-dim{display:grid;grid-template-columns:minmax(0,1.25fr) 150px minmax(0,1fr);gap:4px 16px;align-items:start;padding:9px 0 9px 12px;border-bottom:1px solid var(--line);border-left:2px solid var(--line2);font-size:12.5px}
 .tr-dim.gap{border-left-color:var(--bad)}
+.tr-dsep{display:none;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 0 2px}
+.tr-ctx{margin:0;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:13.5px;line-height:1.5;color:var(--ink2)}.tr-ctx b{color:var(--sel);font-weight:600}
 .tr-dim .a>b{display:block;font-size:13.5px;font-weight:600}.tr-dim:not(.gap) .a>b{font-weight:500;color:var(--ink2)}
 .tr-dim small{display:block;color:var(--ink2);font-size:11.5px;line-height:1.45;margin-top:2px}.tr-dim small b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
 .tr-dim small.g,.tr-dim small.g b{color:var(--bad)}
@@ -535,11 +537,11 @@ details.tr-lay>.layers{margin-top:10px}
 .ipt-tbl td{vertical-align:top}.ipt-tbl td>b{font-size:13px}
 #ipt-tbl-wrap .plad-badge,#ipt-tbl-wrap .grd-badge,#ipt-tbl-wrap .pladet-badge,#ipt-tbl-wrap .paccc-badge,#ipt-tbl-wrap [class^="tag-"]{background:var(--surf3);color:var(--ink2);border-color:var(--line2);font-weight:500}
 #ipt-tbl-wrap .ipt-badge.form{color:#9CC3F5}
-@media (max-width:1180px){.tr-pick{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}#map.lf{aspect-ratio:auto;height:min(62vh,560px)}#map .map-svg{max-height:62vh}}
+@media (max-width:1100px){.g-terr{grid-template-columns:minmax(0,1fr)}#map.lf{aspect-ratio:auto;height:min(62vh,560px,92vw)}#map .map-svg{max-height:62vh}}
 @media (max-width:760px){.tr-2,.tr-dim,.tr-lead li{grid-template-columns:minmax(0,1fr)}.tr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   #v-territorios .linkbtn,#v-territorios .psec>summary,details.tr-lay>summary{min-height:40px;display:inline-flex;align-items:center}#v-territorios .psec>summary{display:flex}.tr-ent{min-height:44px}
-  .ift{min-width:760px}.ift th:first-child{width:150px;white-space:normal}}
+  #if-wrap .ift{min-width:800px}#if-wrap .ift th:first-child{width:150px;white-space:normal}
+  .tr-dsep{display:block}.tr-dim:not(.gap){padding:6px 0 6px 12px}.tr-dim:not(.gap) .b,.tr-dim:not(.gap) .c{display:none}}
 @media (max-width:560px){.tr-pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
@@ -951,7 +953,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <!-- ===== Territorios ===== -->
   <section class="view" id="v-territorios" role="tabpanel" aria-labelledby="tab-territorios" hidden>
     <section class="card" aria-labelledby="tr-pk-h">
-      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y sus brechas de infraestructura. «Agregado»: cuántas de las seis dimensiones están en brecha para el territorio en conjunto. «Comunas»: cuántas de sus comunas tienen alguna. También puedes elegirlo en el mapa.</div></div></div>
+      <div class="card-h"><div><h2 id="tr-pk-h">Elige un territorio</h2><div class="sub">Los ocho territorios de la ERD 2040, con su población y sus brechas en seis dimensiones de infraestructura: las del territorio en conjunto y cuántas de sus comunas tienen alguna. También puedes elegirlo en el mapa.</div></div></div>
       <div class="card-b"><div class="tr-pick" id="tr-pick" role="group" aria-labelledby="tr-pk-h"></div></div>
     </section>
     <div class="grid g-terr">
@@ -1299,7 +1301,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Iniciativas BIP ===== -->
   <section class="view" id="v-bip" role="tabpanel" aria-labelledby="tab-bip" hidden>
-    <div class="fm-from" id="bx-from" hidden></div>
+    <div class="fm-from" id="bx-from" tabindex="-1" hidden></div>
     <div class="kpis" id="bx-kpis"></div>
     <div class="fbar" id="bx-f" role="group" aria-label="Filtros de iniciativas BIP">
       <input class="srch" id="bx-q" type="search" placeholder="Buscar por nombre, código BIP o institución" autocomplete="off" aria-label="Buscar iniciativas">
@@ -2559,7 +2561,7 @@ function trData() {
 const fMil = v => (v >= 1e5 ? f0(v / 1000) : f1(v / 1000)) + ' mil';
 function renderTerPick() {
   const d = trData().ter;
-  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span><span class="g${d[i].nGap ? '' : ' z'}" title="Dimensiones de infraestructura en brecha en el agregado del territorio">Agregado: ${d[i].nGap} de ${d[i].dims.length}</span><span title="Comunas con alguna dimensión en brecha">Comunas: ${d[i].cg.length} de ${T.c.length}</span></button>`).join('');
+  $('#tr-pick').innerHTML = TER.map((T, i) => `<button type="button" class="tr-p" data-t="${i}" aria-pressed="${i === UI.ter}" style="--tc:${TCOL[i]}"><span class="h"><b>${esc(T.n)}</b><span>${fMil(T.pop)} hab.</span></span><span><span class="g${d[i].nGap ? '' : ' z'}">Territorio: ${d[i].nGap} de ${d[i].dims.length} en brecha</span> · Comunas con brecha: ${d[i].cg.length} de ${T.c.length}</span></button>`).join('');
 }
 function trSelect(ti, focusSel) {
   if (ti === UI.ter) return;
@@ -2582,11 +2584,12 @@ function trBack(fr) {
 // de Territorios a una ficha de Cartera o a Iniciativas BIP: se guarda el punto de partida para ofrecer la vuelta
 let TR_RET = null;
 function trReturn() { const r = TR_RET; if (!r) return; if (UI.fOpen) closeFicha(true); TR_RET = null; trBack({ back: r }); }
-const trFromHtml = (r, idB, idX) => `<p><b>Vienes de Territorios:</b> ${esc(TER[r.ter].n)}${r.what ? ` · ${esc(r.what)}` : ''}.</p><div class="ct-ob"><button type="button" class="btn sm" id="${idB}">Volver a Territorios</button><button type="button" class="btn sm" id="${idX}">Quitar este aviso</button></div>`;
-function renderBxFrom() { const bf = $('#bx-from'), on = !!(TR_RET && TR_RET.kind === 'bip'); bf.hidden = !on; bf.innerHTML = on ? trFromHtml(TR_RET, 'bx-back', 'bx-fromx') : ''; }
+const trFromHtml = (r, idB, idX) => `<p><b>Vienes de Territorios:</b> ${esc(r.what || TER[r.ter].n)}.</p><div class="ct-ob"><button type="button" class="btn sm" id="${idB}">Volver a Territorios</button><button type="button" class="btn sm" id="${idX}">Quitar este aviso</button></div>`;
+function renderBxFrom() { const bf = $('#bx-from'), on = !!(TR_RET && TR_RET.kind === 'bip'), was = !bf.hidden; bf.hidden = !on; bf.innerHTML = on ? trFromHtml(TR_RET, 'bx-back', 'bx-fromx') : ''; if (on && !was) setTimeout(() => bf.focus({ preventScroll: true }), 0); }
 $('#bx-from').addEventListener('click', e => { if (e.target.closest('#bx-back')) trReturn(); else if (e.target.closest('#bx-fromx')) { TR_RET = null; renderBxFrom(); $('#bx-q').focus(); } });
 const TR_OPEN = new Set();
 const a8Txt = a8 => (a8 === '–' ? 'Fuera de las categorías del art. 8: se financia por otras vías' : `Candidata al FRPD, art. 8 ${a8.startsWith('N') ? a8 : 'N°' + a8[0] + ' letra ' + a8[1]}`);
+const mmR = v => (v / 1000 >= 10 ? f0(v / 1000) : f1(v / 1000));   // M$ → MM$, como lo muestra Iniciativas BIP
 const chg = v => (Math.round(v * 100) === 0 ? 'sin cambio' : pcs(v));
 function renderTprof() {
   const ti = UI.ter, T = TER[ti], D0 = trData(), d = D0.ter[ti], S = SII0;
@@ -2602,20 +2605,20 @@ function renderTprof() {
   const tfin = [['ANID (sede en el territorio)', inT.filter(i => FN_S[i] === S_ANID)], ['CORFO InnovaChile', inT.filter(i => FN_S[i] === S_CORFO)]]
     .concat(Object.keys(BIPCAT).map(g => [`BIP · ${BIPCAT[g]}`, inT.filter(i => FN_S[i] === S_BIP && fnG(i) === g)]));
   // las tres conclusiones
-  const c1 = `${top.length ? `Lineamientos CTCI sobre el promedio regional: <b>${esc(top.map(q => LSHORT[q.k]).join(' · '))}</b>.` : 'Ningún lineamiento CTCI supera el promedio regional.'} ${pres.length ? `Cadenas presentes y sus empresas: ${pres.map(c => `<b>${esc(ifShort(c.ch))}</b> ${f0(c.n)}`).join(' · ')}.` : 'Ninguna cadena productiva alcanza presencia.'}`;
-  const invTxt = !gaps.length ? '' : !sinInv.length ? (gaps.length === 1 ? 'Tiene' : `Las ${gaps.length} tienen`) + ' alguna iniciativa BIP postulada desde 2025.'
-    : sinInv.length === gaps.length ? (gaps.length === 1 ? 'No tiene' : 'Ninguna tiene') + ' iniciativas BIP postuladas desde 2025.' : `${sinInv.length} de ellas sin iniciativas BIP postuladas desde 2025.`;
-  const comTxt = d.cg.length ? ` Dimensiones en brecha por comuna: ${esc(d.cg.map(c => `${CN(c)} ${D0.com[c].length}`).join(' · '))}.` : '';
-  const c2 = (gaps.length ? `<b>${gaps.length} de ${nD}</b> dimensiones de infraestructura en brecha en el agregado del territorio: <b>${esc(gaps.map(m => m.d.l).join(' · '))}</b>. ${invTxt}`
-    : `Ninguna de las ${nD} dimensiones de infraestructura está en brecha en el agregado del territorio${d.cg.length ? `, pero ${d.cg.length} de sus ${T.c.length} comunas ${d.cg.length === 1 ? 'tiene' : 'tienen'} alguna` : ''}.`) + comTxt;
+  const c1 = `${top.length ? `Lineamientos CTCI claramente sobre el promedio regional (cociente de 1,10 o más): <b>${esc(top.map(q => LSHORT[q.k]).join(' · '))}</b>.` : 'Ningún lineamiento CTCI llega a un cociente de 1,10 sobre el promedio regional.'} ${pres.length ? `Cadenas presentes y sus empresas: ${pres.map(c => `<b>${esc(ifShort(c.ch))}</b> ${f0(c.n)}`).join(' · ')}.` : 'Ninguna cadena productiva alcanza presencia.'}`;
+  const invTxt = !gaps.length ? '' : !sinInv.length ? (gaps.length === 1 ? 'Con' : `Las ${gaps.length} con`) + ` alguna iniciativa BIP postulada desde ${IF_Y0}.`
+    : sinInv.length === gaps.length ? (gaps.length === 1 ? 'Sin' : 'Ninguna con') + ` iniciativas BIP postuladas desde ${IF_Y0}.` : `${sinInv.length} de ellas sin iniciativas BIP postuladas desde ${IF_Y0}.`;
+  const comTxt = ` ${d.cg.length} de ${T.c.length} comunas con alguna.`;
+  const c2 = (gaps.length ? `<b>${gaps.length} de ${nD}</b> dimensiones de infraestructura en brecha en el territorio en conjunto: <b>${esc(gaps.map(m => m.d.l).join(' · '))}</b>. ${invTxt}`
+    : `Ninguna de las ${nD} dimensiones de infraestructura está en brecha en el territorio en conjunto.`) + comTxt;
   const c3 = `<b>${pl(ents.length, 'entrada', 'entradas')}</b>${ents.length ? `, ${n3} con evidencia levantada` : ''}. ${noEnt.length ? `Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}${lq2(q.v) >= 1.1 ? ` (cociente ${f2(q.v)}, sobre el promedio)` : ''}`)))}.` : 'Tiene entrada en los seis lineamientos.'}`;
   const dimRow = m => {
     const req = m.gap ? pres.filter(c => (IF_REQ[c.ch.id] || []).includes(m.k)).map(c => ifShort(c.ch)) : [];
     const cg = m.k === 'con' ? [] : T.c.filter(c => D0.com[c].includes(m.k));
     return `<div class="tr-dim${m.gap ? ' gap' : ''}">
-      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small${i.gap ? ' class="g"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${m.k === 'con' ? '' : ` · región ${esc(i.reg)}`}${i.gap ? '<span class="sr"> (en el tercio peor)</span>' : ''}</small>`).join('')}${cg.length ? `<small>Comunas en brecha: ${esc(cg.map(CN).join(' · '))}</small>` : ''}</div>
-      <div class="b"><span class="pill${m.gap ? ' bad' : ''}">${m.gap ? 'En brecha' : 'Fuera del tercio peor'}</span>${req.length ? `<small>La requieren (supuesto): ${esc(req.join(' · '))}</small>` : ''}</div>
-      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${m.k === 'con' ? ` de ${esc(BIPCAT[m.d.cat])}` : ''} ${m.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0} · ${mmK(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}" data-dim="${esc(m.d.l)}" aria-label="Ver las iniciativas BIP de ${esc(m.d.l)}">Ver estas iniciativas</button>`
+      <div class="a"><b>${esc(m.d.l)}</b>${m.inds.map(i => `<small${i.gap ? ' class="g"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: <b>${esc(i.txt)}</b>${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${m.k === 'con' ? '' : ` · región ${esc(i.reg)}`}${i.gap ? `<span class="sr"> (${m.k === 'con' ? 'sin sedes' : 'en el tercio peor'})</span>` : ''}</small>`).join('')}${cg.length ? `<small>Comunas en brecha: ${esc(cg.map(CN).join(' · '))}</small>` : ''}</div>
+      <div class="b"><span class="pill${m.gap ? ' bad' : ''}">${m.gap ? 'En brecha' : ifOkLab(m)}</span>${req.length ? `<small>La requieren (supuesto): ${esc(req.join(' · '))}</small>` : ''}</div>
+      <div class="c">${m.inv.n ? `<span><b>${pl(m.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${m.k === 'con' ? ` de ${esc(BIPCAT[m.d.cat])}` : ''} ${m.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0} · ${mmR(m.inv.t)} MM$${m.inv.rs ? ` · ${f0(m.inv.rs)} con RS` : ''}</span><button type="button" class="linkbtn" data-cat="${m.d.cat}" data-dim="${esc(m.d.l)}" aria-label="Ver las iniciativas BIP de ${esc(m.d.l)}">Ver estas iniciativas</button>`
         : m.gap ? `<span class="pill warn">Sin iniciativas BIP desde ${IF_Y0}</span><small>${a8Txt(m.d.a8)}</small>` : `<small>Sin iniciativas BIP desde ${IF_Y0}</small>`}</div>
     </div>`;
   };
@@ -2645,13 +2648,14 @@ function renderTprof() {
       </div>
     </section>
     <section class="tr-q" aria-labelledby="tq2"><h3 id="tq2" tabindex="-1">Qué lo frena</h3>
-      <div class="tr-dims">${[...gaps, ...d.dims.filter(m => !m.gap)].map(dimRow).join('')}</div>
-      <p class="note">Cifras del agregado del territorio. En brecha: algún indicador (▲) cae en el tercio peor de las 32 comunas; en educación superior, el territorio no tiene sedes. Que una iniciativa esté postulada no implica que tenga financiamiento.${rez.length ? ` Zona de rezago: ${esc(listY(rez.map(CN)))}.` : ''}${T.prcSin.length ? ` Sin plan regulador vigente: ${esc(listY(T.prcSin.map(CN)))}.` : ''}</p>
+      ${rez.length || T.prcSin.length ? `<p class="tr-ctx">${rez.length ? `<span><b>Zona de rezago:</b> ${rez.length === T.c.length ? `sus ${T.c.length} comunas` : esc(listY(rez.map(CN)))}.</span>` : ''}${T.prcSin.length ? `<span><b>Sin plan regulador vigente:</b> ${esc(listY(T.prcSin.map(CN)))}.</span>` : ''}</p>` : ''}
+      <div class="tr-dims">${gaps.map(dimRow).join('')}${gaps.length < nD ? `<div class="tr-dsep">No están en brecha</div>` : ''}${d.dims.filter(m => !m.gap).map(dimRow).join('')}</div>
+      <p class="note">Cifras del agregado del territorio. En brecha: algún indicador (▲) cae en el tercio peor de las 32 comunas; en educación superior, el territorio no tiene sedes. Que una iniciativa esté postulada no implica que tenga financiamiento.</p>
       <div><button type="button" class="linkbtn" id="tp-com">Ver estos indicadores comuna por comuna</button></div>
     </section>
     <section class="tr-q" aria-labelledby="tq3"><h3 id="tq3" tabindex="-1">Qué hay en cartera</h3>
       <div class="tr-ents">${ents.map(e => `<button type="button" class="tr-ent" data-c="${e.c}" data-e="${e.l}">${mDots(e.m)}<span class="n">${esc(LINE[e.l].n)}</span><span class="m">${e.c} ${esc(LSHORT[e.c])} · evidencia ${MADS[e.m]}</span></button>`).join('')}</div>
-      <p class="note">Cada fila abre la ficha de esa entrada en Cartera.${noEnt.length ? ` Sin entrada en ${esc(listY(noEnt.map(q => `${q.k} ${LSHORT[q.k]}`)))}.` : ''}</p>
+      <p class="note">Cada fila abre la ficha de esa entrada en Cartera.</p>
     </section>
   </div>`;
   $('#tprof-x').innerHTML = `<div class="prof"><div><h2 class="tr-xh">Más datos de ${esc(T.n)}</h2></div>
@@ -2682,7 +2686,7 @@ $$('#tprof,#tprof-x').forEach(el => el.addEventListener('click', e => {
   else if (b.dataset.go) { const h = $('#' + b.dataset.go); h.scrollIntoView({ block: 'start' }); h.focus({ preventScroll: true }); }
   else if (b.dataset.ch != null) trFormular(UI.ter, +b.dataset.ch, `#tprof button[data-ch="${b.dataset.ch}"]`);
   else if (b.dataset.e) { leave('ficha', `#tprof button[data-e="${b.dataset.e}"]`); setView('cartera'); openFicha(UI.ter, LIDX[b.dataset.c]); }
-  else if (b.dataset.cat) { leave('bip', `#tprof button[data-cat="${b.dataset.cat}"]`, b.dataset.dim); openBip({ t: UI.ter, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }
+  else if (b.dataset.cat) { leave('bip', `#tprof button[data-cat="${b.dataset.cat}"]`, `${TER[UI.ter].n} · ${b.dataset.dim}`); openBip({ t: UI.ter, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(x => x.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }
   else if (b.id === 'tp-bip') { leave('bip', '#tp-bip'); openBip({ t: UI.ter }); }
   else if (b.id === 'tp-ev') openEvid({ t: UI.ter });
   else if (b.id === 'tp-com') trOpenDet('#tr-com');
@@ -4296,7 +4300,7 @@ for (let i = 0; i < NBX; i++) {
   const ti = BX_TI[i]; if (!(ti === 0 || (dim.prog && ti === 3))) continue;
   const rows = BX_ROWS[i], kk = rows[rows.length - 1]; if (kk == null || BXH.y[kk] < IF_Y0) continue;
   const o = ((IF_BIP[cat] = IF_BIP[cat] || {})[c] = IF_BIP[cat][c] || { n: 0, t: 0, rs: 0, ob: 0 });
-  o.n++; if (!BXH.x[kk]) o.t += BXH.t[kk] || 0; if (BX.ratev[BXH.r[kk]] === 'RS') o.rs++;
+  o.n++; { let t = 0, x = 0; for (const k of rows) if (BXH.y[k] === BXH.y[kk]) { if (BXH.t[k] != null) t = Math.max(t, BXH.t[k]); x = x || BXH.x[k]; } if (!x) o.t += t; } if (BX.ratev[BXH.r[kk]] === 'RS') o.rs++;
   if (OB && [...BX_OB[i], ...BX_OBA[i]].some(k => OB.a[k] < 100)) o.ob++;
 }
 const ifCs = (lev, j) => (lev === 'ter' ? TER[j].c : [j]);
@@ -4318,6 +4322,7 @@ function ifCell(lev, j, ci) {
   const dims = (IF_REQ[ch.id] || []).map(k => ifDim(k, cs)), gaps = dims.filter(x => x.gap);
   return { ch, n, lq, pres, dims, gaps, st: pres ? (gaps.length ? 'hab' : 'sof') : gaps.length ? 'nop' : 'div', sinInv: gaps.filter(x => !x.inv.n).length };
 }
+const ifOkLab = dm => (dm.k === 'con' ? 'Con sedes' : 'Fuera del tercio peor');
 const ifName = (lev, j) => (lev === 'ter' ? TER[j].n : CN(j));
 const ifShort = ch => ch.n.replace(/^Cadena /, '').replace(/ \(EBTC\)$/, '').replace(' e Instalaciones', '').replace(' y Experiencias', '').replace(' y Climatización', '');
 function renderInfra() {
@@ -4338,7 +4343,7 @@ function renderInfra() {
     h += '</tr>';
   }
   host.innerHTML = h + '</tbody></table>';
-  $('#if-sum').innerHTML = `<b>${f0(nHab)}</b> ${nHab === 1 ? 'combinación' : 'combinaciones'} de ${lev === 'ter' ? 'territorio' : 'comuna'} y cadena por habilitar, con <b>${f0(nSin)}</b> ${nSin === 1 ? 'brecha' : 'brechas'} sin inversión en camino. <b>${f0(nDiv)}</b> con infraestructura lista para diversificar.`;
+  $('#if-sum').innerHTML = `<b>${f0(nHab)}</b> ${nHab === 1 ? 'combinación' : 'combinaciones'} de ${lev === 'ter' ? 'territorio' : 'comuna'} y cadena por habilitar, con <b>${f0(nSin)}</b> ${nSin === 1 ? 'brecha' : 'brechas'} sin iniciativas BIP postuladas desde ${IF_Y0}. <b>${f0(nDiv)}</b> con infraestructura lista para diversificar.${lev === 'ter' ? ' Cada territorio se evalúa en conjunto: sus comunas pueden tener brechas que el conjunto no muestra.' : ''}`;
   $('#if-leg').innerHTML = ['sof', 'hab', 'div', 'nop'].map(k => `<span class="row"><span class="ifc ${k}" aria-hidden="true">${k === 'nop' ? '–' : IF_ST[k].l}</span>${esc(IF_ST[k].d)}</span>`).join('');
   renderInfraDet();
   setNote($('#if-note'), `Una cadena se considera presente cuando su peso entre las empresas del lugar iguala o supera al regional y reúne al menos cinco empresas. Una dimensión de infraestructura está en brecha cuando su indicador cae en el tercio peor de las comunas; el número junto a «Habilitar» cuenta las dimensiones en brecha. Los requisitos por cadena son un supuesto provisional, a validar por DIFOI: agroalimentaria (riego, energía, vial); forestal, construcción y economía circular (vial, energía); turismo (vial, digital, agua potable); I+D y base tecnológica (digital, energía, educación superior); energía (energía, vial). Inversión en camino: iniciativas BIP de infraestructura de la categoría, con comuna y última postulación desde ${IF_Y0}; en riego y educación superior se suman los programas. No incluye iniciativas de alcance regional ni conservación. Energía usa las horas de interrupción (SAIDI 2022); conectividad digital, las antenas de telefonía, que no reflejan la fibra ni el 5G.`, 'Criterios y supuestos');
@@ -4350,13 +4355,13 @@ function renderInfraDet() {
   box.innerHTML = `<div class="ifd-h"><div><div class="eyebrow">${esc(ifName(s.lev, s.j))}</div><h3>${esc(x.ch.n)}</h3></div><span class="ifc ${x.st}">${IF_ST[x.st].l}</span></div>
     <p class="note">${esc(IF_ST[x.st].d)} ${f0(x.n)} ${x.n === 1 ? 'empresa' : 'empresas'} de la cadena · cociente de localización ${f2(x.lq)} (1,00 = promedio regional).</p>
     <div class="ifd-t">${x.dims.map(dm => `<div class="ifd-r">
-      <div><b>${esc(dm.d.l)}</b>${dm.inds.map(i => `<small>${esc(i.l)}: ${esc(i.txt)}${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''} · región ${esc(i.reg)}</small>`).join('')}</div>
-      <div><span class="pill ${dm.gap ? 'bad' : 'ok'}">${dm.gap ? 'En brecha' : 'Sin brecha'}</span></div>
-      <div>${dm.inv.n ? `<b>${pl(dm.inv.n, 'iniciativa', 'iniciativas')}</b> en camino<small>${mmK(dm.inv.t)} MM$ · ${f0(dm.inv.rs)} con RS · ${f0(dm.inv.ob)} con obra en ejecución</small><button type="button" class="btn sm" data-cat="${dm.d.cat}">Ver en Iniciativas BIP</button>`
-        : dm.gap ? `<span class="pill warn">Sin inversión en camino</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : '<small>Sin iniciativas recientes</small>'}</div>
+      <div><b>${esc(dm.d.l)}</b>${dm.inds.map(i => `<small${i.gap ? ' style="color:var(--bad)"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: ${esc(i.txt)}${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${dm.k === 'con' ? '' : ` · región ${esc(i.reg)}`}</small>`).join('')}</div>
+      <div><span class="pill${dm.gap ? ' bad' : ''}">${dm.gap ? 'En brecha' : ifOkLab(dm)}</span></div>
+      <div>${dm.inv.n ? `<b>${pl(dm.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${dm.k === 'con' ? ` de ${esc(BIPCAT[dm.d.cat])}` : ''} ${dm.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0}<small>${mmR(dm.inv.t)} MM$ · ${f0(dm.inv.rs)} con RS · ${f0(dm.inv.ob)} con obra en ejecución</small><button type="button" class="btn sm" data-cat="${dm.d.cat}" aria-label="Ver las iniciativas BIP de ${esc(dm.d.l)}">Ver estas iniciativas</button>`
+        : dm.gap ? `<span class="pill warn">Sin iniciativas BIP desde ${IF_Y0}</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : `<small>Sin iniciativas BIP desde ${IF_Y0}</small>`}</div>
     </div>`).join('')}</div>${MX ? '<div><button type="button" class="btn pri" id="if-fm">Formular con esta combinación</button></div>' : ''}`;
   if ($('#if-fm')) $('#if-fm').addEventListener('click', () => trFormular(s.lev === 'ter' ? s.j : TOF[s.j], s.ci, '#if-fm'));
-  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => { TR_RET = { kind: 'bip', sy: scrollY, sel: `#if-det button[data-cat="${b.dataset.cat}"]`, ter: UI.ter, what: `${ifName(s.lev, s.j)}, ${Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).l}` }; openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }));
+  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => { TR_RET = { kind: 'bip', sy: scrollY, sel: `#if-det button[data-cat="${b.dataset.cat}"]`, ter: UI.ter, what: `matriz de cadenas · ${ifName(s.lev, s.j)} · ${Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).l}` }; openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }));
 }
 function initInfra() {
   $('#if-lev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; IFU.lev = b.dataset.k; renderInfra(); const nb = $(`#if-lev button[data-k="${IFU.lev}"]`); if (nb) nb.focus({ preventScroll: true }); });

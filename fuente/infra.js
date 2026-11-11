@@ -39,7 +39,7 @@ for (let i = 0; i < NBX; i++) {
   const ti = BX_TI[i]; if (!(ti === 0 || (dim.prog && ti === 3))) continue;
   const rows = BX_ROWS[i], kk = rows[rows.length - 1]; if (kk == null || BXH.y[kk] < IF_Y0) continue;
   const o = ((IF_BIP[cat] = IF_BIP[cat] || {})[c] = IF_BIP[cat][c] || { n: 0, t: 0, rs: 0, ob: 0 });
-  o.n++; if (!BXH.x[kk]) o.t += BXH.t[kk] || 0; if (BX.ratev[BXH.r[kk]] === 'RS') o.rs++;
+  o.n++; { let t = 0, x = 0; for (const k of rows) if (BXH.y[k] === BXH.y[kk]) { if (BXH.t[k] != null) t = Math.max(t, BXH.t[k]); x = x || BXH.x[k]; } if (!x) o.t += t; } if (BX.ratev[BXH.r[kk]] === 'RS') o.rs++;
   if (OB && [...BX_OB[i], ...BX_OBA[i]].some(k => OB.a[k] < 100)) o.ob++;
 }
 const ifCs = (lev, j) => (lev === 'ter' ? TER[j].c : [j]);
@@ -61,6 +61,7 @@ function ifCell(lev, j, ci) {
   const dims = (IF_REQ[ch.id] || []).map(k => ifDim(k, cs)), gaps = dims.filter(x => x.gap);
   return { ch, n, lq, pres, dims, gaps, st: pres ? (gaps.length ? 'hab' : 'sof') : gaps.length ? 'nop' : 'div', sinInv: gaps.filter(x => !x.inv.n).length };
 }
+const ifOkLab = dm => (dm.k === 'con' ? 'Con sedes' : 'Fuera del tercio peor');
 const ifName = (lev, j) => (lev === 'ter' ? TER[j].n : CN(j));
 const ifShort = ch => ch.n.replace(/^Cadena /, '').replace(/ \(EBTC\)$/, '').replace(' e Instalaciones', '').replace(' y Experiencias', '').replace(' y Climatización', '');
 function renderInfra() {
@@ -81,7 +82,7 @@ function renderInfra() {
     h += '</tr>';
   }
   host.innerHTML = h + '</tbody></table>';
-  $('#if-sum').innerHTML = `<b>${f0(nHab)}</b> ${nHab === 1 ? 'combinación' : 'combinaciones'} de ${lev === 'ter' ? 'territorio' : 'comuna'} y cadena por habilitar, con <b>${f0(nSin)}</b> ${nSin === 1 ? 'brecha' : 'brechas'} sin inversión en camino. <b>${f0(nDiv)}</b> con infraestructura lista para diversificar.`;
+  $('#if-sum').innerHTML = `<b>${f0(nHab)}</b> ${nHab === 1 ? 'combinación' : 'combinaciones'} de ${lev === 'ter' ? 'territorio' : 'comuna'} y cadena por habilitar, con <b>${f0(nSin)}</b> ${nSin === 1 ? 'brecha' : 'brechas'} sin iniciativas BIP postuladas desde ${IF_Y0}. <b>${f0(nDiv)}</b> con infraestructura lista para diversificar.${lev === 'ter' ? ' Cada territorio se evalúa en conjunto: sus comunas pueden tener brechas que el conjunto no muestra.' : ''}`;
   $('#if-leg').innerHTML = ['sof', 'hab', 'div', 'nop'].map(k => `<span class="row"><span class="ifc ${k}" aria-hidden="true">${k === 'nop' ? '–' : IF_ST[k].l}</span>${esc(IF_ST[k].d)}</span>`).join('');
   renderInfraDet();
   setNote($('#if-note'), `Una cadena se considera presente cuando su peso entre las empresas del lugar iguala o supera al regional y reúne al menos cinco empresas. Una dimensión de infraestructura está en brecha cuando su indicador cae en el tercio peor de las comunas; el número junto a «Habilitar» cuenta las dimensiones en brecha. Los requisitos por cadena son un supuesto provisional, a validar por DIFOI: agroalimentaria (riego, energía, vial); forestal, construcción y economía circular (vial, energía); turismo (vial, digital, agua potable); I+D y base tecnológica (digital, energía, educación superior); energía (energía, vial). Inversión en camino: iniciativas BIP de infraestructura de la categoría, con comuna y última postulación desde ${IF_Y0}; en riego y educación superior se suman los programas. No incluye iniciativas de alcance regional ni conservación. Energía usa las horas de interrupción (SAIDI 2022); conectividad digital, las antenas de telefonía, que no reflejan la fibra ni el 5G.`, 'Criterios y supuestos');
@@ -93,13 +94,13 @@ function renderInfraDet() {
   box.innerHTML = `<div class="ifd-h"><div><div class="eyebrow">${esc(ifName(s.lev, s.j))}</div><h3>${esc(x.ch.n)}</h3></div><span class="ifc ${x.st}">${IF_ST[x.st].l}</span></div>
     <p class="note">${esc(IF_ST[x.st].d)} ${f0(x.n)} ${x.n === 1 ? 'empresa' : 'empresas'} de la cadena · cociente de localización ${f2(x.lq)} (1,00 = promedio regional).</p>
     <div class="ifd-t">${x.dims.map(dm => `<div class="ifd-r">
-      <div><b>${esc(dm.d.l)}</b>${dm.inds.map(i => `<small>${esc(i.l)}: ${esc(i.txt)}${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''} · región ${esc(i.reg)}</small>`).join('')}</div>
-      <div><span class="pill ${dm.gap ? 'bad' : 'ok'}">${dm.gap ? 'En brecha' : 'Sin brecha'}</span></div>
-      <div>${dm.inv.n ? `<b>${pl(dm.inv.n, 'iniciativa', 'iniciativas')}</b> en camino<small>${mmK(dm.inv.t)} MM$ · ${f0(dm.inv.rs)} con RS · ${f0(dm.inv.ob)} con obra en ejecución</small><button type="button" class="btn sm" data-cat="${dm.d.cat}">Ver en Iniciativas BIP</button>`
-        : dm.gap ? `<span class="pill warn">Sin inversión en camino</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : '<small>Sin iniciativas recientes</small>'}</div>
+      <div><b>${esc(dm.d.l)}</b>${dm.inds.map(i => `<small${i.gap ? ' style="color:var(--bad)"' : ''}>${i.gap ? '<span aria-hidden="true">▲ </span>' : ''}${esc(i.l)}: ${esc(i.txt)}${i.u && !/^(%|horas)/.test(i.u) ? ' ' + esc(i.u) : ''}${dm.k === 'con' ? '' : ` · región ${esc(i.reg)}`}</small>`).join('')}</div>
+      <div><span class="pill${dm.gap ? ' bad' : ''}">${dm.gap ? 'En brecha' : ifOkLab(dm)}</span></div>
+      <div>${dm.inv.n ? `<b>${pl(dm.inv.n, 'iniciativa BIP', 'iniciativas BIP')}</b>${dm.k === 'con' ? ` de ${esc(BIPCAT[dm.d.cat])}` : ''} ${dm.inv.n === 1 ? 'postulada' : 'postuladas'} desde ${IF_Y0}<small>${mmR(dm.inv.t)} MM$ · ${f0(dm.inv.rs)} con RS · ${f0(dm.inv.ob)} con obra en ejecución</small><button type="button" class="btn sm" data-cat="${dm.d.cat}" aria-label="Ver las iniciativas BIP de ${esc(dm.d.l)}">Ver estas iniciativas</button>`
+        : dm.gap ? `<span class="pill warn">Sin iniciativas BIP desde ${IF_Y0}</span><small>${dm.d.a8 !== '–' ? `Candidata al FRPD, art. 8 ${dm.d.a8.startsWith('N') ? dm.d.a8 : 'N°' + dm.d.a8[0] + ' letra ' + dm.d.a8[1]}` : 'Fuera de las categorías del art. 8; se financia por otras vías'}</small>` : `<small>Sin iniciativas BIP desde ${IF_Y0}</small>`}</div>
     </div>`).join('')}</div>${MX ? '<div><button type="button" class="btn pri" id="if-fm">Formular con esta combinación</button></div>' : ''}`;
   if ($('#if-fm')) $('#if-fm').addEventListener('click', () => trFormular(s.lev === 'ter' ? s.j : TOF[s.j], s.ci, '#if-fm'));
-  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => { TR_RET = { kind: 'bip', sy: scrollY, sel: `#if-det button[data-cat="${b.dataset.cat}"]`, ter: UI.ter, what: `${ifName(s.lev, s.j)}, ${Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).l}` }; openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }));
+  box.querySelectorAll('button[data-cat]').forEach(b => b.addEventListener('click', () => { TR_RET = { kind: 'bip', sy: scrollY, sel: `#if-det button[data-cat="${b.dataset.cat}"]`, ter: UI.ter, what: `matriz de cadenas · ${ifName(s.lev, s.j)} · ${Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).l}` }; openBip({ [s.lev === 'ter' ? 't' : 'c']: s.j, cat: b.dataset.cat, y0: IF_Y0, ti: new Set(Object.values(IF_DIM).find(d => d.cat === b.dataset.cat).prog ? [0, 3] : [0]) }); }));
 }
 function initInfra() {
   $('#if-lev').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; IFU.lev = b.dataset.k; renderInfra(); const nb = $(`#if-lev button[data-k="${IFU.lev}"]`); if (nb) nb.focus({ preventScroll: true }); });
