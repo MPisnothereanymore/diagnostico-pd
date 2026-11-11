@@ -51,6 +51,7 @@ const GASTO = Object.fromEntries(FR.gastos.map(g => [g.k, g.n]));
 const LERN = Object.fromEntries(FR.ler.map(l => [l.k, l.n]));
 const BLOQ = FR.bloques;
 const MADT = { 3: 'Evidencia levantada y contraparte identificada', 2: 'Evidencia parcial', 1: 'Evidencia por levantar' };
+const a8Code = k => (/^\d/.test(k) ? `N°${k[0]} ${k.slice(1).replace('.', ' ')}` : k);   // «N°3 b ii», como en Formular
 const isCTCI = ln => ln.a8.some(k => k.startsWith('3')) || ln.g.length > 0;
 const lineNums = ln => { const s = new Set(ln.a8.map(k => k[0])); if (ln.g.length) s.add('3'); return s; };
 const lineTerrs = ln => (ln.terr === 'TODOS' || ln.terr === 'REGIONAL' ? [] : ln.terr.split(','));
@@ -619,7 +620,7 @@ function renderFicha() {
       <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p><div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular en este territorio</button></div></div>`;
     const ct = isCTCI(ln);
     h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Tiene componente N°3: puede contar para el mínimo de 25% (art. 7)</span>' : '<span class="pill">Sin componente N°3: no cuenta para el mínimo de 25%</span>'}</div>
-      <div class="hab" style="grid-template-columns:auto minmax(0,1fr)">${ln.a8.map(k => `<span class="x" style="text-align:left;color:var(--acc)">${k}</span><span class="n">${esc(A8[k].n)}</span>`).join('')}${ln.g.map(k => `<span class="x" style="text-align:left;color:var(--acc)">gasto ${k}</span><span class="n">${esc(GASTO[k])}</span>`).join('')}</div>
+      <div class="hab" style="grid-template-columns:auto minmax(0,1fr)">${ln.a8.map(k => `<span class="x" style="text-align:left;color:var(--acc)">${a8Code(k)}</span><span class="n">${esc(A8[k].n)}</span>`).join('')}${ln.g.map(k => `<span class="x" style="text-align:left;color:var(--acc)">N°3 gasto ${k}</span><span class="n">${esc(GASTO[k])}</span>`).join('')}</div>
       ${!ln.a8.length && !ln.g.length ? '<p class="note">La minuta no asigna categoría del art. 8: es un encargo de levantamiento.</p>' : ''}</div>`;
   } else {
     h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>La cartera no tiene entrada para esta combinación. La base empresarial del territorio en el lineamiento ${lq2(LQ0[t][L]) >= 0.9 && lq2(LQ0[t][L]) < 1.1 ? 'es' : 'está'} <strong>${lqBand(LQ0[t][L])} promedio regional</strong> (cociente ${f2(LQ0[t][L])} con todas las empresas; 1,00 = igual a la región).</p>
@@ -1557,7 +1558,7 @@ function renderMarco() {
   ];
   const mxF = Math.max(...FROWS.map(r => sumM(r[3])));
   $('#mk-fin').innerHTML = `<table><thead><tr><th>Art. 8</th><th>Categoría</th><th>Fuente</th><th class="r">N°</th><th class="r">MM$</th><th>Mayores</th></tr></thead><tbody>` +
-    FROWS.map(([k, n, src, ix]) => { const v = sumM(ix), top = [...ix].sort(byAmt).slice(0, 2); return `<tr><td class="m" style="color:${used[k] || k.startsWith('N') ? 'var(--acc)' : 'var(--sel)'}">${k}</td><td>${esc(n)}${k !== '–' && !k.startsWith('N') && !used[k] ? '<span class="sm" style="color:var(--sel)">sin línea en la cartera FRPD</span>' : ''}</td><td>${esc(src)}</td><td class="m r">${f0(ix.length)}</td><td class="m r">${f0(v)}</td>
+    FROWS.map(([k, n, src, ix]) => { const v = sumM(ix), top = [...ix].sort(byAmt).slice(0, 2); return `<tr><td class="m" style="color:var(--acc);white-space:nowrap">${a8Code(k)}</td><td>${esc(n)}${k !== '–' && !k.startsWith('N') && !used[k] ? '<span class="sm">sin línea en la cartera FRPD</span>' : ''}</td><td>${esc(src)}</td><td class="m r">${f0(ix.length)}</td><td class="m r">${f0(v)}</td>
       <td><span class="sm" style="color:var(--ink2)">${top.map(i => esc(FN_N[i].slice(0, 70)) + (isFinite(FN_M[i]) ? ` (${f0(FN_M[i])})` : '')).join('<br>')}</span></td></tr>`; }).join('') + '</tbody></table>' +
     '<p class="note" style="margin-top:10px">BIP: iniciativas postuladas 2019–2027 (FNDR, sectoriales y mixtas), última postulación de cada código; monto = costo total de la etapa postulada, no lo gastado. Tres montos BIP con valores imposibles se dejaron sin monto. ANID: fallos 2019–2026 con región de ejecución La Araucanía. CORFO: proyectos InnovaChile adjudicados 2019–2026 (DataInnovación); en Ley I+D se usa el monto certificado.</p>';
   const via = FROWS[3][3], fom = FROWS[0][3], ene = FROWS[4][3];
@@ -1572,10 +1573,10 @@ function renderMarco() {
       <td class="m r">${x.an.n ? f0(x.an.n) + `<span class="sm">${x.an.apl} aplicada</span>` : '–'}</td><td class="m r">${x.an.m ? f0(x.an.m) : '–'}</td><td class="m">${topL(x)}</td></tr>`).join('') + '</tbody></table>' +
     `<div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Sedes privadas de educación superior que no figuran en la nómina del primer llamado 2026</span><div class="tchips">${EXENO.map(x => `<span class="tchip" title="${esc(CN(x.c))}">${esc(x.n)}</span>`).join('')}</div>
       <p class="note">${esc(FR.res1Meta.segundo)} Fuente de la nómina: ${esc(FR.res1Meta.fuente)}.</p></div>
-    <details class="ler"><summary><b>Res. 1</b><span>Nómina completa de privadas sin fines de lucro, primer llamado 2026</span><small>${RES1.length} instituciones · ${RES1.filter(r => r.p).length} con presencia en la región</small></summary>
+    <details class="ler"><summary><b>Res. 1</b><span>Nómina completa de instituciones privadas habilitadas, primer llamado 2026</span><small>${RES1.length} instituciones · ${RES1.filter(r => r.p).length} con presencia en la región</small></summary>
       <div class="tbl-wrap" style="max-height:420px;overflow-y:auto;margin-top:8px"><table><thead><tr><th>RUT</th><th>Institución</th><th>Presencia en La Araucanía (SII)</th></tr></thead><tbody>${[...RES1].sort((p, q) => (q.p ? 1 : 0) - (p.p ? 1 : 0) || p.n.localeCompare(q.n, 'es')).map(r => `<tr><td class="m">${r.r}</td><td>${esc(r.n)}${r.s ? `<span class="sm">${esc(r.s)}</span>` : ''}</td><td>${r.p ? esc(r.p + ' en ' + r.c.map(CN).join(', ')) : '<span class="sm">Sin registro en la nómina SII de la región</span>'}</td></tr>`).join('')}</tbody></table></div></details>
     <details class="ler"><summary><b>Res. 33</b><span>Instituciones que pueden recibir recursos de innovación, competitividad y CTCI (2024)</span><small>${RES33.length} categorías</small></summary><ol>${RES33.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>`;
-  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"><summary><b>LER ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
+  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"><summary><b>Lineamiento ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
     <p class="note" style="margin:6px 0 0 56px;max-width:90ch">${esc(focoCorto(l.foco))}</p><ol>${l.oe.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}</ol></details>`).join('');
 }
 $('#mk-rules').addEventListener('click', e => { if (e.target.closest('#mk-go-exe')) trOpenDet('#mk-exe-d'); });

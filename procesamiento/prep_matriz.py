@@ -15,12 +15,16 @@ H = Path(__file__).resolve().parent
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('C:/Users/mpooley/Desktop/DIFOI/_sistema')
 md = (SRC / '07_MATRIZ_ESTRATEGICA.md').read_text(encoding='utf-8')
 sec = md[md.index('## 2. Ítems financiables'):md.index('## 3. Matriz resumen')]
+# Dos textos se citan según el decreto (D.S. 1.699, art. 8), no según el resumen de la matriz de trabajo:
+# corregir también en _sistema/07_MATRIZ_ESTRATEGICA.md de la carpeta DIFOI.
+CITA_DECRETO = {'N°2 e': 'Mejora de gestión y operación de financiamiento para los Comités de Desarrollo Productivo y de CTCI regionales', 'N°3 gasto ix': 'I+D y transferencia de institutos tecnológicos públicos (el decreto nombra al Instituto de Desarrollo Agropecuario, ISP, SERNAGEOMIN, IFOP u otros)'}
 items = []
 for m in re.finditer(r'^\| ([^|]+?) \| ([^|]+?) \| ([^|]+?) \| ([^|]+?) \|$', sec, re.M):
     k, q, p, c = [x.strip().replace('**', '') for x in m.groups()]
     if k in ('Ítem', '---') or set(k) <= set('-'): continue
     grupo = k in ('N°1', 'N°2', 'N°3')
     key = k if grupo else ('N°3 ' + k if k.startswith('gasto') else 'N°' + k)
+    q = CITA_DECRETO.get(key, q)
     items.append({'k': key, 'q': q, 'p': p, 'c25': c.startswith('Sí'), 'g': grupo})
 IDX = {it['k']: i for i, it in enumerate(items)}
 rows = list(csv.DictReader(open(SRC / '07_ACCIONES_ERD_PRFP.csv', encoding='utf-8')))

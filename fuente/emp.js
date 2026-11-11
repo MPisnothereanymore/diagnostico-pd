@@ -382,7 +382,7 @@ function comunaTipE(ci) {
   return { title: c.l + ' · ' + TER[TOF[ci]].n, rows: [[fmtInd(UI.eM1, v[ci]), indLabelE(UI.eM1).toLowerCase()], [f0(A.n[ci]), 'empresas' + (hasLin() || hasAttr() ? ' en la selección' : '')], [f0(A.t[ci]), 'trabajadores dependientes'], [f0(c.pop), 'habitantes (Censo 2024)']], note: F.com.has(ci) ? 'Clic para quitar el filtro' : 'Clic para filtrar por esta comuna' };
 }
 function renderM1E() {
-  if (!ME) { const o = { click: toggleCom, tip: comunaTipE, selected: () => F.com, sub: [$('#e-m1-sub'), 'Pasa el cursor para ver cifras · clic para filtrar por comuna · rueda o botones para acercar'] }; ME = mapAuto($('#e-m1'), o, () => createMapE($('#e-m1'), o)); }
+  if (!ME) { const o = { click: toggleCom, tip: comunaTipE, selected: () => F.com, sub: [$('#e-m1-sub'), 'Toca o pasa el cursor para ver cifras · clic para filtrar por comuna · rueda o botones para acercar'] }; ME = mapAuto($('#e-m1'), o, () => createMapE($('#e-m1'), o)); }
   const seg = $('#e-m1-ind');
   seg.innerHTML = MAPIND_E.map(m => `<button type="button" data-k="${m.k}" aria-pressed="${UI.eM1 === m.k}">${m.short}</button>`).join('');
   const ind = UI.eM1, { v, ok } = comunaValues(ind); let fills, rows;
@@ -409,10 +409,10 @@ function renderSumE() {
     !s.t ? 'Sin trabajadores dependientes.' : `<b>${f0(s.t)}</b> ${s.t === 1 ? 'trabajador dependiente' : 'trabajadores dependientes'}${filt && R.t ? ` (${pc(s.t / R.t)} ${R.same ? 'del empleo de ese mismo grupo en la región' : 'de la región'})` : ''}. <b>${f0(s.e)}</b> ${s.e === 1 ? 'empresa tiene' : 'empresas tienen'} trabajadores (${pc(s.e / s.n, 0)}).`,
     EB.tam === 'all' ? (nV === s.n ? `Por ventas: ${s.n === 1 ? 'informa' : 'todas informan'} ventas` : `Por ventas: <b>${f0(nV)}</b> ${nV === 1 ? 'informa' : 'informan'} ventas`) + `${s.mg ? ` (${f0(s.mg)} ${s.mg === 1 ? 'mediana o grande' : 'medianas o grandes'})` : ''}${nV === s.n ? '.' : ` y <b>${f0(s.n - nV)}</b> no.`}${ACTIVE_CHAIN && nV !== s.n ? ` Territorios y Formular cuentan solo ${nV === 1 ? 'la que informa' : `las ${f0(nV)} que informan`} ventas.` : ''}` : '',
     top.length ? `Se concentran en ${top.map(([c, n]) => `<b>${esc(CN(c))}</b> ${pc(n / s.n, 0)}`).join(' · ')}.` : '',
-    inst.length || s.nom ? `${inst.join(' y ')}${inst.length ? '.' : ''}${s.nom ? ` <b>${f0(s.nom)}</b> ${s.nom === 1 ? 'habilitada' : 'habilitadas'} para postular como privada sin fines de lucro (Res. 1/2026).` : ''}` : '',
+    inst.length || s.nom ? `${inst.join(' y ')}${inst.length ? '.' : ''}${s.nom ? ` <b>${f0(s.nom)}</b> ${s.nom === 1 ? 'habilitada' : 'habilitadas'} para postular como institución privada (Res. 1/2026).` : ''}` : '',
   ].filter(Boolean);
   $('#e-sum').innerHTML = `<div>
-      <p class="ct-lead"><b>${f0(s.n)}</b> ${s.n === 1 ? 'empresa' : 'empresas'}${filt ? ` · ${pc(R.n ? s.n / R.n : NaN)} de ${R.same ? esc(grupo) + ' de la región' : 'la región'}` : ' y entidades con casa matriz en La Araucanía · SII 2024'}</p>
+      <p class="ct-lead"><b>${f0(s.n)}</b> ${s.n === 1 ? 'empresa' : 'empresas'}${filt ? ` · ${pc(R.n ? s.n / R.n : NaN)} de ${R.same ? esc(grupo) + ' de la región' : 'la región'}` : ' y entidades con casa matriz en La Araucanía · personas jurídicas de la nómina SII 2024; no incluye personas naturales con giro'}</p>
       <ul class="ct-facts">${facts.map(f => `<li>${f}</li>`).join('')}</ul>
       ${canFm ? '<div style="margin-top:12px"><button class="btn pri" type="button" id="e-fm">Formular con este territorio y cadena</button></div>' : ''}
     </div>
@@ -473,7 +473,7 @@ function renderExplorer() {
   const A = groupAgg(dim, CTX.M0), all = allAggCache[dim.k] || (allAggCache[dim.k] = groupAgg(dim, ALL)), tot = CTX.st.n;
   let idx = dim.ord ? dim.ord.slice() : [...Array(dim.K).keys()];
   const minN = met === 'lq' || met === 'pen' ? 3 : 1;
-  idx = idx.filter(j => A.n[j] >= minN || (dim.on && dim.on(j)));
+  idx = idx.filter(j => A.n[j] >= minN || (dim.on && dim.on(j) && (A.n[j] > 0 || !ACTIVE_CHAIN)));
   if (dim.k === 'tramo') idx = idx.filter(j => j > 0);
   const val = j => metricVal(met, j, A, all, tot);
   if (!dim.ordered && !dim.ord) idx.sort((a, b) => (val(b) || 0) - (val(a) || 0));
@@ -483,7 +483,7 @@ function renderExplorer() {
   if (dim.bits) note.push('Un subrubro puede contar en más de un lineamiento: los grupos no suman el total.');
   if (met === 'lq') note.push('Cociente = participación del grupo en la selección dividida por su participación en la región; la línea marca 1,0. Se omiten grupos con menos de 3 empresas.');
   if (met === 'pen') note.push('Porcentaje de las empresas del grupo (en toda la región) que cumplen los filtros.');
-  if (dim.click) note.push('Clic en una barra para filtrar.');
+  if (dim.click) note.push(ACTIVE_CHAIN && dim.k === 'sub' ? 'Clic en una barra para quedarte solo con ese subrubro: la frase deja de mostrar la cadena.' : 'Clic en una barra para filtrar.');
   $('#ex-note').textContent = note.join(' ');
   const host = $('#ex-body');
   if (!idx.length) { host.innerHTML = '<p class="note">No hay empresas con estos filtros.</p>'; return; }

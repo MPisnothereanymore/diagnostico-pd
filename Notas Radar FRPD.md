@@ -334,6 +334,14 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Se quitó:** «Empresas según año de inicio» (solo contaba las empresas presentes en 2024), los seis indicadores y las guías «¿Cómo leer…?».
 - **Otros cambios:** al llegar desde una ficha de Cartera se limpian los filtros anteriores; clic en una barra dentro de una selección múltiple deja solo esa barra.
 
+## Pestaña Marco normativo reformulada y cierre de las revisiones (11 de noviembre de 2026)
+- **Marco normativo:** «Las reglas del FRPD en una página» (art. 7, art. 9, art. 10 y arts. 11 a 15), el art. 8 en dos columnas con las líneas de la cartera que usan cada categoría, la ERD con sus lineamientos cerrados y dos tablas plegadas (instituciones y «lo que ya se postula o financia»). A 1.440 px pasó de 5.312 a unos 2.300 px.
+- **Citas contrastadas con el texto del decreto** (D.S. 1.699 de 2024, publicado el 17-jun-2025): educación superior pública en el art. 11 inc. 2°; «instituciones privadas» y la salvedad del concurso en el art. 12; el art. 10 como regla de objeto directo con ejemplos; N°2 e y gasto ix con el texto del decreto (que nombra al Instituto de Desarrollo Agropecuario). Se corrigieron en `pack_frpd6.b64`, `matriz_estrategica.b64`, `prep_frpd.py`, `prep_exe.py` y `prep_matriz.py`. **Falta corregir en la fuente:** `_sistema/07_MATRIZ_ESTRATEGICA.md` de la carpeta DIFOI.
+- **Códigos del art. 8:** un solo formato («N°2 g», «N°3 gasto vi») en Marco, la ficha de Cartera y Formular. Los textos de Formular siguen siendo los de la matriz de trabajo DIFOI.
+- **Empresas, cierre:** los filtros de Empresas solo cambian esa pestaña (`update()` ya no recalcula los agregados de Cartera); el titular declara que la base son personas jurídicas; la matriz de cadenas rotula «las que informan ventas»; vuelta a la ficha de Cartera (`EMP_RET`).
+- **Pendiente de verificar:** de dónde sale la condición «sin fines de lucro» de la nómina Res. 1/2026 (el decreto habla de «instituciones privadas»).
+- **GitHub:** publicado en `main` el 11-nov-2026. La actualización diaria quedó apagada (solo ejecución manual) y el ticket de ChileCompra se quitó del flujo y del script; sigue en el historial, por lo que conviene renovarlo.
+
 ## Rendimiento (11 de noviembre de 2026)
 - **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
 - **Marcas en canvas.** Las obras de Geo-CGR y los puntos de infraestructura de Territorios se dibujan en canvas y no como elementos SVG, con las mismas fichas y clics.
