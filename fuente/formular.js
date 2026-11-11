@@ -94,7 +94,7 @@ function renderFormular() {
   // 4 · cómo se ejecuta
   $('#fm-inst').innerHTML = FM_INST.map((l, i) => `<option value="${i}">${esc(l)}</option>`).join(''); $('#fm-inst').value = FMU.inst;
   const tc = new Set(x.T.c), exT = EXE.filter(e => e.c.some(c => tc.has(c))), a10 = [...new Set([...FMU.acts].map(r => MX.a10[r]).filter(Boolean))];
-  $('#fm-exe').innerHTML = `<p>${exT.length ? `<b>${f0(exT.length)}</b> posibles ejecutores con presencia en el territorio: ${f0(exT.filter(e => e.t === 'pub').length)} públicos y ${f0(exT.filter(e => e.r1).length)} privados en la nómina de la Res. 1/2026.` : `Ningún ejecutor habilitado registra presencia en el territorio: tendría que operar desde otro. Hay <b>${f0(EXE.length)}</b> en la región.`} <button type="button" class="btn sm" data-go="marco">Ver quién puede ejecutar</button></p>
+  $('#fm-exe').innerHTML = `<p>${exT.length ? `<b>${f0(exT.length)}</b> posibles ejecutores con presencia en el territorio: ${f0(exT.filter(e => e.t === 'pub').length)} públicos y ${f0(exT.filter(e => e.r1).length)} privados en la nómina de la Res. 1/2026.` : `Ningún ejecutor habilitado registra presencia en el territorio: tendría que operar desde otro. Hay <b>${f0(EXE.length)}</b> en la región.`} <button type="button" class="btn sm" data-go="marco" data-sc="mk-exe">Ver quién puede ejecutar</button></p>
     <p class="${a10.length ? 'fm-al' : 'note'}">${a10.length ? `Alerta del art. 10 en las acciones elegidas: ${esc(a10.join('; '))}. Exige un objeto directo productivo, de desarrollo regional o de CTCI.` : 'Art. 10: sin alertas en las acciones elegidas. Quedan fuera remuneraciones, empleo público, vivienda, vehículos no imprescindibles, espacios públicos ajenos y eventos.'}</p>`;
   fmRub(); fmFicha();
 }
@@ -168,7 +168,13 @@ function fmInit() {
   $('#v-formular').addEventListener('click', e => {
     const b = e.target.closest('button[data-bip]'), g = e.target.closest('button[data-go]');
     if (b) openBip({ t: FMU.t, cat: b.dataset.bip, ti: new Set(b.dataset.ti ? b.dataset.ti.split(',').map(Number) : []) });
-    if (g) setView(g.dataset.go);
+    if (g) {
+      setView(g.dataset.go);
+      // Lleva a la tarjeta de destino: sin esto la pestaña cambia pero la página queda a la altura donde estaba.
+      const d = g.dataset.sc && document.getElementById(g.dataset.sc), c = d && (d.closest('section.card') || d);
+      if (c) requestAnimationFrame(() => { c.scrollIntoView({ block: 'start' }); c.classList.add('fm-flash'); setTimeout(() => c.classList.remove('fm-flash'), 1600); });
+      else window.scrollTo({ top: 0 });
+    }
   });
   $('#fm-copy').addEventListener('click', async () => {
     const txt = fmFichaText();
