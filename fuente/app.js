@@ -1371,7 +1371,8 @@ function renderHab() {
 $('#hb-scope').addEventListener('change', e => { UI.hbScope = e.target.value; renderHab(); });
 function renderTerritorios() {
   if (!MAP) initMap();
-  renderMapOnly(); renderTprof(); renderHab(); renderIptTable();
+  if (!rendered.infra) { initInfra(); rendered.infra = true; }
+  renderMapOnly(); renderTprof(); renderInfra(); renderHab(); renderIptTable();
   $('#m-title').textContent = 'Territorios ERD 2040 · ' + TER[UI.ter].n;
 }
 

@@ -12,7 +12,7 @@ from pathlib import Path
 
 H = Path(__file__).resolve().parent
 head = (H / 'head.html').read_text(encoding='utf-8')
-app = (H / 'app.js').read_text(encoding='utf-8').replace('// @@EMPRESAS@@', (H / 'emp.js').read_text(encoding='utf-8'))
+app = (H / 'app.js').read_text(encoding='utf-8').replace('// @@EMPRESAS@@', (H / 'emp.js').read_text(encoding='utf-8') + '\n' + (H / 'infra.js').read_text(encoding='utf-8'))
 pack = (H / 'pack_frpd6.b64').read_text(encoding='utf-8').strip()
 # capa opcional de obras georreferenciadas (procesamiento/prep_geocgr.py)
 obras = H / 'obras_geocgr.b64'

@@ -616,6 +616,34 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
 .obp .bip{margin-top:8px;padding:7px 9px;background:var(--surf2);border-radius:6px;font-size:12px}
 .obp .bip b{font-family:var(--f-mono);font-weight:500;color:var(--sel)}
 .obp .btn{margin-top:8px;width:100%}
+.if-tblw{overflow-x:auto}
+.if-sum{margin:0;font-size:14px;color:var(--ink2)}.if-sum b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.ift{width:100%;min-width:640px;border-collapse:separate;border-spacing:3px;font-size:12.5px;table-layout:fixed}
+.ift th:first-child{width:190px}
+.ift thead th{font-size:11.5px;font-weight:500;color:var(--ink2);text-align:center;padding:2px 4px 6px;vertical-align:bottom}
+.ift th:first-child{text-align:left;white-space:nowrap;font-weight:500;padding-right:8px}
+.ift tbody th{color:var(--ink)}
+.ift-g th{font-family:var(--f-cond);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:8px}
+.ift td{padding:0}
+.ifc{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;min-height:30px;padding:3px 6px;border:1px solid transparent;border-radius:5px;font:inherit;font-size:12px;white-space:nowrap}
+button.ifc{cursor:pointer}
+.ifc b{font-family:var(--f-mono);font-weight:500}
+.ifc.sof{background:var(--ok-soft);color:var(--ok)}
+.ifc.hab{background:var(--sel-soft);color:var(--sel)}
+.ifc.div{background:#1A2A40;color:#8DB8F2}
+.ifc.nop{background:var(--surf2);color:var(--muted)}
+button.ifc:hover{border-color:currentColor}
+button.ifc[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.if-leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 18px}
+.if-leg .row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}.if-leg .ifc{width:96px;flex:none;min-height:24px}
+.ifd{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ifd-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.ifd-h h3{margin:2px 0 0;font-size:16px;font-weight:600}.ifd-h .ifc{width:auto;flex:none;padding:3px 12px}
+.ifd .note{margin:0}
+.ifd-t{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.ifd-r{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:12px;border:1px solid var(--line2);border-radius:6px;background:var(--surf);font-size:12.5px}
+.ifd-r b{font-weight:600}.ifd-r small{display:block;color:var(--ink2);font-size:11.5px;line-height:1.4;margin-top:2px}
+.ifd-r .btn{margin-top:6px}
 .lf-col{display:flex;flex-direction:column;gap:8px;min-width:0}
 .prof .hab{overflow-x:auto}
 .lf-col .legend{padding-top:2px}
@@ -825,6 +853,19 @@ tr.det td{background:var(--surf2);padding:12px 16px 16px}
       </section>
       <aside class="card" id="tprof" aria-live="polite"></aside>
     </div>
+    <section class="card" id="if-card">
+      <div class="card-h">
+        <div><h2>Infraestructura habilitante por cadena productiva</h2><div class="sub">Dónde la infraestructura frena a una cadena que ya existe y dónde está lista para una nueva · clic en una celda para ver las brechas y la inversión en camino</div></div>
+        <div class="ctrls"><div class="seg" id="if-lev" role="group" aria-label="Nivel"></div></div>
+      </div>
+      <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+        <p class="if-sum" id="if-sum"></p>
+        <div class="if-tblw" id="if-wrap"></div>
+        <div class="legend if-leg" id="if-leg"></div>
+        <div class="ifd" id="if-det" aria-live="polite"></div>
+        <div class="note" id="if-note"></div>
+      </div>
+    </section>
     <section class="card">
       <div class="card-h">
         <div><h2>Condiciones habilitantes por comuna</h2><div class="sub">▲ marca el tercio de comunas con peor valor regional en cada indicador. Las brechas orientan inversiones del art. 8 N°2 (conectividad, descarbonización, bienes públicos) y los riesgos de ejecución de cada línea.</div></div>
