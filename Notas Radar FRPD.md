@@ -314,6 +314,26 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Revisión.** Dos ciclos de evaluación con un agente independiente; se aplicaron sus hallazgos de corrección, disposición y accesibilidad.
 - **Pie de página.** Plegado en «Contenido, fuentes y supuestos» en todas las pestañas.
 
+## Exploración: pestaña Territorios reformulada (11 de noviembre de 2026, sin publicar en GitHub)
+- **Para qué:** leer un territorio en tres preguntas (en qué destaca, qué lo frena, qué hay en cartera) y pasar a Formular. A 1.440 px pasó de 7.098 a unos 3.200 px de alto y de 4.728 a unos 1.600 palabras.
+- **Estructura:** selector de los 8 territorios; lectura con tres líneas de conclusión y sus tres secciones; mapa de apoyo con capas plegadas; tarjeta «Más datos» (objetivo ERD, más cifras, evidencia, financiamiento); matriz de infraestructura por cadena; dos tablas por comuna plegadas.
+- **«Brecha» tiene una sola definición en la pestaña:** las seis dimensiones de `IF_DIM` (vial, energía, digital, agua potable, riego, educación superior); una dimensión está en brecha si alguno de sus indicadores cae en el tercio peor de las 32 comunas (educación superior: territorio sin sedes). El selector y la lectura hablan del territorio en conjunto y además dicen cuántas comunas tienen alguna. Se dejó de usar el conteo de cinco indicadores (`BRE`).
+- **No depende de los filtros de empresas:** usa `SII0` y `LQ0` (todas las empresas). La barra lateral solo aparece en Empresas.
+- **Inversión «en camino»:** iniciativas BIP de infraestructura de la categoría, con comuna y última postulación desde 2025 (`IF_Y0`). El enlace abre Iniciativas BIP con el filtro nuevo «Última postulación desde» (`BXF.y0`), para que el número de la fila coincida con el listado. El monto suma el mayor costo total entre las filas del último año, igual que la pestaña BIP.
+- **Vuelta al punto de partida:** desde Formular, la ficha de Cartera e Iniciativas BIP (`TR_RET`, `trBack`).
+- **Catastro de instrumentos de planificación (`IPT_DATA`):** llegó cargado a mano, sin fuente en el radar. Queda plegado y marcado «sin verificar», con insignias neutras. Solo coincide con una fuente el «con o sin plan regulador» (ERD 2040, Tabla 14; 12 comunas sin plan vigente). Las zonas de rezago se toman de la base del radar (`IN.rez`): el catastro marcaba además Cholchol y Galvarino.
+- **Se quitó de la vista:** la calificación «Relevancia e Impacto FRPD» por comuna (campos `frpd*` y `obs`, sin método ni fuente; siguen en el código), los 11 filtros y los indicadores fijos del catastro, las opciones del mapa para PLADECO, GRD, PLADETUR, PACCC, ADI y descontaminación, la columna «BIP habilitante» de la tabla (sigue en el CSV) y la cifra de crecimiento de empresas del perfil.
+- **Decisiones pendientes de DIFOI:** borrar o respaldar con fuente el catastro y la calificación; validar los requisitos de infraestructura por cadena (`IF_REQ`).
+- **Revisión:** dos ciclos con un agente evaluador; se aplicaron sus hallazgos (coherencia entre agregado y comunas, cifras BIP iguales a su enlace, vocabulario único, teclado y teléfono).
+
+## Exploración: pestaña Empresas reformulada (11 de noviembre de 2026, sin publicar en GitHub)
+- **Para qué:** delimitar un grupo de empresas (población potencial u objetivo) y obtener sus cifras. A 1.440 px pasó de 5.223 a unos 2.500 px de alto.
+- **Frase de tres selectores** («Empresas de [actividad] en [lugar] de [tamaño]»): escribe en los mismos filtros `F` de la barra lateral, que ahora parte plegada tras «Más filtros». Reemplaza las 21 vistas rápidas y la faceta de cadenas. Cadena y tamaño son independientes (antes la cadena forzaba MiPyME).
+- **Resumen:** número de empresas y hechos (empleo, tamaño por ventas, concentración por comuna, sin fines de lucro y públicas) junto a la estructura por tamaño. Con una cadena se informa también el conteo «con ventas informadas», que es el que usan Territorios y Formular.
+- **Orden:** dónde están (mapa), qué actividades son (barras), quiénes son (tabla). Plegados: evolución 2005–2024, cadenas por territorio y especialización por comuna, que se dibujan al abrirse.
+- **Se quitó:** «Empresas según año de inicio» (solo contaba las empresas presentes en 2024), los seis indicadores y las guías «¿Cómo leer…?».
+- **Otros cambios:** al llegar desde una ficha de Cartera se limpian los filtros anteriores; clic en una barra dentro de una selección múltiple deja solo esa barra.
+
 ## Rendimiento (11 de noviembre de 2026)
 - **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
 - **Marcas en canvas.** Las obras de Geo-CGR y los puntos de infraestructura de Territorios se dibujan en canvas y no como elementos SVG, con las mismas fichas y clics.
