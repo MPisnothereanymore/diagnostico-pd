@@ -6,7 +6,7 @@ Tablero de diagnóstico regional para formular iniciativas financiables por el F
 
 Abre **`Radar FRPD Araucanía.html`** con doble clic. Se recomienda Chrome o Edge actualizado. El archivo es autosuficiente: trae dentro todos los datos (unos 3 MB comprimidos) y no necesita internet ni instalar nada.
 
-- **Sin internet:** funciona igual. La tipografía se reemplaza por la del sistema y los mapas vuelven a su versión SVG, porque el visor interactivo usa la librería Leaflet, que se descarga al abrir el tablero.
+- **Sin internet:** funciona igual. La tipografía se reemplaza por la del sistema y los mapas se muestran sin fondo; el visor interactivo (Leaflet) viene incluido en el archivo.
 - **Mapas interactivos (Territorios, Empresas e Iniciativas BIP):** los tres usan el mismo visor: se acerca con la rueda o los botones y se mueve arrastrando, sin salir de la región. Los fondos «Topográfico» (OpenTopoMap), «Satélite» (Esri World Imagery) y «Calles» (OpenStreetMap) se descargan en línea, por lo que funcionan en la versión web y en la local con internet. En Claude, que bloquea imágenes externas, el mapa se muestra sin fondo. Donde cargan, el mapa parte con el topográfico.
 - **Exportaciones CSV:** los botones «Exportar CSV» descargan el archivo a la carpeta de Descargas del navegador. Los CSV usan punto y coma y se abren directamente en Excel.
 - **«Redactar borrador» con Claude:** solo funciona en la versión publicada en Claude (el artefacto «Radar FRPD Araucanía» en claude.ai). En el archivo local el botón aparece desactivado.

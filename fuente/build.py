@@ -20,6 +20,10 @@ extra = ('\n<script id="obras" type="application/octet-stream">' + obras.read_te
 scripts = '\n<script id="pack" type="application/octet-stream">' + pack + '</script>' + extra + '\n<script>\n' + app + '\n</script>\n'
 
 # versión local: documento HTML completo (codificación, viewport y margen)
+# Leaflet va incrustado (fuente/vendor/), para que los mapas funcionen sin internet
+LF_TAG = '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>'
+assert LF_TAG in head
+head = head.replace(LF_TAG, '<script>/* Leaflet 1.9.4, BSD-2-Clause, (c) Volodymyr Agafonkin y CloudMade; licencia en fuente/vendor/leaflet-LICENSE.txt */\n' + (H / 'vendor' / 'leaflet-1.9.4.js').read_text(encoding='utf-8').replace('</script', '<\\/script') + '\n</script>')
 cut = head.rindex('</style>', 0, head.index('<div')) + len('</style>')   # todo lo anterior al primer <div> va en <head>
 local = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
          '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'

@@ -233,6 +233,15 @@ def main():
             json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"Guardado exitoso: {dist_json_path}")
 
+    # 4b. Resumen liviano (todo menos el detalle de compras): es lo que el tablero carga al abrir
+    resumen = dict(data)
+    resumen["comprasPublicas"] = {k: v for k, v in data["comprasPublicas"].items() if k != "ultimasCompras"}
+    resumen["comprasPublicas"]["totalRegistros"] = resumen["comprasPublicas"].get("totalRegistros") or len(data["comprasPublicas"].get("ultimasCompras", []))
+    for destino in [json_path.parent, dist_json_path.parent]:
+        if destino.exists():
+            with open(destino / "datos_resumen.json", "w", encoding="utf-8") as f:
+                json.dump(resumen, f, ensure_ascii=False, separators=(",", ":"))
+
     # 5. Recompilar HTML para mantener bundle sincronizado
     try:
         build_script = base_dir / "fuente" / "build.py"

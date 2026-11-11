@@ -434,7 +434,7 @@ function setView(v) {
   if (v === 'simulador') renderSim();
   if (v === 'bip') renderBip();
   if (v === 'evid') renderEvid();
-  if (v === 'compras') renderCompras();
+  if (v === 'compras') { renderCompras(); if (!CP_FULL && !window.LIVE_COMPRAS) syncRadarData(true); }
   try { history.replaceState(null, '', '#' + v); } catch (_) {}
 }
 VIEWS.forEach(k => $('#tab-' + k).addEventListener('click', () => setView(k)));
@@ -1081,13 +1081,13 @@ function mapAuto(host, opt, fallback) {
 }
 // capas de infraestructura del mapa de Territorios
 function lfInfra(k, api) {
-  const g = L.layerGroup(), C = api.C;
+  const g = L.layerGroup(), C = api.C, cv = api.ptsR || (api.ptsR = L.canvas({ pane: 'pts', padding: 0.4, tolerance: 2 }));
   const line = (d, o) => ringsLL(d).forEach(r => { if (r.length > 1) g.addLayer(L.polyline(r, { pane: 'over', interactive: false, lineCap: 'round', lineJoin: 'round', ...o })); });
-  const dots = (arr, color, w, op) => arr.forEach(p => g.addLayer(L.circleMarker(svgLL(p[0], p[1]), { pane: 'pts', interactive: false, radius: w / 2, stroke: false, fillColor: color, fillOpacity: op || 0.9 })));
+  const dots = (arr, color, w, op) => arr.forEach(p => g.addLayer(L.circleMarker(svgLL(p[0], p[1]), { renderer: cv, pane: 'pts', interactive: false, radius: w / 2, stroke: false, fillColor: color, fillOpacity: op || 0.9 })));
   const hot = (arr, color, w, tipf, sq) => arr.forEach(p => {
     const ll = svgLL(p[0], p[1]);
     const m = sq ? L.marker(ll, { pane: 'pts', keyboard: false, icon: L.divIcon({ className: 'lf-sq', html: `<i style="background:${color}"></i>`, iconSize: [w, w] }) })
-      : L.circleMarker(ll, { pane: 'pts', radius: w / 2, weight: 1, color: C.bg, opacity: 0.9, fillColor: color, fillOpacity: 0.95, bubblingMouseEvents: false });
+      : L.circleMarker(ll, { renderer: cv, pane: 'pts', radius: w / 2, weight: 1, color: C.bg, opacity: 0.9, fillColor: color, fillOpacity: 0.95, bubblingMouseEvents: false });
     m.on('mouseover', e => { const t = tipf(p); showTip(e.originalEvent, t[0], t[1], t[2]); });
     m.on('mousemove', e => placeTip(e.originalEvent));
     m.on('mouseout', hideTip);
@@ -2069,7 +2069,7 @@ function bxLeafletInit() {
     sub: [$('#bx-msub'), 'Rueda o botones para acercar, arrastra para moverte · clic en una comuna, un territorio o una barra del ranking para filtrar la tabla · clic en una obra para ver su ficha'] });
   const { map, C } = base;
   // obras: puntos y líneas en su propia capa
-  const obR = L.svg({ pane: 'obras', padding: 0.4 });
+  const obR = L.canvas({ pane: 'obras', padding: 0.4, tolerance: 3 });   // canvas: miles de marcas sin cargar el DOM
   const OBL = OB ? Array.from({ length: NOB }, () => []) : [], OBS = new Uint8Array(NOB);
   if (OB) {
     OB.ln.forEach(([k, d]) => { const ll = ringsLL(d)[0]; if (ll && ll.length > 1) OBL[k].push(L.polyline(ll, { renderer: obR, pane: 'obras', interactive: true, bubblingMouseEvents: false })); });
@@ -2720,17 +2720,27 @@ window.applyLiveWorkspaceData = function(data) {
   toast('Datos del radar actualizados');
 };
 
-async function syncRadarData() {
+// Al abrir se carga solo el resumen (cartera y totales). El detalle de compras, de varios MB, se pide al entrar a esa pestaña.
+let CP_FULL = false, CP_LOADING = false;
+async function syncRadarData(full) {
+  full = full === true || CP_FULL;
+  if (full) { if (CP_LOADING) return; CP_LOADING = true; }
   const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
   if (dot) dot.style.background = 'var(--sel)';
   if (txt) txt.textContent = 'Cargando datos del radar…';
 
   try {
-    const jsonRes = await fetch('./datos_radar.json?_t=' + Date.now());
+    let jsonRes = full ? null : await fetch('./datos_resumen.json?_t=' + Date.now()).catch(() => null);
+    if (!jsonRes || !jsonRes.ok) { full = true; jsonRes = await fetch('./datos_radar.json?_t=' + Date.now()); }
     if (jsonRes.ok) {
-      const staticData = await jsonRes.json();
+      let staticData = await jsonRes.json();
       if (staticData && (staticData.cartera || staticData.comprasPublicas)) {
-        window.__LIVE_WORKSPACE_DATA__ = staticData;
+        if (full) { CP_FULL = true; window.__LIVE_WORKSPACE_DATA__ = staticData; }
+        else {
+          const cp = staticData.comprasPublicas, tabCp = $('#tab-cp-n');
+          if (cp && cp.totalRegistros && tabCp) tabCp.textContent = `${cp.totalRegistros} OCs`;
+          staticData = { ...staticData, comprasPublicas: null };
+        }
         window.applyLiveWorkspaceData(staticData);
         if (dot) dot.style.background = 'var(--ok)';
         if (txt) txt.textContent = 'Cartera e Indicadores FRPD';
@@ -2739,19 +2749,19 @@ async function syncRadarData() {
     }
     throw new Error('Formato de datos no reconocido');
   } catch (err) {
-    console.warn('Carga de datos_radar.json no disponible:', err);
+    console.warn('Carga de datos del radar no disponible:', err);
     if (!window.__LIVE_WORKSPACE_DATA__) {
       if (dot) dot.style.background = 'var(--muted)';
       if (txt) txt.textContent = 'Modo local (Base de referencia)';
     }
-  }
+  } finally { if (full) CP_LOADING = false; }
 }
 const syncLiveWorkspace = syncRadarData;
 
   update(false);
   setView(VIEWS.includes(h0) ? h0 : 'cartera');
-  if ($('#live-sync-badge')) $('#live-sync-badge').addEventListener('click', syncLiveWorkspace);
-  if ($('#cp-refresh')) $('#cp-refresh').addEventListener('click', syncLiveWorkspace);
+  if ($('#live-sync-badge')) $('#live-sync-badge').addEventListener('click', () => syncRadarData(UI.view === 'compras'));
+  if ($('#cp-refresh')) $('#cp-refresh').addEventListener('click', () => syncRadarData(true));
   if ($('#cp-csv')) $('#cp-csv').addEventListener('click', exportComprasCSV);
   if ($('#cp-filter-terr')) $('#cp-filter-terr').addEventListener('change', renderCompras);
   if ($('#cp-filter-fecha')) $('#cp-filter-fecha').addEventListener('change', renderCompras);

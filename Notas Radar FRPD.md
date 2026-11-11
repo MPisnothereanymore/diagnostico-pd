@@ -281,6 +281,11 @@ Tejido Empresarial no se modificó; los cambios se hicieron solo en el Radar.
 - **Capas de Territorios.** Agrupadas en Referencias, Transporte y conectividad, y Servicios y equipamiento.
 - **Unidades.** Los encabezados de los CSV dicen «miles de $» en vez de «M$», para no confundirlos con los MM$ de la pantalla. Los valores no cambian.
 
+## Rendimiento (11 de noviembre de 2026)
+- **Carga diferida de compras.** Al abrir, el tablero pide `datos_resumen.json` (unos 40 KB: cartera y totales de compras). El detalle, `datos_radar.json` (unos 4 MB), se pide al entrar a Compras Públicas o al pulsar «Refrescar datos». `actualizar_datos.py` escribe ambos archivos, y si falta el resumen el tablero carga el archivo completo como antes.
+- **Marcas en canvas.** Las obras de Geo-CGR y los puntos de infraestructura de Territorios se dibujan en canvas y no como elementos SVG, con las mismas fichas y clics.
+- **Leaflet incrustado.** `build.py` incluye `fuente/vendor/leaflet-1.9.4.js` en el HTML, que crece unos 150 KB, así que los mapas interactivos funcionan sin internet. Los fondos en línea siguen necesitando conexión.
+
 ## Tipo de inversión (11 de noviembre de 2026)
 - **Filtro.** En la pestaña Iniciativas BIP, el filtro «Tipo de inversión» es de selección múltiple y tiene cinco opciones: infraestructura (2.921), conservación de infraestructura (1.249), equipamiento y vehículos (378), programas (576) y estudios básicos (75). Cada botón muestra cuántas iniciativas quedan con los demás filtros.
 - **Criterio.** Se parte de la tipología oficial del BIP (`TIP_CLAVE`: 791 proyecto, 792 programa, 793 estudio básico). Los proyectos se separan por el proceso con que parte su nombre, según la norma de nombres del SNI (proceso + objeto + localización):
