@@ -405,6 +405,66 @@ details.ler ol li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);f
 
 .inp{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--ink);font-family:var(--f-mono)}
 
+/* Cartera: resumen, tablero de avance, mapa de huecos y ficha lateral */
+.ct-sum{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px 32px;padding:18px 20px;align-items:center}
+.ct-lead{margin:0 0 10px;font-size:15px;color:var(--ink2)}.ct-lead b{font-size:22px;font-weight:700;color:var(--ink);font-family:var(--f-mono);letter-spacing:-.01em}
+.ct-bar{display:flex;gap:3px;height:34px;border-radius:6px;overflow:hidden;margin-bottom:8px}
+.ct-bar span{display:flex;align-items:center;gap:5px;padding:0 10px;font-size:12.5px;white-space:nowrap;overflow:hidden;min-width:0;color:#0E1317}
+.ct-bar b{font-family:var(--f-mono);font-size:14px}
+.ct-bar .m3{background:var(--m3)}.ct-bar .m2{background:var(--m2)}.ct-bar .m1{background:var(--m1);color:#E6ECEE}
+.ct-facts{margin:0;padding:0;list-style:none;display:grid;gap:9px;font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.ct-facts li{padding-left:12px;border-left:2px solid var(--line2)}.ct-facts b{color:var(--ink)}
+.ct-leg{padding:0}.ct-leg .k,.ct-mxleg .k{display:inline-flex;align-items:center;gap:6px}.ct-leg .dots,.ct-t .dots{display:inline-flex;gap:3px}
+.ct-leg .dots i,.ct-t .dots i{width:7px;height:7px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--muted)}
+.ct-leg .dots i.on,.ct-t .dots i.on{background:var(--acc);box-shadow:none}
+.ct-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.ct-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ct-colh{padding:0 2px 8px;border-bottom:2px solid var(--line2)}
+.ct-col.c0 .ct-colh{border-color:var(--m3)}.ct-col.c1 .ct-colh{border-color:var(--m2)}.ct-col.c2 .ct-colh{border-color:var(--m1)}
+.ct-colh h3{font-size:14px;font-weight:600;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ct-colh h3 span{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500}
+.ct-colh p{margin:3px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
+.ct-card{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:12px 13px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.ct-card.on{border-color:var(--sel)}
+.ct-ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ct-ch .code{font-family:var(--f-mono);font-size:12px;color:var(--acc)}
+.ct-card h3{font-size:14px;font-weight:600;line-height:1.3}
+.ct-meta{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
+.ct-ter{display:flex;flex-wrap:wrap;gap:5px}
+.ct-t{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--surf);color:var(--ink2);font-size:12px;line-height:1.3}
+.ct-t:hover{border-color:var(--acc);color:var(--ink)}.ct-t.on{border-color:var(--sel);color:var(--ink);box-shadow:0 0 0 1px var(--sel)}
+.ct-more{font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.ct-more summary{cursor:pointer;color:var(--acc);font-size:12px;width:fit-content}
+.ct-more p{margin:6px 0 0}.ct-more b{color:var(--ink);font-weight:600}
+.ct-gapw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+.ct-mx{grid-template-columns:minmax(120px,1.2fr) repeat(6,minmax(58px,1fr));min-width:520px}
+.ct-mx .rh{padding:2px 8px 2px 0;justify-content:center}.ct-mx .rh b{font-size:12.5px;font-weight:500}
+.ct-mx .cell{min-height:38px;align-items:center;justify-content:center;flex-direction:row;gap:6px;padding:4px;background:var(--surf2);color:var(--ink2);border:1px solid transparent}
+.ct-mx .cell.has{background:var(--acc-soft);color:var(--acc)}
+.ct-mx .cell.has .code{background:transparent;color:inherit;padding:0;font-family:var(--f-mono);font-size:11.5px}
+.ct-mx .cell.gap{background:var(--sel-soft);color:var(--sel);flex-direction:column;gap:0}
+.ct-mx .cell.gap .g{font-size:10.5px;font-weight:600}.ct-mx .cell.gap .v{align-self:center;opacity:1;font-family:var(--f-mono);font-size:11px}
+.ct-mx .cell.empty{color:var(--muted)}
+.ct-mx .cell:hover{border-color:var(--line2)}
+.ct-mxleg{padding-top:12px}.ct-mxleg i{display:inline-block;width:14px;height:12px;border-radius:3px;background:var(--surf2);border:1px solid var(--line2)}
+.ct-mxleg i.has{background:var(--acc-soft);border-color:var(--acc)}.ct-mxleg i.gap{background:var(--sel-soft);border:1.5px dashed var(--sel)}
+.ct-ol{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:10px}
+.ct-ol li{border-left:2px dashed var(--sel);padding:2px 0 2px 12px;display:grid;gap:5px;font-size:13.5px}
+.ct-ol b{font-weight:600}.ct-ob{display:flex;flex-wrap:wrap;gap:8px}
+#v-cartera .ficha{position:fixed;top:0;right:0;bottom:0;width:min(470px,100vw);max-height:none;z-index:60;background:var(--surf);border-left:1px solid var(--line2);box-shadow:-18px 0 40px rgba(0,0,0,.45);overflow-y:auto;scrollbar-width:thin}
+#v-cartera .ficha:focus{outline:none}
+#v-cartera .fi-h{position:sticky;top:0;z-index:2;background:var(--surf)}
+#v-cartera .fi-h .loc{width:60px}
+details.fi-sec{display:block}
+details.fi-sec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
+details.fi-sec>summary::-webkit-details-marker{display:none}
+details.fi-sec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+details.fi-sec[open]>summary::after{content:"–"}
+details.fi-sec>summary h3{color:var(--ink2)}details.fi-sec>summary:hover h3{color:var(--ink)}
+details.fi-sec>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+@media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-board{grid-template-columns:minmax(0,1fr)}}
+
 /* BIP */
 .srch{flex:1 1 260px;min-width:0;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink)}
 .srch::placeholder{color:var(--muted)}
@@ -731,15 +791,11 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       <svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#4CC3B0" stroke-width="1.6" aria-hidden="true"><circle cx="15" cy="15" r="12.5" stroke-opacity=".45"/><circle cx="15" cy="15" r="7.5" stroke-opacity=".7"/><path d="M15 15L24 6.5" stroke-linecap="round"/><circle cx="20.5" cy="10" r="1.8" fill="#F2A541" stroke="none"/><circle cx="9" cy="18.5" r="1.4" fill="#4CC3B0" stroke="none"/></svg>
       <div><b>Radar FRPD Araucanía</b><span>Cartera del Fondo Regional para la Productividad y el Desarrollo · D.S. 1.699 y ERD 2040</span></div>
     </div>
-    <div id="live-sync-badge" style="display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surf2);padding:5px 13px;border-radius:20px;border:1px solid var(--line2);cursor:pointer" title="Radar FRPD Araucanía · Clic para refrescar datos">
-      <span id="live-sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok)"></span>
-      <span id="live-sync-text">Cartera e Indicadores FRPD</span>
-    </div>
     <p class="meta">Diagnóstico regional para formular iniciativas financiables por el FRPD: dónde están las brechas, qué se ha financiado y qué permite la norma.</p>
   </header>
   <nav class="tabs" role="tablist" aria-label="Vistas">
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Inversión</span><div class="tabg-b" role="presentation">
-      <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
+      <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>14 líneas</small></button>
       <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
     </div></div>
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Diagnóstico</span><div class="tabg-b" role="presentation">
@@ -756,7 +812,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <div class="work" id="work">
   <aside class="rail" id="rail" aria-label="Filtros de empresas">
     <div class="rail-h"><b>Filtros de empresas</b><button class="btn sm" id="rail-hide" type="button" aria-label="Ocultar los filtros">Ocultar</button></div>
-    <p class="scope">Filtran las empresas SII en Cartera, Territorios y Empresas: la matriz, los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
+    <p class="scope">Filtran las empresas SII en Territorios y Empresas, y la base empresarial de las fichas de Cartera: los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
     <label class="lbl" for="f-q">Buscar</label>
     <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
     <details class="facet" id="f-strat-facet" open style="border:1.5px solid var(--acc);background:rgba(26,115,232,0.03);border-radius:8px;padding:4px 8px 6px;margin:8px 0">
@@ -794,35 +850,20 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Cartera ===== -->
   <section class="view" id="v-cartera" role="tabpanel" aria-labelledby="tab-cartera">
-    <div class="kpis" id="kpis"></div>
-    <div class="fbar" id="fbar" role="group" aria-label="Filtros de la cartera"></div>
-    <div class="grid g-cart">
-      <section class="card">
-        <div class="card-h">
-          <div><h2>Territorio × lineamiento CTCI</h2><div class="sub">Cada celda es una entrada de la cartera (línea y madurez de la evidencia). El color muestra la base empresarial del territorio en ese lineamiento. Clic en una celda para abrir su ficha.</div></div>
-          <label class="ctrl">Color de las celdas<select class="sel" id="mx-mode"><option value="lq">Especialización (cociente)</option><option value="n">Empresas en el lineamiento</option><option value="g">Crecimiento 2014–2024</option><option value="mad">Madurez de la evidencia</option><option value="fin">Financiamiento existente 2019–2026</option></select></label>
-        </div>
-        <div class="card-b">
-          <div class="mx-wrap"><div class="mx" id="mx"></div></div>
-          <div class="mxleg" id="mx-leg"></div>
-          <p class="note" id="mx-note" style="margin-top:10px"></p>
-          <details class="guide-det">
-            <summary class="guide-sum">¿Cómo leer la matriz de cartera?</summary>
-            <div class="guide-b">
-              <div><b>Estructura general:</b> Filas = <b>8 Territorios ERD 2040</b>; Columnas = <b>6 Lineamientos CTCI</b> (L1 Clima/Agua a L6 Digitalización). Cada celda representa una iniciativa de inversión de la cartera DIFOI.</div>
-              <div><b>Color de celda:</b> Por defecto muestra el grado de especialización económica local (Cociente de Localización LQ). Azul más intenso = mayor base empresarial territorial en ese lineamiento. Puede alternarse a madurez, crecimiento o financiamiento existente.</div>
-              <div><b>Puntos de madurez (●●○):</b> 1 = evidencia por levantar; 2 = evidencia parcial; 3 = evidencia levantada y contraparte identificada.</div>
-              <div><b>Interactividad:</b> Clic en cualquier celda para abrir su <b>Ficha Técnica lateral</b> con ejecutores, montos estimados y marco normativo D.S. 1.699.</div>
-            </div>
-          </details>
-        </div>
-      </section>
-      <aside class="card ficha" id="ficha" aria-live="polite"></aside>
-    </div>
+    <section class="card ct-sum" id="ct-sum" aria-label="Resumen de la cartera"></section>
     <section class="card">
-      <div class="card-h"><div><h2>Líneas de inversión</h2><div class="sub">Las 14 líneas de la minuta DIFOI agrupan las 42 entradas. Clic en una fila para ver sus celdas en la matriz.</div></div><button class="btn" id="ln-clear" type="button" hidden>Ver todas las líneas</button></div>
-      <div class="tbl-wrap" id="lines"></div>
+      <div class="card-h"><div><h2>Qué tenemos y qué tan listo está</h2><div class="sub">Las líneas de la minuta DIFOI, ordenadas según la evidencia de sus entradas territoriales. Clic en un territorio para abrir su ficha.</div></div>
+        <div class="legend ct-leg" aria-label="Evidencia de cada entrada"><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>levantada</span><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span>parcial</span><span class="k"><span class="dots"><i class="on"></i><i></i><i></i></span>por levantar</span></div></div>
+      <div class="card-b"><div class="ct-board" id="ct-board"></div></div>
     </section>
+    <section class="card" id="ct-gap">
+      <div class="card-h"><div><h2>Dónde falta</h2><div class="sub">Territorio × lineamiento CTCI: qué combinaciones tienen entrada en la cartera y cuáles no. Clic en una celda para abrir su ficha.</div></div></div>
+      <div class="card-b ct-gapw">
+        <div><div class="mx-wrap"><div class="mx ct-mx" id="mx"></div></div><div class="legend ct-mxleg" id="mx-leg"></div></div>
+        <div id="ct-opp"></div>
+      </div>
+    </section>
+    <aside class="ficha" id="ficha" tabindex="-1" aria-label="Ficha de territorio y lineamiento" hidden></aside>
   </section>
 
   <!-- ===== Territorios ===== -->

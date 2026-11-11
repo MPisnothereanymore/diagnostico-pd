@@ -417,6 +417,66 @@ details.ler ol li b{font-family:var(--f-mono);font-weight:500;color:var(--ink);f
 
 .inp{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--ink);font-family:var(--f-mono)}
 
+/* Cartera: resumen, tablero de avance, mapa de huecos y ficha lateral */
+.ct-sum{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px 32px;padding:18px 20px;align-items:center}
+.ct-lead{margin:0 0 10px;font-size:15px;color:var(--ink2)}.ct-lead b{font-size:22px;font-weight:700;color:var(--ink);font-family:var(--f-mono);letter-spacing:-.01em}
+.ct-bar{display:flex;gap:3px;height:34px;border-radius:6px;overflow:hidden;margin-bottom:8px}
+.ct-bar span{display:flex;align-items:center;gap:5px;padding:0 10px;font-size:12.5px;white-space:nowrap;overflow:hidden;min-width:0;color:#0E1317}
+.ct-bar b{font-family:var(--f-mono);font-size:14px}
+.ct-bar .m3{background:var(--m3)}.ct-bar .m2{background:var(--m2)}.ct-bar .m1{background:var(--m1);color:#E6ECEE}
+.ct-facts{margin:0;padding:0;list-style:none;display:grid;gap:9px;font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.ct-facts li{padding-left:12px;border-left:2px solid var(--line2)}.ct-facts b{color:var(--ink)}
+.ct-leg{padding:0}.ct-leg .k,.ct-mxleg .k{display:inline-flex;align-items:center;gap:6px}.ct-leg .dots,.ct-t .dots{display:inline-flex;gap:3px}
+.ct-leg .dots i,.ct-t .dots i{width:7px;height:7px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--muted)}
+.ct-leg .dots i.on,.ct-t .dots i.on{background:var(--acc);box-shadow:none}
+.ct-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.ct-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ct-colh{padding:0 2px 8px;border-bottom:2px solid var(--line2)}
+.ct-col.c0 .ct-colh{border-color:var(--m3)}.ct-col.c1 .ct-colh{border-color:var(--m2)}.ct-col.c2 .ct-colh{border-color:var(--m1)}
+.ct-colh h3{font-size:14px;font-weight:600;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ct-colh h3 span{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:500}
+.ct-colh p{margin:3px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
+.ct-card{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:12px 13px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.ct-card.on{border-color:var(--sel)}
+.ct-ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ct-ch .code{font-family:var(--f-mono);font-size:12px;color:var(--acc)}
+.ct-card h3{font-size:14px;font-weight:600;line-height:1.3}
+.ct-meta{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
+.ct-ter{display:flex;flex-wrap:wrap;gap:5px}
+.ct-t{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--surf);color:var(--ink2);font-size:12px;line-height:1.3}
+.ct-t:hover{border-color:var(--acc);color:var(--ink)}.ct-t.on{border-color:var(--sel);color:var(--ink);box-shadow:0 0 0 1px var(--sel)}
+.ct-more{font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.ct-more summary{cursor:pointer;color:var(--acc);font-size:12px;width:fit-content}
+.ct-more p{margin:6px 0 0}.ct-more b{color:var(--ink);font-weight:600}
+.ct-gapw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+.ct-mx{grid-template-columns:minmax(120px,1.2fr) repeat(6,minmax(58px,1fr));min-width:520px}
+.ct-mx .rh{padding:2px 8px 2px 0;justify-content:center}.ct-mx .rh b{font-size:12.5px;font-weight:500}
+.ct-mx .cell{min-height:38px;align-items:center;justify-content:center;flex-direction:row;gap:6px;padding:4px;background:var(--surf2);color:var(--ink2);border:1px solid transparent}
+.ct-mx .cell.has{background:var(--acc-soft);color:var(--acc)}
+.ct-mx .cell.has .code{background:transparent;color:inherit;padding:0;font-family:var(--f-mono);font-size:11.5px}
+.ct-mx .cell.gap{background:var(--sel-soft);color:var(--sel);flex-direction:column;gap:0}
+.ct-mx .cell.gap .g{font-size:10.5px;font-weight:600}.ct-mx .cell.gap .v{align-self:center;opacity:1;font-family:var(--f-mono);font-size:11px}
+.ct-mx .cell.empty{color:var(--muted)}
+.ct-mx .cell:hover{border-color:var(--line2)}
+.ct-mxleg{padding-top:12px}.ct-mxleg i{display:inline-block;width:14px;height:12px;border-radius:3px;background:var(--surf2);border:1px solid var(--line2)}
+.ct-mxleg i.has{background:var(--acc-soft);border-color:var(--acc)}.ct-mxleg i.gap{background:var(--sel-soft);border:1.5px dashed var(--sel)}
+.ct-ol{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:10px}
+.ct-ol li{border-left:2px dashed var(--sel);padding:2px 0 2px 12px;display:grid;gap:5px;font-size:13.5px}
+.ct-ol b{font-weight:600}.ct-ob{display:flex;flex-wrap:wrap;gap:8px}
+#v-cartera .ficha{position:fixed;top:0;right:0;bottom:0;width:min(470px,100vw);max-height:none;z-index:60;background:var(--surf);border-left:1px solid var(--line2);box-shadow:-18px 0 40px rgba(0,0,0,.45);overflow-y:auto;scrollbar-width:thin}
+#v-cartera .ficha:focus{outline:none}
+#v-cartera .fi-h{position:sticky;top:0;z-index:2;background:var(--surf)}
+#v-cartera .fi-h .loc{width:60px}
+details.fi-sec{display:block}
+details.fi-sec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
+details.fi-sec>summary::-webkit-details-marker{display:none}
+details.fi-sec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+details.fi-sec[open]>summary::after{content:"–"}
+details.fi-sec>summary h3{color:var(--ink2)}details.fi-sec>summary:hover h3{color:var(--ink)}
+details.fi-sec>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+details.fi-sec>div{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+@media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-board{grid-template-columns:minmax(0,1fr)}}
+
 /* BIP */
 .srch{flex:1 1 260px;min-width:0;background:var(--surf2);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink)}
 .srch::placeholder{color:var(--muted)}
@@ -746,15 +806,11 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
       <svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#4CC3B0" stroke-width="1.6" aria-hidden="true"><circle cx="15" cy="15" r="12.5" stroke-opacity=".45"/><circle cx="15" cy="15" r="7.5" stroke-opacity=".7"/><path d="M15 15L24 6.5" stroke-linecap="round"/><circle cx="20.5" cy="10" r="1.8" fill="#F2A541" stroke="none"/><circle cx="9" cy="18.5" r="1.4" fill="#4CC3B0" stroke="none"/></svg>
       <div><b>Radar FRPD Araucanía</b><span>Cartera del Fondo Regional para la Productividad y el Desarrollo · D.S. 1.699 y ERD 2040</span></div>
     </div>
-    <div id="live-sync-badge" style="display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surf2);padding:5px 13px;border-radius:20px;border:1px solid var(--line2);cursor:pointer" title="Radar FRPD Araucanía · Clic para refrescar datos">
-      <span id="live-sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok)"></span>
-      <span id="live-sync-text">Cartera e Indicadores FRPD</span>
-    </div>
     <p class="meta">Diagnóstico regional para formular iniciativas financiables por el FRPD: dónde están las brechas, qué se ha financiado y qué permite la norma.</p>
   </header>
   <nav class="tabs" role="tablist" aria-label="Vistas">
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Inversión</span><div class="tabg-b" role="presentation">
-      <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>8 × 6</small></button>
+      <button class="tab" role="tab" id="tab-cartera" aria-controls="v-cartera" aria-selected="true" type="button">Cartera <small>14 líneas</small></button>
       <button class="tab" role="tab" id="tab-bip" aria-controls="v-bip" aria-selected="false" type="button">Iniciativas BIP <small id="tab-bip-n"></small></button>
     </div></div>
     <div class="tabg" role="presentation"><span class="tabg-l" aria-hidden="true">Diagnóstico</span><div class="tabg-b" role="presentation">
@@ -771,7 +827,7 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
   <div class="work" id="work">
   <aside class="rail" id="rail" aria-label="Filtros de empresas">
     <div class="rail-h"><b>Filtros de empresas</b><button class="btn sm" id="rail-hide" type="button" aria-label="Ocultar los filtros">Ocultar</button></div>
-    <p class="scope">Filtran las empresas SII en Cartera, Territorios y Empresas: la matriz, los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
+    <p class="scope">Filtran las empresas SII en Territorios y Empresas, y la base empresarial de las fichas de Cartera: los cocientes, las fichas y las exportaciones se recalculan. Cada opción muestra cuántas empresas quedarían.</p>
     <label class="lbl" for="f-q">Buscar</label>
     <input class="inp" id="f-q" type="search" placeholder="Razón social, actividad o RUT" autocomplete="off">
     <details class="facet" id="f-strat-facet" open style="border:1.5px solid var(--acc);background:rgba(26,115,232,0.03);border-radius:8px;padding:4px 8px 6px;margin:8px 0">
@@ -809,35 +865,20 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Cartera ===== -->
   <section class="view" id="v-cartera" role="tabpanel" aria-labelledby="tab-cartera">
-    <div class="kpis" id="kpis"></div>
-    <div class="fbar" id="fbar" role="group" aria-label="Filtros de la cartera"></div>
-    <div class="grid g-cart">
-      <section class="card">
-        <div class="card-h">
-          <div><h2>Territorio × lineamiento CTCI</h2><div class="sub">Cada celda es una entrada de la cartera (línea y madurez de la evidencia). El color muestra la base empresarial del territorio en ese lineamiento. Clic en una celda para abrir su ficha.</div></div>
-          <label class="ctrl">Color de las celdas<select class="sel" id="mx-mode"><option value="lq">Especialización (cociente)</option><option value="n">Empresas en el lineamiento</option><option value="g">Crecimiento 2014–2024</option><option value="mad">Madurez de la evidencia</option><option value="fin">Financiamiento existente 2019–2026</option></select></label>
-        </div>
-        <div class="card-b">
-          <div class="mx-wrap"><div class="mx" id="mx"></div></div>
-          <div class="mxleg" id="mx-leg"></div>
-          <p class="note" id="mx-note" style="margin-top:10px"></p>
-          <details class="guide-det">
-            <summary class="guide-sum">¿Cómo leer la matriz de cartera?</summary>
-            <div class="guide-b">
-              <div><b>Estructura general:</b> Filas = <b>8 Territorios ERD 2040</b>; Columnas = <b>6 Lineamientos CTCI</b> (L1 Clima/Agua a L6 Digitalización). Cada celda representa una iniciativa de inversión de la cartera DIFOI.</div>
-              <div><b>Color de celda:</b> Por defecto muestra el grado de especialización económica local (Cociente de Localización LQ). Azul más intenso = mayor base empresarial territorial en ese lineamiento. Puede alternarse a madurez, crecimiento o financiamiento existente.</div>
-              <div><b>Puntos de madurez (●●○):</b> 1 = evidencia por levantar; 2 = evidencia parcial; 3 = evidencia levantada y contraparte identificada.</div>
-              <div><b>Interactividad:</b> Clic en cualquier celda para abrir su <b>Ficha Técnica lateral</b> con ejecutores, montos estimados y marco normativo D.S. 1.699.</div>
-            </div>
-          </details>
-        </div>
-      </section>
-      <aside class="card ficha" id="ficha" aria-live="polite"></aside>
-    </div>
+    <section class="card ct-sum" id="ct-sum" aria-label="Resumen de la cartera"></section>
     <section class="card">
-      <div class="card-h"><div><h2>Líneas de inversión</h2><div class="sub">Las 14 líneas de la minuta DIFOI agrupan las 42 entradas. Clic en una fila para ver sus celdas en la matriz.</div></div><button class="btn" id="ln-clear" type="button" hidden>Ver todas las líneas</button></div>
-      <div class="tbl-wrap" id="lines"></div>
+      <div class="card-h"><div><h2>Qué tenemos y qué tan listo está</h2><div class="sub">Las líneas de la minuta DIFOI, ordenadas según la evidencia de sus entradas territoriales. Clic en un territorio para abrir su ficha.</div></div>
+        <div class="legend ct-leg" aria-label="Evidencia de cada entrada"><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>levantada</span><span class="k"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span>parcial</span><span class="k"><span class="dots"><i class="on"></i><i></i><i></i></span>por levantar</span></div></div>
+      <div class="card-b"><div class="ct-board" id="ct-board"></div></div>
     </section>
+    <section class="card" id="ct-gap">
+      <div class="card-h"><div><h2>Dónde falta</h2><div class="sub">Territorio × lineamiento CTCI: qué combinaciones tienen entrada en la cartera y cuáles no. Clic en una celda para abrir su ficha.</div></div></div>
+      <div class="card-b ct-gapw">
+        <div><div class="mx-wrap"><div class="mx ct-mx" id="mx"></div></div><div class="legend ct-mxleg" id="mx-leg"></div></div>
+        <div id="ct-opp"></div>
+      </div>
+    </section>
+    <aside class="ficha" id="ficha" tabindex="-1" aria-label="Ficha de territorio y lineamiento" hidden></aside>
   </section>
 
   <!-- ===== Territorios ===== -->
@@ -1678,6 +1719,7 @@ function recomputeSII(m) {
 }
 recomputeSII(ALL);
 const lqN = (t, L) => (tN[t] && rN[L] ? (cN[t][L] / tN[t]) / (rN[L] / NSEL) : NaN);
+const LQ0 = Array.from({ length: NT }, (_, t) => Array.from({ length: NL }, (_, L) => lqN(t, L)));   // cociente con todas las empresas (Cartera)
 const lqT = (t, L) => (tT[t] && rT[L] ? (cT[t][L] / tT[t]) / (rT[L] / totT) : NaN);
 const lqCom = (c, L) => (comN[c] && rN[L] ? (comLN[c][L] / comN[c]) / (rN[L] / NSEL) : NaN);
 const terOn = t => !hasGeo() || TER[t].c.some(c => GEO[c]);
@@ -1836,18 +1878,8 @@ function finRow(i) {
 }
 
 // ================= estado =================
-const UI = { view: 'cartera', t: TIDX.VCE, L: LIDX.L3, mode: 'lq', fb: new Set(), fn: new Set(), fm: new Set(), line: null,
+const UI = { view: 'cartera', t: TIDX.VCE, L: LIDX.L3, line: null, fOpen: false,
   ter: TIDX.VCE, mInd: 'ter', mLin: LIDX.L3, layers: new Set(['tl', 'ies', 'erd']), hbScope: 'all', hbSort: 'bre', hbDir: -1 };
-const fActive = () => UI.fb.size || UI.fn.size || UI.fm.size || UI.line;
-function entryPass(e) {
-  const ln = LINE[e.l];
-  if (UI.line && e.l !== UI.line) return false;
-  if (UI.fb.size && !UI.fb.has(ln.b)) return false;
-  if (UI.fm.size && !UI.fm.has(e.m)) return false;
-  if (UI.fn.size) { const ns = lineNums(ln); if (![...UI.fn].some(n => ns.has(n))) return false; }
-  return true;
-}
-
 // ================= colores =================
 function hex2rgb(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
 function mix(a, b, t) { const A = hex2rgb(a), Bc = hex2rgb(b); return '#' + A.map((x, i) => Math.round(x + (Bc[i] - x) * t).toString(16).padStart(2, '0')).join(''); }
@@ -1893,7 +1925,7 @@ function locator(ti, extra) {
 
 // ================= vistas =================
 const VIEWS = ['cartera', 'bip', 'territorios', 'empresas', 'evid', 'formular', 'marco'];
-const FIRMV = new Set(['cartera', 'territorios', 'empresas']);
+const FIRMV = new Set(['territorios', 'empresas']);
 const rendered = {};
 function setView(v) {
   UI.view = v;
@@ -1918,97 +1950,102 @@ $('.tabs').addEventListener('keydown', e => {
 });
 
 // ================= CARTERA =================
-function renderKpis() {
-  const vis = ENT.filter(entryPass);
-  const ctci = vis.filter(e => isCTCI(LINE[e.l])).length, m3 = vis.filter(e => e.m === 3).length;
-  const gaps = cellList().filter(x => !CELL[TER[x.t].k + '|' + LIN[x.L].k] && lqN(x.t, x.L) >= 1.1).length;
-  const nl = new Set(vis.map(e => e.l)).size;
-  const k = (l, v, s) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
-  $('#kpis').innerHTML = [
-    k('Entradas de la cartera', `${vis.length}<small> / ${ENT.length}</small>`, fActive() ? 'con los filtros aplicados' : 'de 48 celdas territorio × lineamiento'),
-    k('Líneas de inversión', `${nl}<small> / ${LINES.length}</small>`, nl === LINES.length - 2 && !fActive() ? 'con celdas; L-02 y L-03 son transversales' : 'con entradas visibles'),
-    k('Entradas que aportan al piso CTCI', String(ctci), 'de la cartera, con categoría art. 8 N°3 (no son empresas)'),
-    k('Evidencia levantada', String(m3), 'entradas en madurez 3 de 3'),
-    k('Especialización sin entrada', String(gaps), 'celdas vacías con cociente ≥ 1,1'),
-  ].join('');
-}
+// Tres preguntas, en orden: cuánto hay y qué tan listo está, qué líneas se pueden formular ya y dónde falta.
+// Los filtros de empresas no cambian esta pestaña (usa LQ0); sí cambian la base empresarial de la ficha.
+const FRPD_2026 = 21111;   // MM$ · Ley 21.796, total FRPD La Araucanía 2026 (confirmado por DIFOI el 14-oct-2026)
+const MADS = { 3: 'levantada', 2: 'parcial', 1: 'por levantar' };
+const TSHORT = { TPLC: 'Temuco–PLC', VCE: 'Valle Central', CSU: 'Cautín Sur', MNO: 'Malleco Norte', NAH: 'Nahuelbuta', COS: 'Costa', AND: 'Andina', LAC: 'Lacustre' };
+const CT_L2CH = { L2: 'agro', L3: 'agro', L4: 'ene', L5: 'circ', L6: 'ebtc' };   // lineamiento -> cadena con que abre Formular [S]
+const mDots = m => `<span class="dots" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= m ? 'on' : ''}"></i>`).join('')}</span>`;
 const cellList = () => { const o = []; for (let t = 0; t < NT; t++) for (let L = 0; L < NL; L++) o.push({ t, L }); return o; };
-
-function renderFbar() {
-  const tg = (grp, v, lab, title) => `<button type="button" class="tog" data-g="${grp}" data-v="${v}" aria-pressed="${UI[grp].has(grp === 'fm' ? +v : v)}"${title ? ` title="${esc(title)}"` : ''}>${lab}</button>`;
-  $('#fbar').innerHTML =
-    `<div class="fgrp"><span class="lbl">Bloque</span>${Object.entries(BLOQ).map(([k, n]) => tg('fb', k, `${k} · ${esc(n)}`)).join('')}</div>` +
-    `<div class="fgrp"><span class="lbl">Art. 8</span>${tg('fn', '1', 'N°1 Fomento productivo', FR.art8[0].d)}${tg('fn', '2', 'N°2 Desarrollo regional', FR.art8[1].d)}${tg('fn', '3', 'N°3 CTCI', FR.art8[2].d)}</div>` +
-    `<div class="fgrp"><span class="lbl">Madurez</span>${[3, 2, 1].map(m => tg('fm', m, `${m} · ${{ 3: 'levantada', 2: 'parcial', 1: 'por levantar' }[m]}`, MADT[m])).join('')}</div>` +
-    (UI.line ? `<div class="fgrp"><span class="lbl">Línea</span><button type="button" class="tog" id="f-line" aria-pressed="true" title="Quitar el filtro de línea">${UI.line} ${esc(LINE[UI.line].n)} ✕</button></div>` : '') +
-    `<button type="button" class="btn clear" id="f-clear"${fActive() ? '' : ' hidden'}>Quitar filtros</button>`;
-  $$('#fbar .tog[data-g]').forEach(b => b.addEventListener('click', () => {
-    const g = b.dataset.g, v = g === 'fm' ? +b.dataset.v : b.dataset.v;
-    if (UI[g].has(v)) UI[g].delete(v); else UI[g].add(v);
-    renderCartera(true);
-  }));
-  if (UI.line) $('#f-line').addEventListener('click', () => selectLine(null));
-  $('#f-clear').addEventListener('click', () => { UI.fb.clear(); UI.fn.clear(); UI.fm.clear(); UI.line = null; renderCartera(true); });
+const cellGap = (t, L) => !CELL[TER[t].k + '|' + LIN[L].k] && LQ0[t][L] >= 1.1;
+const lineEnts = ln => ENT.filter(e => e.l === ln.k);
+// 0: lista en todos sus territorios · 1: lista en algunos · 2: evidencia por completar. Sin entradas, manda la madurez de la línea en la minuta.
+function lineState(ln) {
+  const es = lineEnts(ln);
+  if (!es.length) return parseInt(ln.mad, 10) >= 3 ? 0 : 2;
+  const n3 = es.filter(e => e.m === 3).length;
+  return n3 === es.length ? 0 : n3 ? 1 : 2;
 }
-
-function cellVal(t, L) {
-  const e = CELL[TER[t].k + '|' + LIN[L].k];
-  if (UI.mode === 'lq') { const v = lqN(t, L); return { v, txt: f2(v), bg: lqColor(v) }; }
-  if (UI.mode === 'n') { const v = cN[t][L], mx = Math.max(...cN.flat()); return { v, txt: f0(v), bg: ramp(SEQ, Math.log(1 + v) / Math.log(1 + mx)) }; }
-  if (UI.mode === 'g') { const g = gr(serC[t][L]), gR = gr(serR[L]); return { v: g, txt: pcs(g), bg: lqColor((1 + g) / (1 + gR)) }; }
-  if (UI.mode === 'fin') { const v = finN[t][L], mx = Math.max(...finN.flat()); return { v, txt: f0(v), bg: v ? ramp(SEQ, Math.log(1 + v) / Math.log(1 + mx)) : NODATA }; }
-  return { v: e ? e.m : NaN, txt: '', bg: e ? MADC[e.m] : NODATA };
+const CT_COLS = [
+  ['Lista en todos sus territorios', 'Evidencia levantada y contraparte identificada: se puede formular.'],
+  ['Lista en algunos territorios', 'Se puede partir donde la evidencia está levantada y completar el resto.'],
+  ['Evidencia por completar', 'Ninguna entrada tiene todavía la evidencia levantada.'],
+];
+function renderCtSum() {
+  const m = { 1: 0, 2: 0, 3: 0 }; ENT.forEach(e => { m[e.m]++; });
+  const ct = ENT.filter(e => isCTCI(LINE[e.l])).length, gaps = cellList().filter(x => cellGap(x.t, x.L)).length;
+  const seg = k => (m[k] ? `<span class="m${k}" style="flex:${m[k]}"><b>${m[k]}</b> ${MADS[k]}</span>` : '');
+  $('#ct-sum').innerHTML = `<div class="ct-s1"><p class="ct-lead"><b>${f0(LINES.length)}</b> líneas de inversión · <b>${f0(ENT.length)}</b> entradas territoriales</p>
+      <div class="ct-bar" role="img" aria-label="Entradas según su evidencia: ${m[3]} levantada, ${m[2]} parcial y ${m[1]} por levantar">${seg(3)}${seg(2)}${seg(1)}</div>
+      <p class="note">Entradas según la madurez de su evidencia en la minuta DIFOI (sept. 2026).</p></div>
+    <ul class="ct-facts">
+      <li><b>${f0(ct)} de ${f0(ENT.length)}</b> entradas son de categoría N°3 y suman al piso de 25% para CTCI (art. 7).</li>
+      <li>FRPD 2026: <b>${f0(FRPD_2026)} MM$</b> (Ley 21.796); el piso equivale a unos ${f0(FRPD_2026 * 0.25)} MM$. La cartera todavía no tiene montos por línea.</li>
+      <li><b>${pl(gaps, 'combinación', 'combinaciones')}</b> de territorio y lineamiento con especialización y sin entrada. ${gaps ? '<button type="button" class="linkbtn" id="ct-go-gap">Ver dónde falta</button>' : ''}</li>
+    </ul>`;
+  const g = $('#ct-go-gap'); if (g) g.addEventListener('click', () => { $('#ct-gap').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); });
+}
+function renderBoard() {
+  const cols = [[], [], []]; LINES.forEach(ln => cols[lineState(ln)].push(ln));
+  const card = ln => {
+    const es = lineEnts(ln).sort((a, b) => b.m - a.m || TIDX[a.t] - TIDX[b.t]), n3 = es.filter(e => e.m === 3).length;
+    const lin = ln.ctci.filter(k => LSHORT[k]).map(k => `${k} ${LSHORT[k]}`).join(' · ') || 'Transversal';
+    return `<article class="ct-card${UI.fOpen && UI.line === ln.k ? ' on' : ''}" data-line="${ln.k}">
+      <div class="ct-ch"><span class="code">${ln.k}</span>${isCTCI(ln) ? '<span class="pill ct" title="Categoría N°3 del art. 8">Suma al 25% de CTCI</span>' : '<span class="pill" title="Sin categoría N°3 del art. 8">No suma al 25%</span>'}</div>
+      <h3>${esc(ln.n)}</h3>
+      <p class="ct-meta">${esc(lin)} · Bloque ${ln.b}: ${esc(BLOQ[ln.b])}</p>
+      ${es.length ? `<div class="ct-ter">${es.map(e => `<button type="button" class="ct-t m${e.m}${UI.fOpen && UI.t === TIDX[e.t] && UI.L === LIDX[e.c] ? ' on' : ''}" data-t="${TIDX[e.t]}" data-l="${LIDX[e.c]}" aria-label="${esc(TER[TIDX[e.t]].n)}: evidencia ${MADS[e.m]}. Abrir ficha" title="${esc(TER[TIDX[e.t]].n)} · ${e.c} · evidencia ${MADS[e.m]}">${mDots(e.m)}${TSHORT[e.t]}</button>`).join('')}</div>
+        ${es.length > 1 ? `<p class="ct-meta">${n3} de ${es.length} territorios con evidencia levantada</p>` : ''}` : `<p class="ct-meta">${ln.terr === 'REGIONAL' ? 'Alcance regional' : 'Todos los territorios'}, sin entrada territorial propia.</p>`}
+      <details class="ct-more"><summary>Qué financia</summary><p>${esc(ln.que)}</p><p><b>Evidencia de la minuta.</b> ${esc(ln.ev)}</p></details></article>`;
+  };
+  $('#ct-board').innerHTML = cols.map((ls, j) => `<div class="ct-col c${j}"><div class="ct-colh"><h3>${CT_COLS[j][0]} <span>${ls.length}</span></h3><p>${CT_COLS[j][1]}</p></div>${ls.map(card).join('') || '<p class="note">Ninguna línea en este estado.</p>'}</div>`).join('');
 }
 function renderMatrix() {
-  const host = $('#mx');
-  let h = '<div></div>' + LIN.map((l, L) => `<div class="ch${linOn(L) ? '' : ' dim'}" title="${esc(l.n)}"><b>${l.k}</b><span>${esc(LSHORT[l.k])}</span></div>`).join('');
+  let h = '<div></div>' + LIN.map(l => `<div class="ch" title="${esc(l.n)}"><b>${l.k}</b><span>${esc(LSHORT[l.k])}</span></div>`).join('');
   for (let t = 0; t < NT; t++) {
     const T = TER[t];
-    h += `<button type="button" class="rh${UI.t === t ? ' on' : ''}${terOn(t) ? '' : ' dim'}" data-t="${t}" title="Ver el territorio en el mapa"><b>${esc(T.n)}</b><span>${f0(T.pop)} hab. · ${pl(T.c.length, 'comuna', 'comunas')}</span></button>`;
+    h += `<div class="rh"><b>${esc(T.n)}</b></div>`;
     for (let L = 0; L < NL; L++) {
-      const e = CELL[T.k + '|' + LIN[L].k], cv = cellVal(t, L), ink = inkOn(cv.bg);
-      const dim = (fActive() && (!e || !entryPass(e))) || !terOn(t) || !linOn(L);
-      const gap = !e && lqN(t, L) >= 1.1;
-      const on = UI.t === t && UI.L === L;
-      const lab = e ? `${e.l}, madurez ${e.m}` : 'sin entrada';
-      h += `<button type="button" class="cell${e ? '' : ' empty'}${gap ? ' gap' : ''}${dim ? ' dim' : ''}${on ? ' on' : ''}" data-t="${t}" data-l="${L}" style="background:${cv.bg};color:${ink}" aria-label="${esc(T.n)}, ${LIN[L].k}: ${lab}" aria-pressed="${on}">` +
-        (e ? `<span class="code">${e.l}</span><span class="dots" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= e.m ? 'on' : ''}"></i>`).join('')}</span>` : `<span class="code">Sin entrada</span>`) +
-        (cv.txt ? `<span class="v">${cv.txt}</span>` : '') + '</button>';
+      const e = CELL[T.k + '|' + LIN[L].k], gap = cellGap(t, L), on = UI.fOpen && UI.t === t && UI.L === L;
+      h += `<button type="button" class="cell ${e ? 'has' : gap ? 'gap' : 'empty'}${on ? ' on' : ''}" data-t="${t}" data-l="${L}" aria-label="${esc(T.n)}, ${LIN[L].k} ${esc(LSHORT[LIN[L].k])}: ${e ? `línea ${e.l}, evidencia ${MADS[e.m]}` : gap ? `sin entrada y con especialización, cociente ${f2(LQ0[t][L])}` : 'sin entrada'}. Abrir ficha">`
+        + (e ? `<span class="code">${e.l}</span>` : gap ? `<span class="g">Oportunidad</span><span class="v">${f2(LQ0[t][L])}</span>` : '<span class="g" aria-hidden="true">–</span>') + '</button>';
     }
   }
-  host.innerHTML = h;
-  $$('.cell', host).forEach(b => {
-    b.addEventListener('click', () => { UI.t = +b.dataset.t; UI.L = +b.dataset.l; UI.ter = UI.t; renderMatrix(); renderFicha(); if (innerWidth <= 1100) $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    b.addEventListener('mousemove', ev => cellTip(ev, +b.dataset.t, +b.dataset.l));
-    b.addEventListener('mouseleave', hideTip);
-  });
-  $$('.rh', host).forEach(b => b.addEventListener('click', () => { UI.ter = +b.dataset.t; setView('territorios'); }));
-  // leyenda
-  const lg = $('#mx-leg');
-  const gapk = '<span class="k"><i></i>Especializado sin entrada (cociente ≥ 1,1)</span>';
-  if (UI.mode === 'lq' || UI.mode === 'g') {
-    const st = [0.5, 0.71, 1, 1.41, 2];
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${st.map(v => `<span style="background:${lqColor(v)}"></span>`).join('')}</div><div class="t"><span>${UI.mode === 'lq' ? 'menos que la región' : 'crece menos'}</span><span>${UI.mode === 'lq' ? 'más' : 'más'}</span></div></div>` +
-      `<span>${UI.mode === 'lq' ? 'Cociente de localización: peso del lineamiento en las empresas del territorio ÷ su peso en la región (1,0 = igual)' : `Crecimiento del N° de empresas ${pLab()} comparado con el del mismo lineamiento en la región`}</span>` + gapk;
-  } else if (UI.mode === 'fin') {
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${[0, .25, .5, .75, 1].map(v => `<span style="background:${ramp(SEQ, v)}"></span>`).join('')}</div><div class="t"><span>pocos</span><span>muchos</span></div></div><span>Proyectos ANID, CORFO InnovaChile e iniciativas BIP de fomento o CTCI 2019–2026 en el territorio y lineamiento (escala logarítmica). Los proyectos sin comuna (alcance regional) se ven en la ficha.</span>` + gapk;
-  } else if (UI.mode === 'n') {
-    lg.innerHTML = `<div style="display:flex;flex-direction:column;gap:3px"><div class="g">${[0, .25, .5, .75, 1].map(v => `<span style="background:${ramp(SEQ, v)}"></span>`).join('')}</div><div class="t"><span>pocas</span><span>muchas</span></div></div><span>Empresas del territorio en los subrubros del lineamiento (escala logarítmica)</span>` + gapk;
-  } else {
-    lg.innerHTML = [3, 2, 1].map(m => `<span class="k"><span style="width:14px;height:12px;border-radius:3px;background:${MADC[m]}"></span>${m} · ${MADT[m]}</span>`).join('') + gapk;
-  }
-  $('#mx-note').textContent = (hasAttr() ? `Empresas filtradas: ${filterText(true)}. Cocientes y crecimiento se calculan dentro de esa selección. ` : '') + (hasGeo() || hasLin() ? 'Los filtros de territorio y lineamiento atenúan las filas y columnas que no corresponden. ' : '') + 'La asignación de subrubros SII a cada lineamiento es provisional y algunos subrubros (agrícolas, forestales) cuentan en más de un lineamiento. Una celda vacía no es una brecha por sí sola: revisa la ficha.';
+  $('#mx').innerHTML = h;
+  $('#mx-leg').innerHTML = '<span class="k"><i class="has"></i>Con entrada en la cartera (código de la línea)</span><span class="k"><i class="gap"></i>Oportunidad: sin entrada y con cociente de localización de 1,1 o más</span><span class="k"><i class="empty"></i>Sin entrada</span>';
+  const gaps = cellList().filter(x => cellGap(x.t, x.L)).sort((a, b) => LQ0[b.t][b.L] - LQ0[a.t][a.L]);
+  $('#ct-opp').innerHTML = `<h3 class="lbl">Oportunidades · ${gaps.length}</h3>` + (gaps.length ? `<ul class="ct-ol">${gaps.map(x => `<li><b>${esc(TER[x.t].n)} · ${LIN[x.L].k} ${esc(LSHORT[LIN[x.L].k])}</b>
+      <span class="sm">Cociente de localización ${f2(LQ0[x.t][x.L])} (1,00 = igual a la región): el territorio está especializado en el lineamiento y la cartera no tiene entrada.</span>
+      <div class="ct-ob"><button type="button" class="btn sm" data-t="${x.t}" data-l="${x.L}">Ver ficha</button><button type="button" class="btn sm pri" data-fm="${x.t},${x.L}">Formular aquí</button></div></li>`).join('')}</ul>` : '<p class="note">Todas las combinaciones con especialización tienen entrada.</p>')
+    + '<p class="note">Una celda vacía no es una brecha por sí sola: revisa la ficha. El cociente compara el peso del lineamiento en las empresas del territorio con su peso en la región (SII 2024); la asignación de subrubros a lineamientos es provisional [S].</p>';
 }
-function cellTip(ev, t, L) {
+// Formular desde la cartera: abre el recorrido con el territorio y la cadena más cercana al lineamiento [S]
+function ctFormular(t, L) { UI.fOpen = false; $('#ficha').hidden = true; const j = STRAT_CHAINS.findIndex(c => c.id === CT_L2CH[LIN[L].k]); fmOpen(t, j >= 0 ? j : FMU.ch); }
+// ficha lateral: se abre al elegir un territorio o una celda y no ocupa espacio mientras está cerrada
+let FI_FROM = null;
+function openFicha(t, L, from) {
   const e = CELL[TER[t].k + '|' + LIN[L].k];
-  showTip(ev, `${TER[t].n} · ${LIN[L].k} ${LSHORT[LIN[L].k]}`, [
-    [f0(cN[t][L]), 'empresas en el lineamiento'], [f2(lqN(t, L)), 'cociente de localización'], [pcs(gr(serC[t][L])), `crecimiento ${pLab()} (región ${pcs(gr(serR[L]))})`], [f0(finN[t][L]), 'proyectos financiados 2019–2026'],
-  ], e ? `${e.l} ${LINE[e.l].n} · madurez ${e.m}` : 'Sin entrada en la cartera');
+  UI.t = t; UI.L = L; UI.ter = t; UI.line = e ? e.l : null; UI.fOpen = true; FI_FROM = from || null;
+  renderBoard(); renderMatrix(); renderFicha();
+  const f = $('#ficha'); f.hidden = false; f.scrollTop = 0; f.focus({ preventScroll: true });
 }
-$('#mx-mode').addEventListener('change', e => { UI.mode = e.target.value; renderMatrix(); });
+function closeFicha() {
+  if (!UI.fOpen) return;
+  UI.fOpen = false; $('#ficha').hidden = true; renderBoard(); renderMatrix();
+  const b = FI_FROM && $(`${FI_FROM} [data-t="${UI.t}"][data-l="${UI.L}"]`); if (b) b.focus({ preventScroll: true });
+}
+$('#v-cartera').addEventListener('click', ev => {
+  if (ev.target.closest('#ficha')) return;
+  const fm = ev.target.closest('button[data-fm]'), b = ev.target.closest('button[data-t][data-l]');
+  if (fm) { const [t, L] = fm.dataset.fm.split(',').map(Number); ctFormular(t, L); }
+  else if (b) openFicha(+b.dataset.t, +b.dataset.l, '#' + b.closest('#ct-board, #mx, #ct-opp').id);
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && UI.view === 'cartera' && UI.fOpen) closeFicha(); });
 
 // --- ficha
 let FICHA = null; // contexto de la celda abierta
+const FI_OPEN = new Set(), FI_KEEP = /^(Entrada de la cartera|Sin entrada en la cartera|Encaje en el D\.S\. 1\.699)/;
 function cellFirms(t, L, onlyVig) {
   const out = [], ls = LS[L];
   for (let i = 0; i < N; i++) if (MA[i] && TOF[COM[i]] === t && ls[SUB[i]] && (!onlyVig || VIG[i])) out.push(i);
@@ -2042,32 +2079,18 @@ function renderFicha() {
   const g = gr(serC[t][L]), gR = gr(serR[L]), lq = lqN(t, L), lqt = lqT(t, L);
   FICHA = { t, L, e, firms, topSub };
   const others = LINES.filter(l => (l.ctci.includes(Lk)) && (!e || l.k !== e.l));
-  let h = `<div class="fi-h"><div style="flex:1;min-width:0"><div class="eyebrow">Ficha · territorio × lineamiento</div><h2>${esc(T.n)} · ${Lk} ${esc(LSHORT[Lk])}</h2><p class="note" style="margin-top:4px">${esc(LIN[L].n)}</p></div><div class="loc">${locator(t)}</div></div>`;
+  let h = `<div class="fi-h"><div style="flex:1;min-width:0"><div class="eyebrow">Ficha · territorio × lineamiento</div><h2>${esc(T.n)} · ${Lk} ${esc(LSHORT[Lk])}</h2><p class="note" style="margin-top:4px">${esc(LIN[L].n)}</p></div><div class="loc">${locator(t)}</div><button type="button" class="btn sm" id="fi-x">Cerrar</button></div>`;
   if (e) {
     h += `<div class="fi-sec"><h3>Entrada de la cartera</h3><div class="line-t"><span class="code">${ln.k}</span><b>${esc(ln.n)}</b></div>
       <div class="pills"><span class="pill">Bloque ${ln.b} · ${esc(BLOQ[ln.b])}</span><span class="mad"><span class="dots">${[1, 2, 3].map(i => `<i class="${i <= e.m ? 'on' : ''}"></i>`).join('')}</span>Madurez ${e.m}: ${esc(MADT[e.m].toLowerCase())}</span></div>
-      <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p></div>`;
-    if (e.liveEstado || e.liveMonto) {
-      h += `<div class="fi-sec" style="background:var(--surf2);border:1px solid var(--line2);border-radius:8px;padding:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b style="color:var(--acc);font-size:13px">Gestión Viva DIFOI · Monitoreo FRPD</b>
-          <span style="font-size:11px;color:var(--muted)">${esc(e.liveFecha || 'Sincronizado')}</span>
-        </div>
-        <div class="pills">
-          <span class="pill" style="border-color:var(--acc);color:var(--acc);font-weight:600">${esc(e.liveEstado || '2. Ficha Técnica Completa')}</span>
-          <span class="pill">Presupuesto est.: <b>${e.liveMonto ? '$' + f0(e.liveMonto) + ' MM$' : 'Por definir'}</b></span>
-          <span class="pill">Responsable: <b>${esc(e.liveResp || 'Por asignar')}</b></span>
-        </div>
-        ${e.liveEjecutor ? `<p class="note" style="margin-top:6px"><strong>Ejecutor propuesto:</strong> ${esc(e.liveEjecutor)}</p>` : ''}
-      </div>`;
-    }
+      <p><strong>Qué financia.</strong> ${esc(ln.que)}</p><p><strong>Evidencia de la minuta.</strong> ${esc(ln.ev)}</p><div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular en este territorio</button></div></div>`;
     const ct = isCTCI(ln);
     h += `<div class="fi-sec"><h3>Encaje en el D.S. 1.699</h3><div class="pills">${ct ? '<span class="pill ct">Aporta al piso CTCI del 25 % (art. 7)</span>' : '<span class="pill">No aporta al piso CTCI</span>'}</div>
       <div class="hab" style="grid-template-columns:auto minmax(0,1fr)">${ln.a8.map(k => `<span class="x" style="text-align:left;color:var(--acc)">${k}</span><span class="n">${esc(A8[k].n)}</span>`).join('')}${ln.g.map(k => `<span class="x" style="text-align:left;color:var(--acc)">gasto ${k}</span><span class="n">${esc(GASTO[k])}</span>`).join('')}</div>
       ${!ln.a8.length && !ln.g.length ? '<p class="note">La minuta no asigna categoría del art. 8: es un encargo de levantamiento.</p>' : ''}</div>`;
   } else {
     h += `<div class="fi-sec"><h3>Sin entrada en la cartera</h3><p>${lq >= 1.1 ? `<strong>El territorio está especializado en este lineamiento</strong> (cociente ${f2(lq)}) y la cartera no tiene entrada. Es una celda a revisar antes de cerrar la cartera.` : `La base empresarial del territorio en este lineamiento está ${lq >= 0.9 ? 'en torno al' : 'bajo el'} promedio regional (cociente ${f2(lq)}).`}</p>
-      ${others.length ? `<p>Líneas de ${Lk} en otros territorios: ${others.map(l => `<button type="button" class="linkbtn" data-line="${l.k}">${l.k}</button> ${esc(l.n)}`).join(' · ')}.</p>` : ''}</div>`;
+      ${others.length ? `<p>Líneas de ${Lk} en otros territorios: ${others.map(l => `<button type="button" class="linkbtn" data-line="${l.k}">${l.k}</button> ${esc(l.n)}`).join(' · ')}.</p>` : ''}<div class="ctrls"><button class="btn pri" type="button" id="fi-fm">Formular aquí</button></div></div>`;
   }
   const ler = ln ? ln.ler : [];
   h += `<div class="fi-sec"><h3>Alineación con la ERD 2040</h3>${ler.length ? `<div class="pills">${ler.map(k => `<span class="pill"><b>LER ${k}</b>${esc(LERN[k])}</span>`).join('')}</div>` : ''}
@@ -2141,6 +2164,15 @@ function renderFicha() {
     <div class="ctrls"><button class="btn warm" type="button" id="cl-go">Redactar borrador</button><button class="btn" type="button" id="cl-stop" hidden>Detener</button><button class="btn" type="button" id="cl-copy" hidden>Copiar</button></div></div>
     <p class="note" id="cl-status"></p><div class="draft" id="cl-out" hidden></div></div></div>`;
   $('#ficha').innerHTML = h;
+  // lo esencial queda a la vista; el resto de las secciones se pliega y recuerda si quedó abierta
+  $$('#ficha .fi-sec').forEach(s => {
+    const h3 = s.querySelector(':scope > h3'); if (!h3 || FI_KEEP.test(h3.textContent)) return;
+    const k = h3.textContent.split(' · ')[0], d = document.createElement('details'), sm = document.createElement('summary'), body = document.createElement('div');
+    d.className = 'fi-sec'; d.open = FI_OPEN.has(k); sm.appendChild(h3); while (s.firstChild) body.appendChild(s.firstChild); d.append(sm, body); s.replaceWith(d);
+    d.addEventListener('toggle', () => { if (d.open) FI_OPEN.add(k); else FI_OPEN.delete(k); });
+  });
+  $('#fi-x').addEventListener('click', closeFicha);
+  $('#fi-fm').addEventListener('click', () => ctFormular(t, L));
   $$('#ficha [data-line]').forEach(b => b.addEventListener('click', () => selectLine(b.dataset.line)));
   $('#fi-bip').addEventListener('click', () => openBip({ t, L, cat: 'frpd' }));
   $('#fi-ev').addEventListener('click', () => openEvid({ t, g: EVL[Lk].map(k => EVK[k].g)[0] }));
@@ -2150,35 +2182,11 @@ function renderFicha() {
   wireClaude();
 }
 
-// --- tabla de líneas
-function renderLines() {
-  const rows = LINES.map(ln => {
-    const ents = ENT.filter(e => e.l === ln.k);
-    return `<tr class="click${UI.line === ln.k ? ' on' : ''}" data-line="${ln.k}" tabindex="0">
-      <td class="m" style="color:var(--acc)">${ln.k}</td>
-      <td style="min-width:240px"><b style="font-weight:600">${esc(ln.n)}</b><span class="sm">Bloque ${ln.b} · ${esc(BLOQ[ln.b])}</span></td>
-      <td class="m">${ln.ler.map(k => 'LER ' + k).join('<br>')}</td>
-      <td><div class="tchips">${ln.a8.map(k => `<span class="tchip" title="${esc(A8[k].n)}">${k}</span>`).join('')}${ln.g.map(k => `<span class="tchip" title="${esc(GASTO[k])}">g. ${k}</span>`).join('')}${!ln.a8.length && !ln.g.length ? '<span class="sm">levantamiento</span>' : ''}</div></td>
-      <td>${isCTCI(ln) ? '<span class="pill ct">Sí</span>' : '<span class="pill">No</span>'}</td>
-      <td><div class="tchips">${ents.length ? ents.map(e => `<span class="tchip m${e.m}" title="${esc(TER[TIDX[e.t]].n)} · ${e.c} · madurez ${e.m}">${e.t} ${e.c}</span>`).join('') : `<span class="sm">${ln.terr === 'REGIONAL' ? 'Alcance regional' : 'Todos los territorios'}, sin celda propia</span>`}</div></td></tr>`;
-  }).join('');
-  $('#lines').innerHTML = `<table><thead><tr><th>Línea</th><th>Nombre</th><th>LER</th><th>Art. 8 / gasto</th><th>Piso CTCI</th><th>Entradas (territorio · lineamiento)</th></tr></thead><tbody>${rows}</tbody></table>`;
-  $$('#lines tr[data-line]').forEach(r => {
-    const go = () => selectLine(UI.line === r.dataset.line ? null : r.dataset.line);
-    r.addEventListener('click', go); r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
-  });
-  $('#ln-clear').hidden = !UI.line;
-}
-function selectLine(k) {
-  UI.line = k;
-  if (k) { const e = ENT.find(x => x.l === k); if (e) { UI.t = TIDX[e.t]; UI.L = LIDX[e.c]; } }
-  renderCartera(true);
-  if (k) $('#mx').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-$('#ln-clear').addEventListener('click', () => selectLine(null));
+// abre la ficha en la primera entrada de una línea
+function selectLine(k) { const e = ENT.find(x => x.l === k); if (e) openFicha(TIDX[e.t], LIDX[e.c], '#ct-board'); }
 function renderCartera(withFicha) {
-  renderKpis(); renderFbar(); renderMatrix(); renderLines();
-  if (withFicha || !rendered.ficha) { renderFicha(); rendered.ficha = true; }
+  renderCtSum(); renderBoard(); renderMatrix();
+  if (UI.fOpen && withFicha) renderFicha();
 }
 
 // ================= INSTRUMENTOS DE PLANIFICACIÓN Y GESTIÓN TERRITORIAL (IPT · PLADECO · GRD) =================
@@ -2814,7 +2822,7 @@ function renderTprof() {
   }
   $('#tp-bip').addEventListener('click', () => openBip({ t: ti }));
   $('#tp-ev').addEventListener('click', () => openEvid({ t: ti }));
-  $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { UI.t = ti; UI.L = LIDX[b.dataset.c]; setView('cartera'); renderMatrix(); renderFicha(); $('#ficha').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+  $$('#tprof [data-c]').forEach(b => b.addEventListener('click', () => { setView('cartera'); openFicha(ti, LIDX[b.dataset.c]); }));
 }
 // tabla de habilitantes por comuna
 const HCOLS = [
@@ -4959,66 +4967,8 @@ if (!HAS_CLAUDE) {
   DL = { save: async ({ filename, data }) => { const u = URL.createObjectURL(data), a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } };
   ['#hb-csv', '#exe-csv', '#bx-csv', '#ev-csv', '#tb-csv'].forEach(id => { const el = $(id); if (el) el.hidden = false; });
 }
-window.applyLiveWorkspaceData = function(data) {
-  if (!data) return;
-  const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
-  if (dot) dot.style.background = 'var(--ok)';
-  if (txt) txt.textContent = 'Cartera e Indicadores Vivos (DIFOI)';
-
-  if (Array.isArray(data.cartera) && data.cartera.length) {
-    data.cartera.forEach(c => {
-      const key = (c.codTerr || '') + '|' + (c.codCtci || '');
-      const entry = CELL[key];
-      if (entry) {
-        entry.liveEstado = c.estadoGestion;
-        entry.liveMonto = c.presupuestoEstimadoM;
-        entry.liveResp = c.encargadoDifoi;
-        entry.liveEjecutor = c.ejecutor;
-        entry.liveFecha = c.fechaAct;
-      }
-    });
-    if (UI.view === 'cartera') {
-      renderKpis();
-      if (UI.t != null && UI.L != null) renderFicha();
-    }
-  }
-
-  toast('Datos del radar actualizados');
-};
-
-// Estado vivo de la cartera (datos_resumen.json). Si el archivo no está, queda la base de referencia.
-async function syncRadarData() {
-  const dot = $('#live-sync-dot'), txt = $('#live-sync-text');
-  if (dot) dot.style.background = 'var(--sel)';
-  if (txt) txt.textContent = 'Cargando datos del radar…';
-  try {
-    const jsonRes = await fetch('./datos_resumen.json?_t=' + Date.now());
-    const staticData = jsonRes.ok ? await jsonRes.json() : null;
-    if (!staticData || !staticData.cartera) throw new Error('Formato de datos no reconocido');
-    window.__LIVE_WORKSPACE_DATA__ = staticData;
-    window.applyLiveWorkspaceData(staticData);
-    if (dot) dot.style.background = 'var(--ok)';
-    if (txt) txt.textContent = 'Cartera e Indicadores FRPD';
-  } catch (err) {
-    console.warn('Carga de datos del radar no disponible:', err);
-    if (!window.__LIVE_WORKSPACE_DATA__) {
-      if (dot) dot.style.background = 'var(--muted)';
-      if (txt) txt.textContent = 'Modo local (Base de referencia)';
-    }
-  }
-}
-const syncLiveWorkspace = syncRadarData;
-
   update(false);
   setView(VIEWS.includes(h0) ? h0 : 'cartera');
-  if ($('#live-sync-badge')) $('#live-sync-badge').addEventListener('click', () => syncRadarData());
-
-  if (window.__LIVE_WORKSPACE_DATA__) {
-    window.applyLiveWorkspaceData(window.__LIVE_WORKSPACE_DATA__);
-  } else {
-    syncLiveWorkspace();
-  }
-
 if (HAS_CLAUDE) {
   window.claude.use('downloads').then(d => { DL = d; if (d) { $('#hb-csv').hidden = false; $('#exe-csv').hidden = false; $('#bx-csv').hidden = false; $('#ev-csv').hidden = false; $('#tb-csv').hidden = false; const b = $('#fi-csv'); if (b && FICHA && FICHA.firms.length) { b.hidden = false; b.onclick = exportFirms; } const b2 = $('#fi-fcsv'); if (b2 && FICHA && FICHA.fin && FICHA.fin.length) { b2.hidden = false; b2.onclick = exportFin; } } }).catch(() => {});
   window.claude.use('sample').then(s => { SAMPLE = s || null; wireClaude(); }).catch(() => { SAMPLE = null; wireClaude(); });
