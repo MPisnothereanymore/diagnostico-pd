@@ -531,6 +531,28 @@ details.tr-lay>.layers{margin-top:10px}
   #if-wrap .ift{min-width:800px}#if-wrap .ift th:first-child{width:150px;white-space:normal}
   .tr-dsep{display:block}.tr-dim:not(.gap){padding:6px 0 6px 12px}.tr-dim:not(.gap) .b,.tr-dim:not(.gap) .c{display:none}}
 @media (max-width:560px){.tr-pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Marco normativo: las reglas en una página */
+.mk-rules{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr) minmax(0,1.35fr);gap:12px}
+.mk-nums{display:grid;gap:12px;align-content:start}
+.mk-rule{background:var(--surf2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.mk-rule .a{font-family:var(--f-mono);font-size:11.5px;color:var(--acc)}
+.mk-rule .v{font-size:28px;font-weight:700;font-family:var(--f-mono);letter-spacing:-.01em;line-height:1.1}
+.mk-rule h3{font-size:15px;font-weight:600}
+.mk-rule p,.mk-rule ul{margin:0;font-size:13px;line-height:1.55;color:var(--ink2)}.mk-rule ul{padding-left:18px}.mk-rule li{margin-bottom:3px}
+.mk-rule p b,.mk-rule li b{color:var(--ink);font-weight:600}
+.mk-sub{font-size:13.5px!important;line-height:1.5;color:var(--ink2)!important;max-width:110ch!important}.mk-sub b{color:var(--ink)}
+.mk-a8{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 32px;align-items:start}
+.mk-g h3{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);padding:12px 0 6px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mk-g h3 span{font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px;white-space:nowrap}
+.mk-l{list-style:none;margin:0;padding:0}
+.mk-l li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.4;color:var(--ink)}
+.mk-l li>b{font-family:var(--f-mono);font-weight:500;font-size:12px;color:var(--acc)}
+.mk-l li.zero>span:nth-child(2){color:var(--ink2)}
+.mk-l .u{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;max-width:190px}
+.mk-l .u i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;padding:1px 5px;border-radius:3px;background:var(--acc-soft);color:var(--acc)}
+.mk-l .u em{font-style:normal;font-size:11.5px;color:var(--sel);white-space:nowrap}
+@media (max-width:1100px){.mk-rules{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.mk-nums{grid-column:1/-1;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:760px){.mk-rules,.mk-nums,.mk-a8{grid-template-columns:minmax(0,1fr)}.mk-l li{grid-template-columns:40px minmax(0,1fr)}.mk-l .u{grid-column:2;justify-content:flex-start;max-width:none}}
 @media (max-width:1000px){.ct-sum,.ct-gapw{grid-template-columns:minmax(0,1fr)}.ct-row{grid-template-columns:44px minmax(0,1fr)}.ct-row>.ct-ter,.ct-row>.ct-ra{grid-column:2}.ct-ra{justify-content:flex-start}}
 @media (max-width:600px){.ct-bar em{display:none}.ct-bar span{justify-content:center;padding:0 4px}.ct-barleg{display:flex}.ct-swipe{display:block}}
 
@@ -1153,33 +1175,29 @@ button.ifc:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 
   <!-- ===== Marco normativo ===== -->
   <section class="view" id="v-marco" role="tabpanel" aria-labelledby="tab-marco" hidden>
-    <div class="kpis" id="mk-kpis"></div>
     <section class="card">
-      <div class="card-h"><div><h2>Qué categorías del D.S. 1.699 cubre la cartera</h2><div class="sub">Filas: categorías del art. 8 y tipos de gasto de N°3. Columnas: las 14 líneas. En ámbar, categorías financiables que ninguna línea usa todavía.</div></div></div>
-      <div class="card-b">
-        <div class="cov-wrap"><div class="cov" id="cov"></div></div>
-        <details class="guide-det" style="margin-top:14px">
-          <summary class="guide-sum">¿Cómo leer la matriz de cobertura D.S. 1.699?</summary>
-          <div class="guide-b">
-            <div><b>Filas normativas:</b> Categorías de gasto elegibles según el Art. 8 del reglamento FRPD (Fomento productivo N°1, Infraestructura habilitante N°2 e I+D / CTCI N°3).</div>
-            <div><b>Columnas:</b> Las 14 líneas de la cartera regional. Los puntos verdes indican qué tipologías están cubiertas. En ámbar se destacan oportunidades elegibles aún no cubiertas.</div>
-          </div>
-        </details>
-      </div>
+      <div class="card-h"><div><h2>Las reglas del FRPD en una página</h2><div class="sub">D.S. 1.699 de Hacienda (17 de junio de 2025). Monto 2026: Ley 21.796, total confirmado por DIFOI el 14 de octubre de 2026.</div></div></div>
+      <div class="card-b"><div class="mk-rules" id="mk-rules"></div></div>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Lo que ya se financia en la región · 2019–2026</h2><div class="sub">Proyectos ANID ejecutados en la región, CORFO InnovaChile y las iniciativas BIP (FNDR y sectoriales) agrupadas según la categoría del art. 8 a la que se parecen. Sirve para no duplicar y para ver qué categorías ya tienen otra fuente.</div></div></div>
-      <div class="card-b"><div class="tbl-wrap" id="mk-fin"></div></div>
+      <div class="card-h"><div><h2>Qué se puede financiar · art. 8</h2><div class="sub mk-sub" id="mk-a8-sub"></div></div></div>
+      <div class="card-b"><div class="mk-a8" id="mk-a8"></div><p class="note" style="margin-top:12px">A la derecha de cada categoría, las líneas de la cartera DIFOI que la usan (pasa el cursor para ver su nombre).</p></div>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Quién puede ejecutar en La Araucanía</h2><div class="sub">Instituciones con sede o casa matriz en la región que el D.S. 1.699 habilita o puede habilitar, con su capacidad científica medida en proyectos ANID 2019–2026. La nómina de privadas es la del primer llamado 2026 (Res. 1/2026).</div></div><button class="btn pri" id="exe-csv" type="button" hidden>Exportar CSV</button></div>
-      <div class="card-b" style="display:flex;flex-direction:column;gap:14px"><div class="tbl-wrap" id="mk-exe"></div></div>
-    </section>
-    <div class="cards" id="mk-cards"></div>
-    <section class="card">
-      <div class="card-h"><div><h2>Estrategia Regional de Desarrollo 2040</h2><div class="sub">Seis lineamientos estratégicos regionales (LER) y sus objetivos. El D.S. 1.699 admite iniciativas asociadas a la ERD (art. 8 N°2 i) y cada línea de la cartera declara los LER con que se alinea.</div></div></div>
+      <div class="card-h"><div><h2>Con qué se alinea · Estrategia Regional de Desarrollo 2040</h2><div class="sub">Seis lineamientos estratégicos regionales (LER) y sus objetivos. El art. 8 pide que la inversión vaya en línea con la ERD, y cada línea de la cartera declara sus LER.</div></div></div>
       <div class="card-b" id="ler"></div>
     </section>
+    <details class="card tr-det" id="mk-exe-d">
+      <summary class="card-h"><div><h2>Quién puede ejecutar en La Araucanía</h2><div class="sub">Instituciones con sede o casa matriz en la región que el D.S. 1.699 habilita o puede habilitar, con sus proyectos ANID 2019–2026. La nómina de privadas es la del primer llamado 2026 (Res. 1/2026).</div></div></summary>
+      <div class="tr-detb">
+        <div><button class="btn pri" id="exe-csv" type="button" hidden>Exportar CSV</button></div>
+        <div class="tbl-wrap" id="mk-exe" style="display:flex;flex-direction:column;gap:14px"></div>
+      </div>
+    </details>
+    <details class="card tr-det" id="mk-fin-d">
+      <summary class="card-h"><div><h2>Lo que ya se financia en la región · desde 2019</h2><div class="sub" id="mk-fin-sub"></div></div></summary>
+      <div class="tr-detb"><div class="tbl-wrap" id="mk-fin"></div></div>
+    </details>
   </section>
 
   <!-- ===== Formular ===== -->

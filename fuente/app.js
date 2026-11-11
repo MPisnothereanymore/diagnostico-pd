@@ -1513,22 +1513,28 @@ function exportEvid() {
 
 // ================= MARCO NORMATIVO =================
 const focoCorto = f => { const s = f.split('Objetivo Estratégico Regional')[0].trim().split(/(?<=\.)\s+/); return s.slice(0, 2).join(' '); };
+// ================= MARCO NORMATIVO: las reglas en una página =================
+// Orden de las preguntas de quien formula: cuánto, qué no, quién, qué sí (art. 8, con el uso que le da la cartera) y con qué se alinea.
 function renderMarco() {
   const used = {}; LINES.forEach(ln => { ln.a8.forEach(k => { (used[k] = used[k] || []).push(ln.k); }); ln.g.forEach(k => { (used['g' + k] = used['g' + k] || []).push(ln.k); }); });
   const nA8 = A8KEYS.filter(k => used[k]).length, nG = FR.gastos.filter(g => used['g' + g.k]).length, nC = LINES.filter(isCTCI).length;
-  const k = (l, v, s) => `<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
-  $('#mk-kpis').innerHTML = [k('Piso de investigación (art. 7)', '25 %', 'mínimo del fondo para N°3; bajarlo requiere solicitud a Hacienda'), k('Gastos de administración (art. 9)', '≤ 5 %', 'tope sobre el fondo'),
-    k('Categorías del art. 8 usadas', `${nA8}<small> / ${A8KEYS.length}</small>`, 'por al menos una línea'), k('Gastos de N°3 usados', `${nG}<small> / ${FR.gastos.length}</small>`, 'tipos i a x'), k('Líneas que aportan al piso', `${nC}<small> / ${LINES.length}</small>`, 'tienen N°3 o gasto i–x')].join('');
-  const cols = `minmax(300px,4fr) repeat(${LINES.length},minmax(30px,.6fr)) 46px`;
-  let h = `<div class="cov" style="grid-template-columns:${cols}"><div></div>${LINES.map(l => `<div class="hd" title="${esc(l.n)}">${l.k.replace('L-', '')}</div>`).join('')}<div class="hd">Líneas</div>`;
-  const row = (key, code, name) => { const u = used[key] || []; return `<div class="rh${u.length ? '' : ' zero'}" title="${esc(name)}"><b>${code}</b><span>${esc(name)}</span></div>` + LINES.map(l => `<div class="c">${u.includes(l.k) ? `<i title="${esc(l.k + ' · ' + l.n)}"></i>` : ''}</div>`).join('') + `<div class="tot${u.length ? '' : ' zero'}">${u.length || '0'}</div>`; };
-  FR.art8.forEach(g => { h += `<div class="grp">N°${g.k} · ${esc(g.n)}</div>`; g.items.forEach(it => { h += row(it.k, it.k, it.n); }); });
-  h += `<div class="grp">Gastos financiables en N°3</div>`; FR.gastos.forEach(gs => { h += row('g' + gs.k, gs.k, gs.n); });
-  $('#cov').innerHTML = h + '</div>';
-  // tarjetas
-  const pav15 = ALLC.filter(c => HV.pav[c] < 0.15).length, madR = sumC('pmad', ALLC) / sumC('pue', ALLC);
-  const saidiTop = [...ALLC].sort((a, b) => IN.saidi[b] - IN.saidi[a]).slice(0, 3);
-  const noN1 = !A8KEYS.filter(x => x.startsWith('1')).some(x => used[x]);
+  const piso = FRPD_2026 * 0.25, adm = FRPD_2026 * 0.05;
+  $('#mk-rules').innerHTML = `
+    <div class="mk-nums">
+      <div class="mk-rule"><span class="a">Art. 7 · mínimo para CTCI</span><b class="v">25 %</b><p>del fondo debe ir al N°3 (investigación científica y tecnológica). En 2026 son unos <b>${f0(piso)} MM$</b> de ${f0(FRPD_2026)} MM$. Bajarlo requiere solicitud a Hacienda.</p></div>
+      <div class="mk-rule"><span class="a">Art. 9 · tope de administración</span><b class="v">5 %</b><p>del fondo como máximo para gastos de administración: unos <b>${f0(adm)} MM$</b> en 2026.</p></div>
+    </div>
+    <div class="mk-rule"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p>Tampoco iniciativas sin un objeto directo productivo, de desarrollo regional o de CTCI.</p></div>
+    <div class="mk-rule"><span class="a">Arts. 11 a 15</span><h3>Quién puede ejecutar</h3><ul>${FR.ejec.map(e => `<li><b>${esc(e.n)}</b> (${esc(e.a)}): ${esc(e.d)}</li>`).join('')}</ul><div><button type="button" class="linkbtn" id="mk-go-exe">Ver las ${f0(EXE.length)} instituciones con sede en la región</button></div></div>`;
+  // art. 8: categorías y el uso que les da la cartera
+  const grpUnused = FR.art8.map(g => ({ g, un: g.items.filter(it => !used[it.k]) }));
+  const sinTxt = grpUnused.filter(x => x.un.length).map(x => (x.un.length === x.g.items.length ? `todo el N°${x.g.k}` : x.un.map(it => it.k).join(', '))).join('; ');
+  $('#mk-a8-sub').innerHTML = `La cartera usa <b>${nA8} de ${A8KEYS.length}</b> categorías del art. 8 y <b>${nG} de ${FR.gastos.length}</b> tipos de gasto del N°3. <b>${nC} de ${LINES.length}</b> líneas tienen componente N°3 y pueden contar para el mínimo de 25 %.${sinTxt ? ` Sin línea: ${esc(sinTxt)}.` : ''}`;
+  const item = (key, code, name) => { const u = used[key] || []; return `<li class="${u.length ? '' : 'zero'}"><b>${code}</b><span>${esc(name)}</span><span class="u">${u.length ? u.map(k => `<i title="${esc(LINE[k].n)}">${k}</i>`).join('') : '<em>sin línea</em>'}</span></li>`; };
+  const group = (title, n, rows) => `<section class="mk-g"><h3>${esc(title)} <span>${n}</span></h3><ul class="mk-l">${rows}</ul></section>`;
+  const gHtml = FR.art8.map(g => group(`N°${g.k} · ${g.n}`, `${g.items.filter(it => used[it.k]).length} de ${g.items.length} con línea`, g.items.map(it => item(it.k, it.k, it.n)).join('')));
+  const gastos = group('Gastos financiables dentro del N°3', `${nG} de ${FR.gastos.length} con línea`, FR.gastos.map(gs => item('g' + gs.k, gs.k, gs.n)).join(''));
+  $('#mk-a8').innerHTML = `<div>${gHtml.slice(0, 2).join('')}</div><div>${gHtml.slice(2).join('')}${gastos}</div>`;
   // lo que ya se financia
   const grp = (f) => { const o = []; for (let i = 0; i < NFN; i++) if (f(i)) o.push(i); return o; };
   const isB = g => i => FN_S[i] === S_BIP && fnG(i) === g;
@@ -1551,6 +1557,7 @@ function renderMarco() {
       <td><span class="sm" style="color:var(--ink2)">${top.map(i => esc(FN_N[i].slice(0, 70)) + (isFinite(FN_M[i]) ? ` (${f0(FN_M[i])})` : '')).join('<br>')}</span></td></tr>`; }).join('') + '</tbody></table>' +
     '<p class="note" style="margin-top:10px">BIP: iniciativas postuladas 2019–2027 (FNDR, sectoriales y mixtas), última postulación de cada código; monto = costo total de la etapa postulada, no lo gastado. Tres montos BIP con valores imposibles se dejaron sin monto. ANID: fallos 2019–2026 con región de ejecución La Araucanía. CORFO: proyectos InnovaChile adjudicados 2019–2026 (DataInnovación); en Ley I+D se usa el monto certificado.</p>';
   const via = FROWS[3][3], fom = FROWS[0][3], ene = FROWS[4][3];
+  $('#mk-fin-sub').textContent = `ANID, CORFO InnovaChile e iniciativas BIP agrupadas según la categoría del art. 8 a la que se parecen. Las categorías sin línea en la cartera no están vacías: se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. Sirve para no duplicar.`;
   // ejecutores
   const isIES = x => /Universidad|Instituto profesional|CFT/.test(x.sub);
   const topL = x => x.an.L.map((v, j) => [v, j]).filter(z => z[0] > 0).sort((p, q) => q[0] - p[0]).slice(0, 3).map(([v, j]) => `${LIN[j].k} ${v}`).join(' · ') || '–';
@@ -1564,15 +1571,10 @@ function renderMarco() {
     <details class="ler"><summary><b>Res. 1</b><span>Nómina completa de privadas sin fines de lucro, primer llamado 2026</span><small>${RES1.length} instituciones · ${RES1.filter(r => r.p).length} con presencia en la región</small></summary>
       <div class="tbl-wrap" style="max-height:420px;overflow-y:auto;margin-top:8px"><table><thead><tr><th>RUT</th><th>Institución</th><th>Presencia en La Araucanía (SII)</th></tr></thead><tbody>${[...RES1].sort((p, q) => (q.p ? 1 : 0) - (p.p ? 1 : 0) || p.n.localeCompare(q.n, 'es')).map(r => `<tr><td class="m">${r.r}</td><td>${esc(r.n)}${r.s ? `<span class="sm">${esc(r.s)}</span>` : ''}</td><td>${r.p ? esc(r.p + ' en ' + r.c.map(CN).join(', ')) : '<span class="sm">Sin registro en la nómina SII de la región</span>'}</td></tr>`).join('')}</tbody></table></div></details>
     <details class="ler"><summary><b>Res. 33</b><span>Instituciones que pueden recibir recursos de innovación, competitividad y CTCI (2024)</span><small>${RES33.length} categorías</small></summary><ol>${RES33.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>`;
-  $('#mk-cards').innerHTML = `
-    <div class="mcard"><span class="a">Lectura de la cartera</span><h3>${noN1 ? 'Ninguna línea usa el N°1 ni la infraestructura habilitante del N°2' : 'Cobertura de categorías'}</h3>
-      <p>La cartera concentra sus categorías en el N°3 y en las capacidades del N°2 (2d, 2e, 2g, 2h). Quedan sin línea el N°1 completo (convenios con SERCOTEC, CORFO o INDAP; productividad; eficiencia hídrica; adaptación) y las inversiones habilitantes 2a, 2b y 2c.</p>
-      <p>Esas categorías no están vacías en la región: entre 2019 y 2027 se postularon ${f0(via.length)} iniciativas BIP de conectividad (${mm(sumM(via))}), ${f0(fom.length)} programas de fomento (${mm(sumM(fom))}) y ${f0(ene.length)} de energía. El FRPD puede concentrarse en lo que esas fuentes no cubren.</p><p>Las capas de infraestructura muestran dónde siguen las brechas: ${pav15} comunas con menos de 15 % de su red vial pavimentada, ${pc(madR, 0)} de los puentes con tablero de madera y SAIDI más alto en ${esc(saidiTop.map(c => CN(c) + ' (' + f1(IN.saidi[c]) + ' h)').join(', '))}.</p></div>
-    <div class="mcard"><span class="a">Arts. 11 a 15</span><h3>Quién puede ejecutar</h3><ul>${FR.ejec.map(e => `<li><b style="color:var(--ink)">${esc(e.n)}</b> (${esc(e.a)}): ${esc(e.d)}</li>`).join('')}</ul></div>
-    <div class="mcard"><span class="a">Art. 10</span><h3>Qué no se puede financiar</h3><ul>${FR.art10.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"${l.k === 5 ? ' open' : ''}><summary><b>LER ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
+  $('#ler').innerHTML = FR.ler.map(l => `<details class="ler"><summary><b>LER ${l.k}</b><span>${esc(l.n)}</span><small>${l.oe.length} objetivos · ${pl(LINES.filter(x => x.ler.includes(l.k)).length, 'línea', 'líneas')}</small></summary>
     <p class="note" style="margin:6px 0 0 56px;max-width:90ch">${esc(focoCorto(l.foco))}</p><ol>${l.oe.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}</ol></details>`).join('');
 }
+$('#mk-rules').addEventListener('click', e => { if (e.target.closest('#mk-go-exe')) trOpenDet('#mk-exe-d'); });
 
 
 // ================= INICIATIVAS BIP =================
